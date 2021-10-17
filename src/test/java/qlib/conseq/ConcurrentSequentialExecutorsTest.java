@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.concurrent;
+package qlib.conseq;
 
+import qlib.conseq.ConcurrentSequentialExecutors;
 import java.util.concurrent.Executor;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -30,25 +31,25 @@ import static org.junit.jupiter.api.Assertions.*;
  *
  * @author q3769
  */
-public class SequentialExecutorsTest {
+public class ConcurrentSequentialExecutorsTest {
 
     @org.junit.jupiter.api.Test
     public void defaultConcurrencyShouldBeUnbound() {
-        SequentialExecutors target = SequentialExecutors.newBuilder().build();
+        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().build();
         assertEquals(Integer.MAX_VALUE, target.getMaxConcurrency());
     }
 
     @org.junit.jupiter.api.Test
     public void shouldHonorSpecifiedConcurrency() {
         int stubConcurrency = 5;
-        SequentialExecutors target = SequentialExecutors.newBuilder().withMaxConcurrency(stubConcurrency).build();
+        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(stubConcurrency).build();
         assertEquals(stubConcurrency, target.getMaxConcurrency());
     }
 
     @org.junit.jupiter.api.Test
     public void shouldReturnSameExcecutorOnSameName() {
         Object sequenceKey = new Object();
-        SequentialExecutors target = SequentialExecutors.newBuilder().build();
+        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().build();
 
         Executor e1 = target.getSequentialExecutor(sequenceKey);
         Executor e2 = target.getSequentialExecutor(sequenceKey);

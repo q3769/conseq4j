@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.concurrent;
+package qlib.conseq;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;

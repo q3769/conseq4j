@@ -21,18 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.concurrent;
-
-import java.util.concurrent.ExecutorService;
+package qlib.conseq;
 
 /**
  *
  * @author q3769
  */
-public interface SequentialExecutorServices {
+public interface ConsistentBucketHasher {
 
-    int getMaxConcurrency();
+    int hash(Object sequenceKey);
 
-    ExecutorService getSequentialExecutor(Object sequenceKey);
-
+    int getBuckets();
 }

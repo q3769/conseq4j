@@ -21,8 +21,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.concurrent;
+package qlib.conseq;
 
+import qlib.conseq.ConcurrentSequentialExecutors;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,9 +41,9 @@ import org.junit.jupiter.api.Test;
  *
  * @author q3769
  */
-public class SequentialExecutorsIntegrationTest {
+public class ConcurrentSequentialExecutorsIntegrationTest {
 
-    private static final Logger LOG = Logger.getLogger(SequentialExecutorsIntegrationTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutorsIntegrationTest.class.getName());
 
     private static final int MAX_CONCURRENCY = 100;
 
@@ -52,7 +53,7 @@ public class SequentialExecutorsIntegrationTest {
 
     @Test
     public void testRun() throws InterruptedException {
-        SequentialExecutors target = SequentialExecutors.newBuilder().withMaxConcurrency(MAX_CONCURRENCY).build();
+        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(MAX_CONCURRENCY).build();
         List<Future<String>> result = new ArrayList<>();
         Object seq1 = UUID.randomUUID();
         Object seq2 = UUID.randomUUID();
@@ -71,7 +72,7 @@ public class SequentialExecutorsIntegrationTest {
                 final Integer jobCount = threadJobCounts.get(threadId);
                 threadJobCounts.put(threadId, jobCount == null ? 1 : jobCount + 1);
             } catch (InterruptedException | ExecutionException ex) {
-                Logger.getLogger(SequentialExecutorsIntegrationTest.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ConcurrentSequentialExecutorsIntegrationTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
         LOG.log(Level.INFO, "Thread job counts : {0}", threadJobCounts);

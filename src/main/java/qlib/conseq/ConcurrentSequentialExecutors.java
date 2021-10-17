@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.concurrent;
+package qlib.conseq;
 
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
@@ -36,9 +36,9 @@ import java.util.logging.Logger;
  *
  * @author q3769
  */
-public class SequentialExecutors implements SequentialExecutorServices {
+public class ConcurrentSequentialExecutors implements ConSeq {
 
-    private static final Logger LOG = Logger.getLogger(SequentialExecutors.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutors.class.getName());
 
     public static Builder newBuilder() {
         return new Builder();
@@ -48,11 +48,11 @@ public class SequentialExecutors implements SequentialExecutorServices {
 
     private final ConsistentBucketHasher bucketHasher;
 
-    private SequentialExecutors(Integer maxConcurrency) {
+    private ConcurrentSequentialExecutors(Integer maxConcurrency) {
         this(DefaultBucketHasher.ofBuckets(maxConcurrency));
     }
 
-    private SequentialExecutors(ConsistentBucketHasher bucketHasher) {
+    private ConcurrentSequentialExecutors(ConsistentBucketHasher bucketHasher) {
         this.bucketHasher = Objects.requireNonNull(bucketHasher, "Bucket hasher cannot be null");
         this.executorCache = Caffeine.newBuilder()
                 .maximumSize(bucketHasher.getBuckets())
@@ -87,20 +87,20 @@ public class SequentialExecutors implements SequentialExecutorServices {
         private Builder() {
         }
 
-        public SequentialExecutors build() {
+        public ConcurrentSequentialExecutors build() {
             if (this.maxConcurrency != null && this.bucketHasher != null) {
                 throw new IllegalStateException("Concurrency and bucket hasher cannot be set at the same time");
             }
             if (this.maxConcurrency == null && this.bucketHasher == null) {
                 LOG.log(Level.INFO, "Using default bucket hasher with unbound bucket count");
-                return new SequentialExecutors(Integer.MAX_VALUE);
+                return new ConcurrentSequentialExecutors(Integer.MAX_VALUE);
             }
             if (this.maxConcurrency != null) {
                 LOG.log(Level.INFO, "Using default bucket hasher with max bucket count : {0}", this.maxConcurrency);
-                return new SequentialExecutors(this.maxConcurrency);
+                return new ConcurrentSequentialExecutors(this.maxConcurrency);
             }
             LOG.log(Level.WARNING, "Using customized bucket hasher : {0}", this.bucketHasher);
-            return new SequentialExecutors(this.bucketHasher);
+            return new ConcurrentSequentialExecutors(this.bucketHasher);
         }
 
         public Builder withMaxConcurrency(int maxConcurrency) {
