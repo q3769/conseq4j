@@ -36,7 +36,7 @@ import java.util.logging.Logger;
  *
  * @author q3769
  */
-public class ConcurrentSequentialExecutors implements ConSeq {
+public class ConcurrentSequentialExecutors implements ConcurrentSequencers {
 
     private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutors.class.getName());
 
