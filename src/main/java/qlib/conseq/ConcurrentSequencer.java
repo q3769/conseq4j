@@ -29,7 +29,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author q3769
  */
-public interface ConcurrentSequencers {
+public interface ConcurrentSequencer {
 
     int getMaxConcurrency();
 
