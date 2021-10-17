@@ -10,4 +10,14 @@
                 <snapshot>true</snapshot>
             </properties>
         </action>
+        <action>
+            <actionName>CUSTOM-incMinorSnapshot</actionName>
+            <displayName>incMinorSnapshot</displayName>
+            <goals>
+                <goal>semver:minor</goal>
+            </goals>
+            <properties>
+                <snapshot>true</snapshot>
+            </properties>
+        </action>
     </actions>
