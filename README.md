@@ -23,7 +23,7 @@ implementation 'io.github.q3769.qlib:conseq:20211017.2.0'
 See test code but here's a gist
 ```
     @Test
-    public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
+    public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE; // Default max concurrency is "unbound".
         Collection<Runnable> runnableTasks = spyingRunnables(TASK_COUNT, TASK_DURATION);
@@ -34,17 +34,19 @@ See test code but here's a gist
             final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(). Of course, the instance is reused under the same seqence key. So yes, your task can be a Runnable, a Callable, or whatever ExecutorService supports.
             sequentialExecutor.execute(action);
         });
+        Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE_MILLIS);
 
         Set<String> runThreadNames = runnableTasks.stream().map(action -> ((SpyingRunnableTask) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater than total tasks.
     }
+
 ```
 
 ```
     @Test
-    public void conseqShouldBeBoundByMaxMaxConcurrency() {
+    public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build();
         Collection<Callable> callableTasks = spyingCallables(TASK_COUNT, TASK_DURATION);
@@ -53,6 +55,7 @@ See test code but here's a gist
             SpyingCallableTask action = (SpyingCallableTask) task;
             maxConcurrencyBoundConseq.getSequentialExecutor(action.getSequenceKey()).submit(action);
         });
+        Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE_MILLIS);
 
         Set<String> runThreadNames = callableTasks.stream().map(action -> ((SpyingCallableTask) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
@@ -84,6 +87,6 @@ See test code but here's a gist
         assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
         long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunEndNanos()).max().orElseThrow();
         long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunStartNanos()).min().orElseThrow();
-        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, scientifically this is not enough to prove the exact order but you get the idea...
+        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, scientifically this is not enough to prove the global order but you get the idea...
     }
 ```
