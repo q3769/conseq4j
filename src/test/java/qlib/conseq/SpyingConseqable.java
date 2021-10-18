@@ -27,7 +27,7 @@ package qlib.conseq;
  *
  * @author q3769
  */
-public interface TestConseqable {
+public interface SpyingConseqable {
 
     Object getSequenceKey();
 

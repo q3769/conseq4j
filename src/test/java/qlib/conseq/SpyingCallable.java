@@ -32,7 +32,7 @@ import java.util.concurrent.Callable;
  *
  * @author q3769
  */
-class SpyingCallable implements Callable<Object>, TestConseqable {
+class SpyingCallable implements Callable<Object>, SpyingConseqable {
 
     private final UUID id = UUID.randomUUID();
     private final Object correlationId;

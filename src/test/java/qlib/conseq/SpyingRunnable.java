@@ -33,7 +33,7 @@ import java.util.logging.Logger;
  *
  * @author q3769
  */
-class SpyingRunnable implements Runnable, TestConseqable {
+class SpyingRunnable implements Runnable, SpyingConseqable {
 
     private static final Logger LOG = Logger.getLogger(SpyingRunnable.class.getName());
     private final UUID id = UUID.randomUUID();
