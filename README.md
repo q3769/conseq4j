@@ -55,7 +55,7 @@ See test code but here's a gist
         Set<String> runThreadNames = callableTasks.stream().map(action -> ((TestCallable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(totalRunThreads <= maxConcurrency); // If as most likely your max concurrency is set to be smaller than your tasks, the total number of concurrent threads to have run your tasks is bound by the max concurrency you set.
+        assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, your max concurrency is set to be smaller than your potential tasks, then the total number of concurrent threads to have run your tasks will be bound by the max concurrency you set.
     }
 ```
 
