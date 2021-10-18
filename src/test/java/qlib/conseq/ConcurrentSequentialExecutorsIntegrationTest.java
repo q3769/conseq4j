@@ -102,7 +102,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         Set<String> runThreadNames = allTasks.stream().map(task -> ((TestConseqable) task).getRunThreadName()).collect(Collectors.toSet());
         assertEquals(1L, runThreadNames.size());
         long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((TestCallable) task).getRunEndNanos()).max().orElseThrow();
-        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((TestCallable) task).getRunStartNanos()).max().orElseThrow();
+        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((TestCallable) task).getRunStartNanos()).min().orElseThrow();
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks);
     }
 
