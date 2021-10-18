@@ -58,7 +58,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         runnableTasks.stream().forEach((Runnable task) -> {
             SpyingRunnableTask action = (SpyingRunnableTask) task;
             final Object sequenceKey = action.getSequenceKey(); // Sequence key can come from anywhere but recall that same sequence key means sqeuential execution of the tasks behind a (physically or logically) single thread.
-            final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(). Of course, the same instance is reused under the same seqence key. So yes, your task can be a Runnable, a Callable, or whatever ExecutorService supports.
+            final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(); of course, the same instance is reused when summoned by the same seqence key. So yes, your task can be a Runnable, a Callable, or whatever ExecutorService supports.
             sequentialExecutor.execute(action);
         });
         Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE_MILLIS);
