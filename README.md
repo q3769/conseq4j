@@ -30,7 +30,7 @@ See test code but here's a gist
         
         runnableTasks.stream().forEach((Runnable task) -> {
             TestRunnable action = (TestRunnable) task;
-            defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action); // Sequence key can come from anywhere but recall that same sequence key means sqeuential executions of the tasks behind a logical single thread
+            defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action); // Sequence key can come from anywhere but recall that same sequence key means sqeuential execution of the tasks behind a logical single thread
         });
         
         Set<String> runThreadNames = runnableTasks.stream().map(action -> ((TestRunnable) action).getRunThreadName()).collect(Collectors.toSet());
