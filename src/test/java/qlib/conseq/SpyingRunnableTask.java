@@ -24,8 +24,6 @@
 package qlib.conseq;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,58 +31,25 @@ import java.util.logging.Logger;
  *
  * @author q3769
  */
-class SpyingRunnable implements Runnable, SpyingConseqable {
+class SpyingRunnableTask extends AbstractSpyingConseqable implements Runnable {
 
-    private static final Logger LOG = Logger.getLogger(SpyingRunnable.class.getName());
-    private final UUID id = UUID.randomUUID();
-    private final Object correlationId;
-    private Long runStartNanos;
-    private Long runEndNanos;
-    private final Duration minRunDuration;
-    private String runTreadName;
+    private static final Logger LOG = Logger.getLogger(SpyingRunnableTask.class.getName());
 
-    public SpyingRunnable(Object correlationId, Duration minRunTime) {
-        this.correlationId = correlationId;
-        this.minRunDuration = minRunTime;
-    }
-
-    public Object getCorrelationId() {
-        return correlationId;
-    }
-
-    public Long getRunStartNanos() {
-        return runStartNanos;
-    }
-
-    public Long getRunEndNanos() {
-        return runEndNanos;
-    }
-
-    public Duration getMinRunDuration() {
-        return minRunDuration;
+    public SpyingRunnableTask(Object correlationId, Duration taskRunDuration) {
+        super(correlationId, taskRunDuration);
     }
 
     @Override
     public void run() {
         this.runStartNanos = System.nanoTime();
-        this.runTreadName = Thread.currentThread().getName();
+        this.runThreadName = Thread.currentThread().getName();
         try {
-            Thread.sleep(this.minRunDuration.get(ChronoUnit.SECONDS) * 1000);
+            Thread.sleep(this.threadRunDurationMillis());
         } catch (InterruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
         this.runEndNanos = System.nanoTime();
         LOG.log(Level.INFO, "Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.getRunThreadName()});
-    }
-
-    @Override
-    public Object getSequenceKey() {
-        return this.getCorrelationId();
-    }
-
-    @Override
-    public String getRunThreadName() {
-        return this.runTreadName;
     }
 
 }

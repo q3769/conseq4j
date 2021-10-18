@@ -24,26 +24,24 @@
 package qlib.conseq;
 
 import java.time.Duration;
-import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
 /**
  *
- * @author q3769
+ * @author QingtianWang
  */
-class SpyingCallable implements Callable<Object>, SpyingConseqable {
+public abstract class AbstractSpyingConseqable implements SpyingConseqable {
 
-    private final UUID id = UUID.randomUUID();
-    private final Object correlationId;
-    private Long runStartNanos;
-    private Long runEndNanos;
-    private final Duration minRunDuration;
-    private String runThreadName;
+    protected final UUID id = UUID.randomUUID();
+    protected final Object correlationId;
+    protected Long runStartNanos;
+    protected Long runEndNanos;
+    protected final Duration taskRunDuration;
+    protected String runThreadName;
 
-    public SpyingCallable(Object correlationId, Duration minRunTime) {
+    public AbstractSpyingConseqable(Object correlationId, Duration taskRunDuration) {
         this.correlationId = correlationId;
-        this.minRunDuration = minRunTime;
+        this.taskRunDuration = taskRunDuration;
     }
 
     public UUID getId() {
@@ -67,17 +65,8 @@ class SpyingCallable implements Callable<Object>, SpyingConseqable {
         return runEndNanos;
     }
 
-    public Duration getMinRunDuration() {
-        return minRunDuration;
-    }
-
-    @Override
-    public String call() throws Exception {
-        this.runStartNanos = System.nanoTime();
-        this.runThreadName = Thread.currentThread().getName();
-        Thread.sleep(this.minRunDuration.get(ChronoUnit.SECONDS) * 1000);
-        this.runEndNanos = System.nanoTime();
-        return String.format("Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.getRunThreadName()});
+    public Duration getTaskRunDuration() {
+        return this.taskRunDuration;
     }
 
     @Override
@@ -85,4 +74,7 @@ class SpyingCallable implements Callable<Object>, SpyingConseqable {
         return this.getCorrelationId();
     }
 
+    protected long threadRunDurationMillis() {
+        return this.taskRunDuration.getSeconds() * 1000;
+    }
 }
