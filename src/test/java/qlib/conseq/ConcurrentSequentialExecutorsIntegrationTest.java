@@ -53,12 +53,12 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE;
         Collection<Runnable> runnableTasks = stubRunnables(TASK_COUNT, TASK_DURATION);
-        
+
         runnableTasks.stream().forEach((Runnable task) -> {
             TestRunnable action = (TestRunnable) task;
             defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action);
         });
-        
+
         Set<String> runThreadNames = runnableTasks.stream().map(action -> ((TestRunnable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
@@ -70,16 +70,16 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build();
         Collection<Callable> callableTasks = stubCallables(TASK_COUNT, TASK_DURATION);
-        
+
         callableTasks.stream().forEach((Callable task) -> {
             TestCallable action = (TestCallable) task;
             maxConcurrencyBoundConseq.getSequentialExecutor(action.getSequenceKey()).submit(action);
         });
-        
+
         Set<String> runThreadNames = callableTasks.stream().map(action -> ((TestCallable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(runThreadNames.size() <= maxConcurrency);
+        assertTrue(totalRunThreads <= maxConcurrency);
     }
 
     @Test
@@ -90,7 +90,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         Collection<Callable> regularTasks = stubCallables(regularTaskCount, TASK_DURATION);
         Collection<Callable> quickTasks = stubCallables(quickTaskCount, TASK_DURATION_QUICK);
         Object sequenceKey = UUID.randomUUID();
-        
+
         regularTasks.stream().forEach((Callable task) -> {
             defaultConseq.getSequentialExecutor(sequenceKey).submit(task);
         });
