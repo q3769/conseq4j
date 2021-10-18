@@ -99,7 +99,7 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
                 LOG.log(Level.INFO, "Using default bucket hasher with max bucket count : {0}", this.maxConcurrency);
                 return new ConcurrentSequentialExecutors(this.maxConcurrency);
             }
-            LOG.log(Level.WARNING, "Using customized bucket hasher : {0}", this.bucketHasher);
+            LOG.log(Level.WARNING, "Using customized bucket hasher : {0} with max bucket count : {1}", new Object[]{this.bucketHasher, this.bucketHasher.getBuckets()});
             return new ConcurrentSequentialExecutors(this.bucketHasher);
         }
 
