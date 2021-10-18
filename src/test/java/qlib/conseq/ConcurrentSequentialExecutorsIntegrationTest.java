@@ -106,7 +106,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         assertEquals(1L, runThreadNames.size()); // Same sequence key, therefore, same executor thread.
         long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunEndNanos()).max().orElseThrow();
         long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunStartNanos()).min().orElseThrow();
-        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this won't test out the sequential order scientifically but you get the idea...
+        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, scientifically this is not enough to prove the exact order but you get the idea...
     }
 
     private Collection<Runnable> spyingRunnables(int taskCount, Duration taskDuration) {
