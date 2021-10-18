@@ -6,7 +6,7 @@
     <version>20211017.2.0</version>
     <packaging>jar</packaging>
     <name>conseq (Concurrent Sequencer)</name>
-    <description>JAVA API lib to sequence related tasks while concurring unrelated ones</description>
+    <description>A Java API to sequence related tasks while concurring unrelated ones</description>
     <url>https://github.com/q3769/qlib-conseq</url>
     <licenses>
         <license>
