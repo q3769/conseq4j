@@ -26,7 +26,7 @@ See test code but here's a gist
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE; // Default max concurrency is "unbound"
-        Collection<Runnable> runnableTasks = stubRunnables(TASK_COUNT, TASK_DURATION);
+        Collection<Runnable> runnableTasks = spyingRunnables(TASK_COUNT, TASK_DURATION);
         
         runnableTasks.stream().forEach((Runnable task) -> {
             TestRunnable action = (TestRunnable) task;
@@ -36,7 +36,7 @@ See test code but here's a gist
         Set<String> runThreadNames = runnableTasks.stream().map(action -> ((TestRunnable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(totalRunThreads <= TASK_COUNT); // Even "unbound" by default, concurrency won't be greater than total tasks
+        assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater than total tasks.
     }
 ```
 
@@ -45,7 +45,7 @@ See test code but here's a gist
     public void conseqShouldBeBoundByMaxMaxConcurrency() {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build(); // Set your own max concurrency
-        Collection<Callable> callableTasks = stubCallables(TASK_COUNT, TASK_DURATION);
+        Collection<Callable> callableTasks = spyingCallables(TASK_COUNT, TASK_DURATION);
         
         callableTasks.stream().forEach((Callable task) -> {
             TestCallable action = (TestCallable) task;
@@ -55,7 +55,7 @@ See test code but here's a gist
         Set<String> runThreadNames = callableTasks.stream().map(action -> ((TestCallable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, your max concurrency is set to be smaller than your potential tasks, then the total number of concurrent threads to have run your tasks will be bound by the max concurrency you set.
+        assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, your max concurrency (think "max thread pool size") is set to be smaller than your potential tasks, then the total number of concurrent threads to have run your tasks will be bound by the max concurrency you set.
     }
 ```
 
@@ -65,8 +65,8 @@ See test code but here's a gist
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         int quickTaskCount = TASK_COUNT;
         int regularTaskCount = TASK_COUNT;
-        Collection<Callable> regularTasks = stubCallables(regularTaskCount, TASK_DURATION);
-        Collection<Callable> quickTasks = stubCallables(quickTaskCount, TASK_DURATION_QUICK);
+        Collection<Callable> regularTasks = spyingCallables(regularTaskCount, TASK_DURATION);
+        Collection<Callable> quickTasks = spyingCallables(quickTaskCount, TASK_DURATION_QUICK);
         Object sequenceKey = UUID.randomUUID(); // Same sequence key
         
         regularTasks.stream().forEach((Callable task) -> {
