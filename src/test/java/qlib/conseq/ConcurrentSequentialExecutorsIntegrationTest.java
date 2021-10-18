@@ -52,14 +52,14 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE;
-        Collection<Runnable> runnableTasks = stubRunnables(TASK_COUNT, TASK_DURATION);
+        Collection<Runnable> runnableTasks = spyingRunnables(TASK_COUNT, TASK_DURATION);
 
         runnableTasks.stream().forEach((Runnable task) -> {
-            TestRunnable action = (TestRunnable) task;
+            SpyingRunnable action = (SpyingRunnable) task;
             defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action);
         });
 
-        Set<String> runThreadNames = runnableTasks.stream().map(action -> ((TestRunnable) action).getRunThreadName()).collect(Collectors.toSet());
+        Set<String> runThreadNames = runnableTasks.stream().map(action -> ((SpyingRunnable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= TASK_COUNT);
@@ -69,14 +69,14 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     public void conseqShouldBeBoundByMaxMaxConcurrency() {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build();
-        Collection<Callable> callableTasks = stubCallables(TASK_COUNT, TASK_DURATION);
+        Collection<Callable> callableTasks = spyingCallables(TASK_COUNT, TASK_DURATION);
 
         callableTasks.stream().forEach((Callable task) -> {
-            TestCallable action = (TestCallable) task;
+            SpyingCallable action = (SpyingCallable) task;
             maxConcurrencyBoundConseq.getSequentialExecutor(action.getSequenceKey()).submit(action);
         });
 
-        Set<String> runThreadNames = callableTasks.stream().map(action -> ((TestCallable) action).getRunThreadName()).collect(Collectors.toSet());
+        Set<String> runThreadNames = callableTasks.stream().map(action -> ((SpyingCallable) action).getRunThreadName()).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= maxConcurrency);
@@ -87,8 +87,8 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
         int quickTaskCount = TASK_COUNT;
         int regularTaskCount = TASK_COUNT;
-        Collection<Callable> regularTasks = stubCallables(regularTaskCount, TASK_DURATION);
-        Collection<Callable> quickTasks = stubCallables(quickTaskCount, TASK_DURATION_QUICK);
+        Collection<Callable> regularTasks = spyingCallables(regularTaskCount, TASK_DURATION);
+        Collection<Callable> quickTasks = spyingCallables(quickTaskCount, TASK_DURATION_QUICK);
         Object sequenceKey = UUID.randomUUID();
 
         regularTasks.stream().forEach((Callable task) -> {
@@ -101,23 +101,23 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         Collection<Callable> allTasks = Stream.of(regularTasks, quickTasks).flatMap(Collection::stream).collect(Collectors.toList());
         Set<String> runThreadNames = allTasks.stream().map(task -> ((TestConseqable) task).getRunThreadName()).collect(Collectors.toSet());
         assertEquals(1L, runThreadNames.size());
-        long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((TestCallable) task).getRunEndNanos()).max().orElseThrow();
-        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((TestCallable) task).getRunStartNanos()).min().orElseThrow();
+        long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunEndNanos()).max().orElseThrow();
+        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunStartNanos()).min().orElseThrow();
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks);
     }
 
-    private Collection<Runnable> stubRunnables(int taskCount, Duration taskDuration) {
+    private Collection<Runnable> spyingRunnables(int taskCount, Duration taskDuration) {
         Collection<Runnable> runnableTasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
-            runnableTasks.add(new TestRunnable(UUID.randomUUID(), taskDuration));
+            runnableTasks.add(new SpyingRunnable(UUID.randomUUID(), taskDuration));
         }
         return runnableTasks;
     }
 
-    private Collection<Callable> stubCallables(int taskCount, Duration taskDuration) {
+    private Collection<Callable> spyingCallables(int taskCount, Duration taskDuration) {
         Collection<Callable> callableTasks = new ArrayList<>();
         for (int i = 0; i < taskCount; i++) {
-            callableTasks.add(new TestCallable(UUID.randomUUID(), taskDuration));
+            callableTasks.add(new SpyingCallable(UUID.randomUUID(), taskDuration));
         }
         return callableTasks;
     }

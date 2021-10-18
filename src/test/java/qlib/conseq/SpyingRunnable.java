@@ -26,33 +26,26 @@ package qlib.conseq;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 import java.util.UUID;
-import java.util.concurrent.Callable;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * @author q3769
  */
-class TestCallable implements Callable<Object>, TestConseqable {
+class SpyingRunnable implements Runnable, TestConseqable {
 
+    private static final Logger LOG = Logger.getLogger(SpyingRunnable.class.getName());
     private final UUID id = UUID.randomUUID();
     private final Object correlationId;
     private Long runStartNanos;
     private Long runEndNanos;
     private final Duration minRunDuration;
-    private String runThreadName;
+    private String runTreadName;
 
-    public TestCallable(Object correlationId, Duration minRunTime) {
+    public SpyingRunnable(Object correlationId, Duration minRunTime) {
         this.correlationId = correlationId;
         this.minRunDuration = minRunTime;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    @Override
-    public String getRunThreadName() {
-        return runThreadName;
     }
 
     public Object getCorrelationId() {
@@ -72,17 +65,26 @@ class TestCallable implements Callable<Object>, TestConseqable {
     }
 
     @Override
-    public String call() throws Exception {
+    public void run() {
         this.runStartNanos = System.nanoTime();
-        this.runThreadName = Thread.currentThread().getName();
-        Thread.sleep(this.minRunDuration.get(ChronoUnit.SECONDS) * 1000);
+        this.runTreadName = Thread.currentThread().getName();
+        try {
+            Thread.sleep(this.minRunDuration.get(ChronoUnit.SECONDS) * 1000);
+        } catch (InterruptedException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
         this.runEndNanos = System.nanoTime();
-        return String.format("Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.getRunThreadName()});
+        LOG.log(Level.INFO, "Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.getRunThreadName()});
     }
 
     @Override
     public Object getSequenceKey() {
         return this.getCorrelationId();
+    }
+
+    @Override
+    public String getRunThreadName() {
+        return this.runTreadName;
     }
 
 }
