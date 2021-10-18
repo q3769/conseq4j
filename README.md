@@ -30,7 +30,7 @@ See test code but here's a gist
         
         runnableTasks.stream().forEach((Runnable task) -> {
             TestRunnable action = (TestRunnable) task;
-            defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action); // Sequence key can come from anywhere but recall that same sequence key means sqeuential executions behind a logical single thread
+            defaultConseq.getSequentialExecutor(action.getSequenceKey()).execute(action); // Sequence key can come from anywhere but recall that same sequence key means sqeuential executions of the tasks behind a logical single thread
         });
         
         Set<String> runThreadNames = runnableTasks.stream().map(action -> ((TestRunnable) action).getRunThreadName()).collect(Collectors.toSet());
@@ -49,7 +49,7 @@ See test code but here's a gist
         
         callableTasks.stream().forEach((Callable task) -> {
             TestCallable action = (TestCallable) task;
-            maxConcurrencyBoundConseq.getSequentialExecutor(action.getSequenceKey()).submit(action); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(), of course, reused under the same seqence key. So yes, your task can be a Runnable, a Callable, or whatever ExecutorService supports.
+            maxConcurrencyBoundConseq.getSequentialExecutor(action.getSequenceKey()).submit(action); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(). Of course, the instance is reused under the same seqence key. So yes, your task can be a Runnable, a Callable, or whatever ExecutorService supports.
         });
         
         Set<String> runThreadNames = callableTasks.stream().map(action -> ((TestCallable) action).getRunThreadName()).collect(Collectors.toSet());
@@ -74,7 +74,7 @@ See test code but here's a gist
         }); // Slower tasks first
         quickTasks.stream().forEach((Callable task) -> {
             defaultConseq.getSequentialExecutor(sequenceKey).submit(task);
-        }); // Faster tasks later but none of the faster ones should be executed until all slower ones are done
+        }); // Faster tasks later so none of the faster ones should be executed until all slower ones are done
 
         Collection<Callable> allTasks = Stream.of(regularTasks, quickTasks).flatMap(Collection::stream).collect(Collectors.toList());
         Set<String> runThreadNames = allTasks.stream().map(task -> ((TestConseqable) task).getRunThreadName()).collect(Collectors.toSet());
