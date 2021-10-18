@@ -33,8 +33,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
@@ -86,24 +85,25 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     }
 
     @Test
-    public void conseqShouldRunRelatedTasksInOrder() {
+    public void conseqShouldRunRelatedTasksInOrder() throws InterruptedException {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
-        int quickTaskCount = TASK_COUNT;
         int regularTaskCount = TASK_COUNT;
+        int quickTaskCount = TASK_COUNT;
         Collection<Callable> regularTasks = spyingCallables(regularTaskCount, TASK_DURATION);
         Collection<Callable> quickTasks = spyingCallables(quickTaskCount, TASK_DURATION_QUICK);
         Object sequenceKey = UUID.randomUUID();
+        final ExecutorService regularTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
+        final ExecutorService quickTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Same sequence key
 
         regularTasks.stream().forEach((Callable task) -> {
-            defaultConseq.getSequentialExecutor(sequenceKey).submit(task);
+            regularTaskExecutor.submit(task);
         }); // Slower tasks first
         quickTasks.stream().forEach((Callable task) -> {
-            defaultConseq.getSequentialExecutor(sequenceKey).submit(task); // Same sequence key
+            quickTaskExecutor.submit(task);
         }); // Faster tasks later so none of the faster ones should be executed until all slower ones are done
+        Thread.sleep(TASK_DURATION.getSeconds() * 1000);
 
-        Collection<Callable> allTasks = Stream.of(regularTasks, quickTasks).flatMap(Collection::stream).collect(Collectors.toList());
-        Set<String> runThreadNames = allTasks.stream().map(task -> ((SpyingConseqable) task).getRunThreadName()).collect(Collectors.toSet());
-        assertEquals(1L, runThreadNames.size()); // Same sequence key, therefore, same executor thread.
+        assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
         long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunEndNanos()).max().orElseThrow();
         long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallable) task).getRunStartNanos()).min().orElseThrow();
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, scientifically this is not enough to prove the exact order but you get the idea...
