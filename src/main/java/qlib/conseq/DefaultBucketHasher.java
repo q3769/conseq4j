@@ -39,36 +39,36 @@ public class DefaultBucketHasher implements ConsistentBucketHasher {
     public static DefaultBucketHasher ofBuckets(int buckets) {
         return new DefaultBucketHasher(buckets);
     }
-    private final int buckets;
+    private final int totalBuckets;
 
-    private DefaultBucketHasher(Integer buckets) { 
-        this.buckets = Objects.requireNonNull(buckets, "Max bucket count cannot be null");
+    private DefaultBucketHasher(Integer totalBuckets) {
+        this.totalBuckets = Objects.requireNonNull(totalBuckets, "Max bucket count cannot be null");
     }
 
     @Override
-    public int hash(Object sequenceKey) {
+    public int hashToBucket(Object sequenceKey) {
         Objects.requireNonNull(sequenceKey, "Sequence key cannot be null");
         if (sequenceKey instanceof CharSequence) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars((CharSequence) sequenceKey), this.buckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars((CharSequence) sequenceKey), this.totalBuckets);
         }
         if (sequenceKey instanceof Long) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.buckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.totalBuckets);
         }
         if (sequenceKey instanceof Integer) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashInt((Integer) sequenceKey), this.buckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashInt((Integer) sequenceKey), this.totalBuckets);
         }
         if (sequenceKey instanceof byte[]) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((byte[]) sequenceKey), this.buckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((byte[]) sequenceKey), this.totalBuckets);
         }
         if (sequenceKey instanceof ByteBuffer) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((ByteBuffer) sequenceKey), this.buckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((ByteBuffer) sequenceKey), this.totalBuckets);
         }
-        return Hashing.consistentHash(HASH_FUNCTION.hashInt(sequenceKey.hashCode()), this.buckets);
+        return Hashing.consistentHash(HASH_FUNCTION.hashInt(sequenceKey.hashCode()), this.totalBuckets);
     }
 
     @Override
-    public int getBuckets() {
-        return this.buckets;
+    public int getTotalBuckets() {
+        return this.totalBuckets;
     }
 
 }

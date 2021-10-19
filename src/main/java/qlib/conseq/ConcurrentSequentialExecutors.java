@@ -55,18 +55,18 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
     private ConcurrentSequentialExecutors(ConsistentBucketHasher bucketHasher) {
         this.bucketHasher = Objects.requireNonNull(bucketHasher, "Bucket hasher cannot be null");
         this.executorCache = Caffeine.newBuilder()
-                .maximumSize(bucketHasher.getBuckets())
+                .maximumSize(bucketHasher.getTotalBuckets())
                 .build(new SequentialExecutorServiceLoader());
     }
 
     @Override
     public int getMaxConcurrency() {
-        return this.bucketHasher.getBuckets();
+        return this.bucketHasher.getTotalBuckets();
     }
 
     @Override
     public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.executorCache.get(this.bucketHasher.hash(sequenceKey));
+        return this.executorCache.get(this.bucketHasher.hashToBucket(sequenceKey));
     }
 
     private static class SequentialExecutorServiceLoader implements CacheLoader<Integer, ExecutorService> {
@@ -99,7 +99,7 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
                 LOG.log(Level.INFO, "Using default bucket hasher with max bucket count : {0}", this.maxConcurrency);
                 return new ConcurrentSequentialExecutors(this.maxConcurrency);
             }
-            LOG.log(Level.WARNING, "Using customized bucket hasher : {0} with max bucket count : {1}", new Object[]{this.bucketHasher, this.bucketHasher.getBuckets()});
+            LOG.log(Level.WARNING, "Using customized bucket hasher : {0} with max bucket count : {1}", new Object[]{this.bucketHasher, this.bucketHasher.getTotalBuckets()});
             return new ConcurrentSequentialExecutors(this.bucketHasher);
         }
 

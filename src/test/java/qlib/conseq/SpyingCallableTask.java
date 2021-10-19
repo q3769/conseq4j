@@ -38,11 +38,11 @@ class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<Ob
 
     @Override
     public String call() throws Exception {
-        this.runStartNanos = System.nanoTime();
+        this.runStartTimeNanos = System.nanoTime();
         this.runThreadName = Thread.currentThread().getName();
         Thread.sleep(threadRunDurationMillis());
-        this.runEndNanos = System.nanoTime();
-        return String.format("Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.getRunThreadName()});
+        this.runEndTimeNanos = System.nanoTime();
+        return String.format("Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.runThreadName});
     }
 
 }

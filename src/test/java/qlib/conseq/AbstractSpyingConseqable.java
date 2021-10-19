@@ -34,8 +34,8 @@ public abstract class AbstractSpyingConseqable implements SpyingConseqable {
 
     protected final UUID id = UUID.randomUUID();
     protected final Object correlationId;
-    protected Long runStartNanos;
-    protected Long runEndNanos;
+    protected Long runStartTimeNanos;
+    protected Long runEndTimeNanos;
     protected final Duration taskRunDuration;
     protected String runThreadName;
 
@@ -57,12 +57,12 @@ public abstract class AbstractSpyingConseqable implements SpyingConseqable {
         return correlationId;
     }
 
-    public Long getRunStartNanos() {
-        return runStartNanos;
+    public Long getRunStartTimeNanos() {
+        return runStartTimeNanos;
     }
 
-    public Long getRunEndNanos() {
-        return runEndNanos;
+    public Long getRunEndTimeNanos() {
+        return runEndTimeNanos;
     }
 
     public Duration getTaskRunDuration() {

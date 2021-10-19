@@ -29,7 +29,7 @@ package qlib.conseq;
  */
 public interface ConsistentBucketHasher {
 
-    int hash(Object sequenceKey);
+    int hashToBucket(Object sequenceKey);
 
-    int getBuckets();
+    int getTotalBuckets();
 }
