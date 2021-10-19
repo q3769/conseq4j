@@ -11,7 +11,7 @@ Java 8 or better
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq</artifactId>
-    <version>20211017.2.0</version>
+    <version>20211019.0.0</version>
 </dependency>
 ```
 ### In Gradle
