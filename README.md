@@ -16,7 +16,7 @@ Java 8 or better
 ```
 ### In Gradle
 ```
-implementation 'io.github.q3769.qlib:conseq:20211017.2.0'
+implementation 'io.github.q3769.qlib:conseq:20211019.0.0'
 ```
 
 ## Use it...
