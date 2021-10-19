@@ -6,7 +6,7 @@ As a client of this Java API, I want to summon a thread/executor by a sequence k
 Java 8 or better
 
 ## Get it...
-### In Maven
+In Maven
 ```
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
@@ -14,7 +14,7 @@ Java 8 or better
     <version>20211019.0.0</version>
 </dependency>
 ```
-### In Gradle
+In Gradle
 ```
 implementation 'io.github.q3769.qlib:conseq:20211019.0.0'
 ```
