@@ -41,7 +41,6 @@ See test code but here's a gist
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater than total tasks.
     }
-
 ```
 
 ```
@@ -85,8 +84,8 @@ See test code but here's a gist
         Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE_MILLIS);
 
         assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
-        long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunEndNanos()).max().orElseThrow();
-        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunStartNanos()).min().orElseThrow();
+        long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunEndTimeNanos()).max().orElseThrow();
+        long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunStartTimeNanos()).min().orElseThrow();
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this is not enough to logically prove the global order but you get the idea...
     }
 ```
