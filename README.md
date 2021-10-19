@@ -87,6 +87,6 @@ See test code but here's a gist
         assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
         long latestCompleteTimeOfRegularTasks = regularTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunEndNanos()).max().orElseThrow();
         long earliestStartTimeOfQuickTasks = quickTasks.stream().mapToLong(task -> ((SpyingCallableTask) task).getRunStartNanos()).min().orElseThrow();
-        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, scientifically this is not enough to prove the global order but you get the idea...
+        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this is not enough to logically prove the global order but you get the idea...
     }
 ```
