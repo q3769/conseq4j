@@ -46,7 +46,7 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a t-shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad and knocked over your beer). Can you guess why that happened? 
+As it turned out, with Setup 2, the shopper actually received a t-shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad, and knocked over your beer). Can you guess why that happened? 
 
 So what then? Going back to Setup 1? Well... you could use a "conseq" instead, as in Setup 3:
 ### Setup 3
