@@ -22,7 +22,7 @@ implementation 'io.github.q3769.qlib:conseq:20211020.0.0'
 ## Use it...
 For those that are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider usually would make sure messages are delivered to the `onMessage` method in the same order the the provider received them, and won't deliver the next message until the first call to `onMessage` returns. So this all fine and good. Logically all messages are consumed in a single-thread fashion in the same/correct order as they are delivered. But globally processing all messages one after another is a bit slow, isn't it?
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (e.g. an EMS queue, a Kafka topic, ...) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received by the provider, and won't deliver the next message until the first call to `onMessage` returns. Logically all messages are consumed in a single-thread fashion in the same/correct order as they are delivered. This is fine but processing all messages in a globally sequential order is a bit slow, isn't it?
 ### Setup 1
 ```
 public class MessageConsumer {
@@ -35,7 +35,7 @@ public class MessageConsumer {
     }
     ...
 ```
-To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters: Imagine the order is for a t-shirt, and the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on Medium. The 10 size changing events got posted to the message provider (e.g. an EMS queue, a Kafka topic, ...) in the same order the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held by the message provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
+To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters: Imagine a shopping order is for a t-shirt, and the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on Medium. The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
 ### Setup 2
 ```
 public class MessageConsumer {
@@ -62,7 +62,7 @@ public class MessageConsumer {
 
 Full disclosure, in a concurrent system there are generally two approaches to ensure correct order of message consumption 
 1. Proactive/Prevent: This is on the technical level, making sure that related events are never processed out of order, e.g. by using a sequence/correlation key with this API as in Setup 3.
-2. Reactive/Cure: This is on business rule level. Accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already. Now the job is to "cure" the order based on business rules, this can be much more complex both in terms of coding and runtime performance. E.g. in Setup 2, a history/persistent-store check on the time stamps of all the events for the same order in question could help put things back to order.
+2. Reactive/Cure: This is on business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already. Now the job is to "cure" the order based on business rules, this can be much more complex both in terms of coding and runtime performance. E.g. in Setup 2, a history/persistent-store check on the time stamps of all the events for the same order in question could help put things back in order.
 
 For more details of this API, see test code but here's a gist
 ```
