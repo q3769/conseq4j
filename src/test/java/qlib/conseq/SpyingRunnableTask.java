@@ -35,21 +35,17 @@ class SpyingRunnableTask extends AbstractSpyingConseqable implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(SpyingRunnableTask.class.getName());
 
-    public SpyingRunnableTask(Object correlationId, Duration taskRunDuration) {
-        super(correlationId, taskRunDuration);
+    public SpyingRunnableTask(SpyingTaskPayload taskInputItem, Duration taskRunDuration) {
+        super(taskInputItem, taskRunDuration);
     }
 
     @Override
     public void run() {
-        this.runStartTimeNanos = System.nanoTime();
-        this.runThreadName = Thread.currentThread().getName();
         try {
-            Thread.sleep(this.threadRunDurationMillis());
+            doRun();
         } catch (InterruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
         }
-        this.runEndTimeNanos = System.nanoTime();
-        LOG.log(Level.INFO, "Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.runThreadName});
     }
 
 }

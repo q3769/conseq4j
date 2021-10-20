@@ -1,7 +1,7 @@
 /*
  * The MIT License
  *
- * Copyright 2021 QingtianWang.
+ * Copyright 2021 Qingtian Wang.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,49 +23,59 @@
  */
 package qlib.conseq;
 
-import java.time.Duration;
 import java.util.UUID;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  *
- * @author QingtianWang
+ * @author q3769
  */
-public abstract class AbstractSpyingConseqable {
-
-    private static final Logger LOG = Logger.getLogger(AbstractSpyingConseqable.class.getName());
+public class SpyingTaskPayload {
 
     protected final UUID id = UUID.randomUUID();
-    protected final Duration taskRunDuration;
-    protected final SpyingTaskPayload taskData;
+    private final Object correlationKey;
+    private Long runStartTimeNanos;
+    private Long runEndTimeNanos;
+    private String runThreadName;
 
-    public AbstractSpyingConseqable(SpyingTaskPayload taskData, Duration taskRunDuration) {
-        this.taskRunDuration = taskRunDuration;
-        this.taskData = taskData;
+    public SpyingTaskPayload(Object correlationKey) {
+        this.correlationKey = correlationKey;
     }
 
-    public Duration getTaskRunDuration() {
-        return taskRunDuration;
+    @Override
+    public String toString() {
+        return "SpyingTaskData{" + "id=" + id + ", correlationKey=" + correlationKey + ", runThreadName=" + runThreadName + '}';
     }
 
-    public SpyingTaskPayload getTaskData() {
-        return taskData;
+    public void setRunStartTimeNanos(Long runStartTimeNanos) {
+        this.runStartTimeNanos = runStartTimeNanos;
+    }
+
+    public void setRunEndTimeNanos(Long runEndTimeNanos) {
+        this.runEndTimeNanos = runEndTimeNanos;
+    }
+
+    public void setRunThreadName(String runThreadName) {
+        this.runThreadName = runThreadName;
     }
 
     public UUID getId() {
         return id;
     }
 
-    protected long threadRunDurationMillis() {
-        return this.taskRunDuration.getSeconds() * 1000;
+    public Object getCorrelationKey() {
+        return correlationKey;
     }
 
-    protected void doRun() throws InterruptedException {
-        this.taskData.setRunStartTimeNanos(System.nanoTime());
-        this.taskData.setRunThreadName(Thread.currentThread().getName());
-        Thread.sleep(threadRunDurationMillis());
-        this.taskData.setRunEndTimeNanos(System.nanoTime());
-        LOG.log(Level.INFO, "Task : {0} completed with data : {1}", new Object[]{this.getId(), this.getTaskData()});
+    public Long getRunStartTimeNanos() {
+        return runStartTimeNanos;
     }
+
+    public Long getRunEndTimeNanos() {
+        return runEndTimeNanos;
+    }
+
+    public String getRunThreadName() {
+        return runThreadName;
+    }
+
 }

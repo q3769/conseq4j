@@ -30,19 +30,16 @@ import java.util.concurrent.Callable;
  *
  * @author q3769
  */
-class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<Object> {
+class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<SpyingTaskPayload> {
 
-    public SpyingCallableTask(Object correlationId, Duration taskRunDuration) {
-        super(correlationId, taskRunDuration);
+    public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
+        super(taskData, taskRunDuration);
     }
 
     @Override
-    public String call() throws Exception {
-        this.runStartTimeNanos = System.nanoTime();
-        this.runThreadName = Thread.currentThread().getName();
-        Thread.sleep(threadRunDurationMillis());
-        this.runEndTimeNanos = System.nanoTime();
-        return String.format("Task : {0} with correlation ID : {1} executed by thread : {2}", new Object[]{this.id, this.correlationId, this.runThreadName});
+    public SpyingTaskPayload call() throws Exception {
+        doRun();
+        return this.taskData;
     }
 
 }
