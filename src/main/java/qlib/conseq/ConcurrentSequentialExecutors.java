@@ -49,7 +49,7 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
     private final ConsistentBucketHasher bucketHasher;
 
     private ConcurrentSequentialExecutors(Integer maxConcurrency) {
-        this(DefaultBucketHasher.ofBuckets(maxConcurrency));
+        this(DefaultBucketHasher.withTotalBuckets(maxConcurrency));
     }
 
     private ConcurrentSequentialExecutors(ConsistentBucketHasher bucketHasher) {

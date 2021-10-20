@@ -36,7 +36,7 @@ public class DefaultBucketHasher implements ConsistentBucketHasher {
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
 
-    public static DefaultBucketHasher ofBuckets(int buckets) {
+    public static DefaultBucketHasher withTotalBuckets(int buckets) {
         return new DefaultBucketHasher(buckets);
     }
     private final int totalBuckets;
