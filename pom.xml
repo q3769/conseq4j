@@ -3,10 +3,10 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq</artifactId>
-    <version>20211020.0.0</version>
+    <version>20211020.1.0-SNAPSHOT</version>
     <packaging>jar</packaging>
     <name>conseq (Concurrent Sequencer)</name>
-    <description>A Java API to sequence related tasks while concurring unrelated ones</description>
+    <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
     <url>https://github.com/q3769/qlib-conseq</url>
     <licenses>
         <license>
