@@ -27,11 +27,11 @@ The typical use case is with an asynchronous message consumer. First off, you ca
 ### Setup 1
 ```
 public class MessageConsumer {
-    public void onMessage(Message orderEvent) {
-        processOrder(orderEvent);
+    public void onMessage(Message shoppingOrderEvent) {
+        process(shoppingOrderEvent);
     }
 
-    private void processOrder(Message orderEvent) {
+    private void process(Message shoppingOrderEvent) {
         ...
     }
     ...
@@ -45,8 +45,8 @@ Imagine a shopping order is for a t-shirt, and the shopper changed the size of t
 public class MessageConsumer {
     private ExecutorService concurrencer = Executors.newFixedThreadPool(10);
     
-    public void onMessage(Message orderEvent) {
-        concurrencer.execute(() -> process(orderEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
+    public void onMessage(Message shoppingOrderEvent) {
+        concurrencer.execute(() -> process(shoppingOrderEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
     }    
     ...
 ```
@@ -59,8 +59,8 @@ So what then? Going back to Setup 1? Well... you could use a "conseq" instead, a
 public class MessageConsumer {
     private ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
     
-    public void onMessage(Message orderEvent) {
-        conseq.getSequentialExecutor(orderEvent.getOrderId()).execute(() -> process(orderEvent)); // You still got up to 10 threads working for you, but all events of the same order (orderId) will be done by a single thread
+    public void onMessage(Message shoppingOrderEvent) {
+        conseq.getSequentialExecutor(shoppingOrderEvent.getOrderId()).execute(() -> process(shoppingOrderEvent)); // You still got up to 10 threads working for you, but all events of the same shopping order (orderId) will be done by a single thread
     }
     ...
 ```
