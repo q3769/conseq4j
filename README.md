@@ -50,7 +50,7 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad at you, and knocked over your beer). And you wonder why that happened... Oh, got it, the shot-gun threads processed the 10 events out of order!
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real and knocked over your beer). And you wonder why that happened... Oh, got it, the shot-gun threads processed the 10 events out of order!
 
 What now then, going back to Setup 1? Well, you can do that, at the expense of limitting performance. Or, you could use a "conseq" (and save your beer) as in Setup 3:
 
