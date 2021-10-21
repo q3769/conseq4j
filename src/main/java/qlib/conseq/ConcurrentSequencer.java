@@ -31,8 +31,6 @@ import java.util.concurrent.ExecutorService;
  */
 public interface ConcurrentSequencer {
 
-    int getMaxConcurrency();
-
     ExecutorService getSequentialExecutor(Object sequenceKey);
 
 }

@@ -54,7 +54,6 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     @Test
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
-        assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE; // Default max concurrency is "unbound".
         List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT); // SpyingTaskPayload is an example, your input data can be of any type
 
         taskPayloads.forEach(payload -> {
@@ -73,7 +72,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     @Test
     public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build();
+        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().ofSize(maxConcurrency).build();
         List<SpyingTaskPayload> dataPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<Future<SpyingTaskPayload>> taskFutures = new ArrayList<>();
 

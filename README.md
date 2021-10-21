@@ -57,7 +57,7 @@ So what then? Going back to Setup 1? Well... you could use a "conseq" instead, a
 ### Setup 3
 ```
 public class MessageConsumer {
-    private ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(10).build();
+    private ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
     
     public void onMessage(Message orderEvent) {
         conseq.getSequentialExecutor(orderEvent.getOrderId()).execute(() -> process(orderEvent)); // You still got up to 10 threads working for you, but all events of the same order (orderId) will be done by a single thread
@@ -65,7 +65,7 @@ public class MessageConsumer {
     ...
 ```
 
-As long as all the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure below), you can consider making use of a conseq (and safeguard your beer). On the API level the sequence key can be any type of Object but good choices are identifiers that, after hashing, can group related events into the same hash code, and unrelated events into different hash codes. Some examples of the seqence key are order id, shipment id, ticket reservation id, session id, etc.... The default hashing algorithm is from the Guava library; that should be good enough but for those who have PhDs on hashing, you can provide your own consistent hasher as in `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(myConcurrencyInt)`.
+As long as all the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure below), you can consider making use of a conseq (and safeguard your beer). On the API level the sequence key can be any type of Object but good choices are identifiers that, after hashing, can group related events into the same hash code, and unrelated events into different hash codes. Some examples of the seqence key are order id, shipment id, ticket reservation id, session id, etc.... The default hashing algorithm is from the Guava library; that should be good enough but for those who have PhDs on hashing, you can provide your own consistent hasher as in `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
 
 ### Full disclosure
 In a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
@@ -78,7 +78,6 @@ For more details of this API, see test code but here's a gist
     @Test
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
-        assert defaultConseq.getMaxConcurrency() == Integer.MAX_VALUE; // Default max concurrency is "unbound".
         List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT); // SpyingTaskPayload is an example, your input data can be of any type
 
         taskPayloads.forEach(payload -> {
@@ -93,13 +92,11 @@ For more details of this API, see test code but here's a gist
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater than total tasks.
     }
-```
 
-```
     @Test
     public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(maxConcurrency).build();
+        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().ofSize(maxConcurrency).build();
         List<SpyingTaskPayload> dataPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<Future<SpyingTaskPayload>> taskFutures = new ArrayList<>();
 
@@ -113,9 +110,7 @@ For more details of this API, see test code but here's a gist
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
         assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, the max concurrency (think "max thread pool size") is set to be smaller than your potential tasks, then the total number of concurrent threads to have run your tasks will be bound by the max concurrency you set.
     }
-```
 
-```
     @Test
     public void conseqShouldRunRelatedTasksInOrder() throws InterruptedException, ExecutionException {
         ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();

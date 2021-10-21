@@ -48,8 +48,8 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
 
     private final ConsistentBucketHasher bucketHasher;
 
-    private ConcurrentSequentialExecutors(Integer maxConcurrency) {
-        this(DefaultBucketHasher.withTotalBuckets(maxConcurrency));
+    private ConcurrentSequentialExecutors(Integer maxCountOfConcurrentExecutors) {
+        this(DefaultBucketHasher.withTotalBuckets(maxCountOfConcurrentExecutors));
     }
 
     private ConcurrentSequentialExecutors(ConsistentBucketHasher bucketHasher) {
@@ -59,8 +59,11 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
                 .build(new SequentialExecutorServiceLoader());
     }
 
-    @Override
-    public int getMaxConcurrency() {
+    /**
+     *
+     * @return Max count of concurrent executors
+     */
+    public int size() {
         return this.bucketHasher.getTotalBuckets();
     }
 
@@ -80,7 +83,7 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
 
     public static class Builder {
 
-        private Integer maxConcurrency;
+        private Integer maxCountOfConcurrentExecutors;
 
         private ConsistentBucketHasher bucketHasher;
 
@@ -88,32 +91,32 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
         }
 
         public ConcurrentSequentialExecutors build() {
-            if (this.maxConcurrency != null && this.bucketHasher != null) {
-                throw new IllegalStateException("Concurrency and bucket hasher cannot be set at the same time");
+            if (this.maxCountOfConcurrentExecutors != null && this.bucketHasher != null) {
+                throw new IllegalStateException("Concurrency and bucket hasher cannot be set at the same time. Max concurrency and total buckets are the same thing.s");
             }
-            if (this.maxConcurrency == null && this.bucketHasher == null) {
+            if (this.maxCountOfConcurrentExecutors == null && this.bucketHasher == null) {
                 LOG.log(Level.INFO, "Using default bucket hasher with unbound bucket count");
                 return new ConcurrentSequentialExecutors(Integer.MAX_VALUE);
             }
-            if (this.maxConcurrency != null) {
-                LOG.log(Level.INFO, "Using default bucket hasher with max bucket count : {0}", this.maxConcurrency);
-                return new ConcurrentSequentialExecutors(this.maxConcurrency);
+            if (this.maxCountOfConcurrentExecutors != null) {
+                LOG.log(Level.INFO, "Using default bucket hasher with max bucket count : {0}", this.maxCountOfConcurrentExecutors);
+                return new ConcurrentSequentialExecutors(this.maxCountOfConcurrentExecutors);
             }
             LOG.log(Level.WARNING, "Using customized bucket hasher : {0} with max bucket count : {1}", new Object[]{this.bucketHasher, this.bucketHasher.getTotalBuckets()});
             return new ConcurrentSequentialExecutors(this.bucketHasher);
         }
 
-        public Builder withMaxConcurrency(int maxConcurrency) {
+        public Builder ofSize(int maxConcurrentExecutorCount) {
             if (this.bucketHasher != null) {
                 throw new IllegalStateException("Cannot set concurrency after already set bucket hasher : " + this.bucketHasher);
             }
-            this.maxConcurrency = maxConcurrency;
+            this.maxCountOfConcurrentExecutors = maxConcurrentExecutorCount;
             return this;
         }
 
         public Builder withBucketHasher(ConsistentBucketHasher bucketHasher) {
-            if (this.maxConcurrency != null) {
-                throw new IllegalStateException("Cannot set bucket hasher after already set concurrency : " + this.maxConcurrency);
+            if (this.maxCountOfConcurrentExecutors != null) {
+                throw new IllegalStateException("Cannot set bucket hasher after already set concurrency : " + this.maxCountOfConcurrentExecutors);
             }
             this.bucketHasher = bucketHasher;
             return this;

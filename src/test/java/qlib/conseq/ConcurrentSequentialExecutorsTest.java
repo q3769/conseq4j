@@ -35,14 +35,14 @@ public class ConcurrentSequentialExecutorsTest {
     @org.junit.jupiter.api.Test
     public void defaultConcurrencyShouldBeUnbound() {
         ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().build();
-        assertEquals(Integer.MAX_VALUE, target.getMaxConcurrency());
+        assertEquals(Integer.MAX_VALUE, target.size());
     }
 
     @org.junit.jupiter.api.Test
     public void shouldHonorSpecifiedConcurrency() {
         int stubConcurrency = 5;
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().withMaxConcurrency(stubConcurrency).build();
-        assertEquals(stubConcurrency, target.getMaxConcurrency());
+        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder().ofSize(stubConcurrency).build();
+        assertEquals(stubConcurrency, target.size());
     }
 
     @org.junit.jupiter.api.Test
