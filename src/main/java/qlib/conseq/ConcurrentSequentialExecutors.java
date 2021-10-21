@@ -92,7 +92,7 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
 
         public ConcurrentSequentialExecutors build() {
             if (this.maxCountOfConcurrentExecutors != null && this.bucketHasher != null) {
-                throw new IllegalStateException("Concurrency and bucket hasher cannot be set at the same time. Max concurrency and total buckets are the same thing.s");
+                throw new IllegalStateException("Concurrency and bucket hasher cannot be set at the same time. Max concurrency and total buckets are the same thing.");
             }
             if (this.maxCountOfConcurrentExecutors == null && this.bucketHasher == null) {
                 LOG.log(Level.INFO, "Using default bucket hasher with unbound bucket count");
