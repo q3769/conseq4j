@@ -50,9 +50,9 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a t-shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad at you, and knocked over your beer). Can you guess why that happened? 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad at you, and knocked over your beer). And you wonder why that happened... Ok fine, the shot-gun threads processed the 10 events out of order, got it. 
 
-So what then? Going back to Setup 1? Well... you could use a "conseq" instead, as in Setup 3:
+So what then? Going back to Setup 1? Well, yes you can do that. Or, you could use a "conseq" instead, as in Setup 3:
 
 ### Setup 3
 ```
