@@ -50,9 +50,9 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad at you, and knocked over your beer). And you wonder why that happened... Ok fine, the shot-gun threads processed the 10 events out of order, got it. 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large instead of the Medium that s/he so painstakingly settled on (got real mad at you, and knocked over your beer). And you wonder why that happened... Oh, got it, the shot-gun threads processed the 10 events out of order!
 
-So what then? Going back to Setup 1? Well, yes you can do that. Or, you could use a "conseq" instead, as in Setup 3:
+What now then, going back to Setup 1? Well, you can do that; or, you could use a "conseq" instead (and save your beer), as in Setup 3:
 
 ### Setup 3
 ```
@@ -65,7 +65,7 @@ public class MessageConsumer {
     ...
 ```
 
-As long as all the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure below), you can consider making use of a conseq (and safeguard your beer). On the API level the sequence key can be any type of Object but good choices are identifiers that, after hashing, can group related events into the same hash code, and unrelated events into different hash codes. Some examples of the seqence key are order id, shipment id, ticket reservation id, session id, etc.... The default hashing algorithm is from the Guava library; that should be good enough but for those who have PhDs on hashing, you can provide your own consistent hasher as in `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
+As long as all the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure below), you can consider making use of a conseq. On the API level the sequence key can be any type of Object but good choices are identifiers that, after hashing, can group related events into the same hash code, and unrelated events into different hash codes. Some examples of the seqence key are order id, shipment id, ticket reservation id, session id, etc.... The default hashing algorithm is from the Guava library; that should be good enough but for those who have PhDs on hashing, you can provide your own consistent hasher as in `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
 
 ### Full disclosure
 In a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
