@@ -38,7 +38,7 @@ public class MessageConsumer {
 ```
 To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
-Imagine a shopping order is for a t-shirt, and the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Medium. The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
+Imagine a shopping order is for a T-Shirt, and the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Medium. The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
 
 ### Setup 2
 ```
