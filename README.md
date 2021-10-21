@@ -69,8 +69,8 @@ As long as all the incoming events carry some kind of correlatable information t
 
 ### Full disclosure
 In a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
-1. Proactive/Preventive: This is on the technical level, making sure that related events are never processed out of order, e.g. by using a sequence/correlation key with this API as in Setup 3.
-2. Reactive/Curative: This is on business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already, e.g. when the events are coming from different message producers and sources; there is no garantee of correct ordering in the first place. Now the job is to "cure" the order based on business rules, after the fact. This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history/persistent-store check on the time stamps of all the events for the same order in question could help put things back in order.
+1. Proactive/Preventive: This is on the technical level, making sure that related events are never processed out of order, e.g. by using a sequence/correlation key as with this API in Setup 3.
+2. Reactive/Curative: This is on business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already, e.g. when the events are coming from different message producers and sources; there is no garantee of correct ordering in the first place. Now the job is to "cure" the order based on business rules, after the fact. This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order.
 
 ### More details
 For more details of this API, see test code but here's a gist
