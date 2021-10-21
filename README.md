@@ -27,26 +27,26 @@ The typical use case is with an asynchronous message consumer. First off, you ca
 ### Setup 1
 ```
 public class MessageConsumer {
-    public void onMessage(Message shoppingOrderEvent) {
-        process(shoppingOrderEvent);
+    public void onMessage(Message shoppingEvent) {
+        process(shoppingEvent);
     }
 
-    private void process(Message shoppingOrderEvent) {
+    private void process(Message shoppingEvent) {
         ...
     }
     ...
 ```
 To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
-Imagine a shopping order is for a T-Shirt, and the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Medium. The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
+Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
 
 ### Setup 2
 ```
 public class MessageConsumer {
     private ExecutorService concurrencer = Executors.newFixedThreadPool(10);
     
-    public void onMessage(Message shoppingOrderEvent) {
-        concurrencer.execute(() -> process(shoppingOrderEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
+    public void onMessage(Message shoppingEvent) {
+        concurrencer.execute(() -> process(shoppingEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
     }    
     ...
 ```
@@ -59,8 +59,8 @@ What now then, going back to Setup 1? Well, you can do that, at the expense of l
 public class MessageConsumer {
     private ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
     
-    public void onMessage(Message shoppingOrderEvent) {
-        conseq.getSequentialExecutor(shoppingOrderEvent.getOrderId()).execute(() -> process(shoppingOrderEvent)); // You still got up to 10 threads working for you, but all events of the same shopping order (orderId) will be done by a single thread
+    public void onMessage(Message shoppingEvent) {
+        conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); // You still got up to 10 threads working for you, but all shopping events of the same shopping cart will be done by a single thread
     }
     ...
 ```
