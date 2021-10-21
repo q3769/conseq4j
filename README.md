@@ -22,7 +22,7 @@ implementation 'io.github.q3769.qlib:conseq:20211020.0.0'
 ## Use it...
 For those that are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (e.g. an EMS queue, a Kafka topic, ...) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received by the provider, and won't deliver the next message until the first call to `onMessage` returns. Logically all messages are consumed in a single-thread fashion in the same/correct order as they are delivered. This is fine but processing all messages globally in a sequential order is a bit slow, isn't it?
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (e.g. an EMS queue, a Kafka topic, ...) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received by the provider, and won't deliver the next message until the previous call to `onMessage` returns. Logically all messages are consumed in a single-thread fashion in the same/correct order as they are delivered. This is fine but processing all messages globally in a sequential order is a bit slow, isn't it?
 
 ### Setup 1
 ```
