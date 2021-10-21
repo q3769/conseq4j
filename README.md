@@ -65,7 +65,7 @@ public class MessageConsumer {
     ...
 ```
 
-Full disclosure, in a multi-threaded concurrent system there are generally two approaches to ensure correct order of message consumption:
+Full disclosure, in a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
 1. Proactive/Prevent: This is on the technical level, making sure that related events are never processed out of order, e.g. by using a sequence/correlation key with this API as in Setup 3.
 2. Reactive/Cure: This is on business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already. Now the job is to "cure" the order based on business rules. This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history/persistent-store check on the time stamps of all the events for the same order in question could help put things back in order.
 
