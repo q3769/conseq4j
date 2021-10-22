@@ -52,9 +52,9 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it, the shot-gun threads processed the events out of order!
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: The shot-gun threads processed the events out of order!
 
-Ok, what then, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could use a "conseq" (and save your beer!) as in Setup 3:
+Ok, what then, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could use a "conseq" (and save your beer) as in Setup 3:
 
 ### Setup 3
 ```
@@ -73,12 +73,12 @@ The default hashing algorithm of this API is from the Guava library, namely Murm
 
 The default maximum count of concurrent executors is "unbound" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
 
-### Full disclosure
-In a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
-1. Proactive/Preventive: This is on the technical level, making sure that related events are never processed out of order, e.g. by using a sequence/correlation key as with this API in Setup 3.
-2. Reactive/Curative: This is on business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing things can be out of order already, e.g. when the events are coming from different message producers and sources; there is no garantee of correct ordering in the first place in spite of the messaging provider's ordering mechanism. Now the job is to "cure" the order based on business rules "after the fact". This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order.
+## Full disclosure
+For a multi-threaded/concurrent system, there are generally two approaches to ensure correct order of message consumption:
+1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related events are never processed out of order, e.g. by using a sequence/correlation key as with this API in Setup 3.
+2. Reactive/Curative: This is on the business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing, things can be out of order already. E.g. when the events are coming from different message producers and sources, there may be no garantee of correct ordering in the first place in spite of the messaging provider's ordering mechanism. Now the job is to "cure" the order based on business rules "after the fact". This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other curative measures inlcude using State Machines.
 
-### More details
+## More details
 For more details of this API, see test code but here's a gist
 ```
     @Test
