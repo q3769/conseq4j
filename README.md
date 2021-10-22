@@ -22,7 +22,9 @@ implementation 'io.github.q3769.qlib:conseq:20211021.0.1'
 ## Use it...
 For those who are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (e.g. an EMS queue, a Kafka topic, ...) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received by the provider, and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered. This is fine but processing all messages in sequential order globally is a bit slow, isn't it?
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (an EMS queue, a Kafka topic/partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received by the provider, and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered. 
+
+This is fine but processing all messages in sequential order globally is a bit slow, isn't it?
 
 ### Setup 1
 ```
@@ -38,7 +40,7 @@ public class MessageConsumer {
 ```
 To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
-Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got posted to the messaging provider in the same order as the shopper placed them. At the time of posting, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
+Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
 
 ### Setup 2
 ```
@@ -65,7 +67,11 @@ public class MessageConsumer {
     ...
 ```
 
-Consider using a conseq (see the full disclosure below) as long as all the incoming events carry some kind of correlatable information that can be used/converted as a sequence key. On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... The default hashing algorithm of this API is from the Guava library; that should be good enough but for those who have PhDs on hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
+Consider using a conseq (see the full disclosure below) as long as the incoming events carry some kind of correlatable information that can be used/converted as a sequence key. On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
+
+The default hashing algorithm of this API is from the Guava library. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
+
+The default maximum count of concurrent executors is "unbound" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. Of course in that case, related tasks with the same sequence key are still processed sequentially.
 
 ### Full disclosure
 In a multi-threaded/concurrent system there are generally two approaches to ensure correct order of message consumption:
