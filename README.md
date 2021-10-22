@@ -69,7 +69,7 @@ public class MessageConsumer {
 
 Consider using a conseq (see the full disclosure below) as long as the incoming events carry some kind of correlatable information that can be used/converted as a sequence key. On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
 
-The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher)` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt)`.
+The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
 
 The default maximum count of concurrent executors is "unbound" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
 
