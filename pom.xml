@@ -5,7 +5,7 @@
     <artifactId>conseq</artifactId>
     <version>20211023.0.0</version>
     <packaging>jar</packaging>
-    <name>conseq</name>
+    <name>ConseQ</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
     <url>https://github.com/q3769/qlib-conseq</url>
     <licenses>
