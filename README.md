@@ -14,12 +14,12 @@ In Maven
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq</artifactId>
-    <version>20211021.0.1</version>
+    <version>20211021.0.2</version>
 </dependency>
 ```
 In Gradle
 ```
-implementation 'io.github.q3769.qlib:conseq:20211021.0.1'
+implementation 'io.github.q3769.qlib:conseq:20211021.0.2'
 ```
 
 ## Use it...
