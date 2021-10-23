@@ -75,82 +75,31 @@ Consider using the conseq API whenever the incoming events carry some kind of co
 
 The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
 
-The default maximum count of concurrent executors is "unbound" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
+The default maximum count of concurrent executors is "unbounded" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
+
+### More details
+
+This default conseq has all capacities unbounded
+```
+ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build(); // all default
+```
+
+This conseq has max concurrency of 10, total task queue size 200. i.e. Each sequential executor has a task queue size of 20 (200/10).
+```
+ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).withTotalTaskQueueSize(200).build();
+```
+
+This conseq has a max of 10 concurrent threads/executors. Each executor has an unbounded task queue size.
+```
+ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
+```
+
+This conseq falls back to all default because totol task queue size is the only set value
+```
+ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().withTotalTaskQueueSize(100).build();
+```
 
 ## Full disclosure
 For a multi-threaded/concurrent system, there are generally two approaches to ensure correct order of message consumption:
 1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related events are never processed out of order, e.g. by using a sequence/correlation key as with this API in Setup 3.
 2. Reactive/Responsive: This is on the business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing, things can be out of order already. E.g. when the events are coming from different message producers and sources, there may be no garantee of correct ordering in the first place in spite of the messaging provider's ordering mechanism. Now the job is to detect and make amends when things are out of order based on business rules. This can be much more complicated both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other responsive measures inlcude using State Machines.
-
-## More details
-For more details of this API, see test code but here's a gist
-```
-    @Test
-    public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
-        ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
-        List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT); // SpyingTaskPayload is an example, your input data can be of any type
-
-        taskPayloads.forEach(payload -> {
-            final Object sequenceKey = payload.getCorrelationKey(); // Sequence key can come from anywhere but most likely from the input data payload. Note that the same sequence key means sqeuential execution of the tasks behind the same (physically or logically) single thread.
-            final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get an instance of good old JDK ExecutorService by way of Executors.newSingleThreadExecutor(); of course, the same instance is reused when summoned by the same seqence key. 
-            sequentialExecutor.execute(new SpyingRunnableTask(payload, TASK_DURATION)); // Your task can be a Runnable, a Callable, or whatever ExecutorService supports. Up to you how to convert an input data item into a runnable command.
-        });
-        Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE.getSeconds() * 1000);
-
-        Set<String> runThreadNames = taskPayloads.stream().map(item -> item.getRunThreadName()).collect(Collectors.toSet());
-        final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater than total tasks.
-    }
-
-    @Test
-    public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
-        final int maxConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder().ofSize(maxConcurrency).build();
-        List<SpyingTaskPayload> dataPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
-        List<Future<SpyingTaskPayload>> taskFutures = new ArrayList<>();
-
-        dataPayloads.forEach(payload -> taskFutures.add(maxConcurrencyBoundConseq.getSequentialExecutor(payload.getCorrelationKey()).submit(new SpyingCallableTask(payload, TASK_DURATION))));
-
-        Set<String> runThreadNames = new HashSet<>();
-        for (Future<SpyingTaskPayload> f : taskFutures) {
-            runThreadNames.add(f.get().getRunThreadName());
-        }
-        final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[]{TASK_COUNT, totalRunThreads});
-        assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, the max concurrency (think "max thread pool size") is set to be smaller than your potential tasks, then the total number of concurrent threads to have run your tasks will be bound by the max concurrency you set.
-    }
-
-    @Test
-    public void conseqShouldRunRelatedTasksInOrder() throws InterruptedException, ExecutionException {
-        ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder().build();
-        List<SpyingTaskPayload> regularPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
-        List<SpyingTaskPayload> smallPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
-        List<Future<SpyingTaskPayload>> regularFutures = new ArrayList<>();
-        List<Future<SpyingTaskPayload>> quickFutures = new ArrayList<>();
-        Object sequenceKey = UUID.randomUUID();
-        final ExecutorService regularTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
-        final ExecutorService quickTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Same sequence key for regular and quick tasks
-
-        regularPayloads.stream().forEach(regularPayload -> {
-            regularFutures.add(regularTaskExecutor.submit(new SpyingCallableTask(regularPayload, TASK_DURATION)));
-        }); // Slower tasks first
-        smallPayloads.stream().forEach(smallPayload -> {
-            quickFutures.add(quickTaskExecutor.submit(new SpyingCallableTask(smallPayload, SMALL_TASK_DURATION)));
-        }); // Faster tasks later so none of the faster ones should be executed until all slower ones are done
-
-        assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
-        List<Long> regularCompleteTimes = new ArrayList<>();
-        for (Future<SpyingTaskPayload> rf : regularFutures) {
-            regularCompleteTimes.add(rf.get().getRunEndTimeNanos());
-        }
-        List<Long> quickStartTimes = new ArrayList<>();
-        for (Future<SpyingTaskPayload> qf : quickFutures) {
-            quickStartTimes.add(qf.get().getRunStartTimeNanos());
-        }
-        long latestCompleteTimeOfRegularTasks = regularCompleteTimes.stream().mapToLong(ct -> ct).max().getAsLong();
-        long earliestStartTimeOfQuickTasks = quickStartTimes.stream().mapToLong(st -> st).min().getAsLong();
-        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this is not enough to logically prove the global order but you get the idea...
-    }
-```
-

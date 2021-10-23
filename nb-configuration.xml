@@ -13,7 +13,22 @@
         That way multiple projects can share the same settings (useful for formatting rules for example).
         Any value defined here will override the pom.xml file value but is only applicable to the current project.
         -->
-        <netbeans.checkstyle.format>true</netbeans.checkstyle.format>
         <netbeans.hint.license>mit</netbeans.hint.license>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enableIndentationSettings>true</de-funfried-netbeans-plugins-externalcodeformatter.enableIndentationSettings>
+        <de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSizeValue>4</de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSizeValue>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVASCRIPT>netbeans-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVASCRIPT>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_XML>netbeans-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_XML>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JSON>netbeans-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JSON>
+        <de-funfried-netbeans-plugins-externalcodeformatter.googleFormatterCodeStyle>GOOGLE</de-funfried-netbeans-plugins-externalcodeformatter.googleFormatterCodeStyle>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_SQL>netbeans-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_SQL>
+        <de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSize>true</de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSize>
+        <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVA>eclipse-java-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVA>
+        <de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>true</de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>
+        <de-funfried-netbeans-plugins-externalcodeformatter.useProjectSettings>true</de-funfried-netbeans-plugins-externalcodeformatter.useProjectSettings>
+        <de-funfried-netbeans-plugins-externalcodeformatter.linefeed/>
+        <de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterActiveProfile>tailored-google-java-style-formatter</de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterActiveProfile>
+        <de-funfried-netbeans-plugins-externalcodeformatter.useProjectPref>true</de-funfried-netbeans-plugins-externalcodeformatter.useProjectPref>
+        <de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterLocation>C:\Users\qingt\Downloads\tailored-google-java-style-formatter.xml</de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterLocation>
+        <de-funfried-netbeans-plugins-externalcodeformatter.sourcelevel/>
     </properties>
 </project-shared-configuration>

@@ -1,18 +1,14 @@
 /*
  * The MIT License
- *
  * Copyright 2021 Qingtian Wang.
- *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -29,27 +25,41 @@ import java.nio.ByteBuffer;
 import java.util.Objects;
 
 /**
- *
  * @author q3769
  */
 public class DefaultBucketHasher implements ConsistentBucketHasher {
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
+    private static final int UNBOUNDED = Integer.MAX_VALUE;
 
-    public static DefaultBucketHasher withTotalBuckets(int buckets) {
-        return new DefaultBucketHasher(buckets);
+    public static DefaultBucketHasher withTotalBuckets(Integer totalBuckets) {
+        return new DefaultBucketHasher(totalBuckets);
     }
+
     private final int totalBuckets;
 
     private DefaultBucketHasher(Integer totalBuckets) {
-        this.totalBuckets = Objects.requireNonNull(totalBuckets, "Max bucket count cannot be null");
+        if (totalBuckets == null) {
+            this.totalBuckets = UNBOUNDED;
+            return;
+        }
+        if (totalBuckets <= 0) {
+            throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
+        }
+        this.totalBuckets = totalBuckets;
+    }
+
+    @Override
+    public String toString() {
+        return "DefaultBucketHasher{" + "totalBuckets=" + totalBuckets + '}';
     }
 
     @Override
     public int hashToBucket(Object sequenceKey) {
         Objects.requireNonNull(sequenceKey, "Sequence key cannot be null");
         if (sequenceKey instanceof CharSequence) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars((CharSequence) sequenceKey), this.totalBuckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars((CharSequence) sequenceKey),
+                    this.totalBuckets);
         }
         if (sequenceKey instanceof Long) {
             return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.totalBuckets);
