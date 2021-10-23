@@ -1,5 +1,8 @@
 # CONSEQ (Concurrent Sequencer)
 
+CONSEQ is a Java concurrent API to sequence related tasks while concurring unrelated ones.
+
+## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
 ## Prerequisite
@@ -67,7 +70,7 @@ public class MessageConsumer {
     ...
 ```
 
-Consider using a CONSEQ for your concurrency need when ever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure below). On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
+Consider using the CONSEQ API when ever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure below). On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
 
 The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
 
