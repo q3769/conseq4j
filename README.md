@@ -1,4 +1,4 @@
-# conseq (i.e. Concurrent Sequencer)
+# CONSEQ (i.e. Concurrent Sequencer)
 
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
@@ -54,7 +54,7 @@ public class MessageConsumer {
 ```
 As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: The shot-gun threads processed the events out of order!
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save you beer by using this conseq (Concurrent Sequencer) API as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save you beer by using this CONSEQ (Concurrent Sequencer) API as in Setup 3:
 
 ### Setup 3
 ```
@@ -67,7 +67,7 @@ public class MessageConsumer {
     ...
 ```
 
-Consider using a conseq for your concurrency need when ever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure below). On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
+Consider using a CONSEQ for your concurrency need when ever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure below). On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
 
 The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
 
@@ -76,7 +76,7 @@ The default maximum count of concurrent executors is "unbound" (`Integer.MAX_VAL
 ## Full disclosure
 For a multi-threaded/concurrent system, there are generally two approaches to ensure correct order of message consumption:
 1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related events are never processed out of order, e.g. by using a sequence/correlation key as with this API in Setup 3.
-2. Reactive/Curative: This is on the business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing, things can be out of order already. E.g. when the events are coming from different message producers and sources, there may be no garantee of correct ordering in the first place in spite of the messaging provider's ordering mechanism. Now the job is to "cure" the order based on business rules "after the fact". This can be much more complex both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other curative measures inlcude using State Machines.
+2. Reactive/Detective: This is on the business rule level. Sometimes we have to accept the fact that preventative messures are not always possible, and assume at the time of processing, things can be out of order already. E.g. when the events are coming from different message producers and sources, there may be no garantee of correct ordering in the first place in spite of the messaging provider's ordering mechanism. Now the job is to detect and make amends when things are out of order based on business rules. This can be much more complicated both in terms of coding and runtime performance. E.g. In Setup 2, a history (persistent-store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other detective and curative measures inlcude using State Machines.
 
 ## More details
 For more details of this API, see test code but here's a gist
