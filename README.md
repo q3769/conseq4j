@@ -14,12 +14,12 @@ In Maven
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq</artifactId>
-    <version>20211021.0.2</version>
+    <version>20211023.0.0</version>
 </dependency>
 ```
 In Gradle
 ```
-implementation 'io.github.q3769.qlib:conseq:20211021.0.2'
+implementation 'io.github.q3769.qlib:conseq:20211023.0.0'
 ```
 
 ## Use it...
@@ -79,12 +79,12 @@ The default maximum count of concurrent executors is "unbounded" (`Integer.MAX_V
 
 ### More details
 
-This default conseq has all capacities unbounded
+This default conseq has all capacities unbounded, including max concurrency and totoal task queue size.
 ```
 ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build(); // all default
 ```
 
-This conseq has max concurrency of 10, total task queue size 200. i.e. Each sequential executor has a task queue size of 20 (200/10).
+This conseq has max concurrency of 10, total task queue size of 200. i.e. Each sequential executor has a task queue size of 20 (200/10).
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).withTotalTaskQueueSize(200).build();
 ```
