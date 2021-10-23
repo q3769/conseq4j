@@ -58,7 +58,7 @@ public class MessageConsumer {
 ```
 As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: The shot-gun threads processed the events out of order!
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save you beer by using this CONSEQ (Concurrent Sequencer) API as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save your beer by using this CONSEQ (Concurrent Sequencer) API as in Setup 3:
 
 ### Setup 3
 ```
@@ -153,3 +153,4 @@ For more details of this API, see test code but here's a gist
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this is not enough to logically prove the global order but you get the idea...
     }
 ```
+
