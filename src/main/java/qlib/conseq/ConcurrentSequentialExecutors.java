@@ -95,7 +95,8 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
         private final int executorQueueSize;
 
         public SequentialExecutorServiceLoader(Integer executorQueueSize) {
-            if (executorQueueSize == null) {
+            if (executorQueueSize == null || executorQueueSize <= 0) {
+                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", executorQueueSize);
                 this.executorQueueSize = UNBOUNDED;
             } else {
                 this.executorQueueSize = executorQueueSize;
@@ -110,10 +111,9 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
         public ExecutorService load(Integer sequentialExecutorIndex) throws Exception {
             LOG.log(Level.INFO, "Loading new sequential executor with key : {0}", sequentialExecutorIndex);
             if (this.executorQueueSize == UNBOUNDED) {
-                LOG.info("No task queue size specified, using default unbounded");
                 return Executors.newSingleThreadExecutor();
             }
-            LOG.log(Level.INFO, "Constructing new single thread executor with task queue size : {0}", new Object[] {
+            LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}", new Object[] {
                     this.executorQueueSize });
             return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
                     TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(this.executorQueueSize));

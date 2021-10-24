@@ -23,7 +23,7 @@
         <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_SQL>netbeans-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_SQL>
         <de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSize>true</de-funfried-netbeans-plugins-externalcodeformatter.overrideTabSize>
         <de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVA>eclipse-java-formatter</de-funfried-netbeans-plugins-externalcodeformatter.enabledFormatter_2e_JAVA>
-        <de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>true</de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>
+        <de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>false</de-funfried-netbeans-plugins-externalcodeformatter.showNotifications>
         <de-funfried-netbeans-plugins-externalcodeformatter.useProjectSettings>true</de-funfried-netbeans-plugins-externalcodeformatter.useProjectSettings>
         <de-funfried-netbeans-plugins-externalcodeformatter.linefeed/>
         <de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterActiveProfile>tailored-google-java-style-formatter</de-funfried-netbeans-plugins-externalcodeformatter.eclipseFormatterActiveProfile>
