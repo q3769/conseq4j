@@ -92,17 +92,17 @@ The default conseq has all capacities unbounded (`Integer.MAX_VALUE`). That incl
 ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build();
 ```
 
-This conseq has a max concurrency of 10, and a total task queue size of 200. Each sequential executor/thread has a task queue size of 20 (i.e. 200/10).
+This conseq has a max concurrency of 10, and a total task queue size of 200; each sequential executor/thread has a task queue size of 20 (i.e. 200/10):
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).withTotalTaskQueueSize(200).build();
 ```
 
-This conseq has a max of 10 concurrent executors. Each executor has an unbounded task queue size.
+This conseq has a max of 10 concurrent executors; each executor has an unbounded task queue size:
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
 ```
 
-This conseq falls back to all default - When total task queue size is the only set value for a conseq, the value is disregarded.
+The queue size for each individual executor is `totalTaskQueueSize` devided by the max number of concurrent executors. In order for the `totalTaskQueueSize` to take effect, you have to set a bounded max concurrency either by `ConcurrentSequentialExecutors.Builder.ofSize(int maxConcurrency)`, or providing your own hasher with a bounded total bucket count. Thus this conseq falls back to all default capacities because when `totalTaskQueueSize` is the only set value, it is discarded/defaulted:
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().withTotalTaskQueueSize(100).build();
 ```
