@@ -77,7 +77,15 @@ The default hashing algorithm of this API is from the Guava library, namely Murm
 
 The default maximum count of concurrent executors is "unbounded" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
 
-### More details
+#### More details
+
+You get a good old JDK `ExecutorService` out of a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+```
+public interface ConcurrentSequencer {
+    ExecutorService getSequentialExecutor(Object sequenceKey);
+}
+```
+As such, you can use it to run your Runnable/Callable or any task type supported by a JDK `ExecutorService`.
 
 This default conseq has all capacities unbounded, including max concurrency and totoal task queue size.
 ```
@@ -94,7 +102,7 @@ This conseq has a max of 10 concurrent threads/executors. Each executor has an u
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
 ```
 
-This conseq falls back to all default because totol task queue size is the only set value
+This conseq falls back to all default because total task queue size is the only set value
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().withTotalTaskQueueSize(100).build();
 ```
