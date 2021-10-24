@@ -33,16 +33,19 @@ public class DefaultBucketHasher implements ConsistentBucketHasher {
     private static final int UNBOUNDED = Integer.MAX_VALUE;
 
     public static DefaultBucketHasher withTotalBuckets(Integer totalBuckets) {
+        if (totalBuckets == null) {
+            return new DefaultBucketHasher();
+        }
         return new DefaultBucketHasher(totalBuckets);
     }
 
     private final int totalBuckets;
 
-    private DefaultBucketHasher(Integer totalBuckets) {
-        if (totalBuckets == null) {
-            this.totalBuckets = UNBOUNDED;
-            return;
-        }
+    private DefaultBucketHasher() {
+        this.totalBuckets = UNBOUNDED;
+    }
+
+    private DefaultBucketHasher(int totalBuckets) {
         if (totalBuckets <= 0) {
             throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
         }
