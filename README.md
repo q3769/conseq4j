@@ -70,16 +70,12 @@ public class MessageConsumer {
     }
     ...
 ```
-
-Consider using the ConseQ API whenever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure below). On the API level, a sequence key can be any type of `Object` but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, ticket reservation id, session id, etc.... 
-
-The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
-
-The default maximum count of concurrent executors is "unbounded" (`Integer.MAX_VALUE`) if you directly use `ConcurrentSequentialExecutors.newBuilder().build()`. In that case, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
+  
+- Consider using the ConseQ API whenever the incoming events carry some kind of correlatable information that can be used/converted as a sequence key (see the full disclosure at the end)
 
 #### More details
 
-You get a good old JDK `ExecutorService` out of a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+On the API level, you get a good old JDK `ExecutorService` out of a conseq's `getSequentialExecutor(Object sequenceKey)` method:
 ```
 public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
@@ -87,22 +83,26 @@ public interface ConcurrentSequencer {
 ```
 As such, you can use it to run your Runnable/Callable or any task type supported by a JDK `ExecutorService`.
 
-This default conseq has all capacities unbounded, including max concurrency and totoal task queue size.
+The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
+
+The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
+
+The default conseq has all capacities unbounded (`Integer.MAX_VALUE`). That includes max concurrency (maximum count of concurrent executors) and total task queue size of the executors. In this case as usual, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbound number of executors.
 ```
-ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build(); // all default
+ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build();
 ```
 
-This conseq has max concurrency of 10, total task queue size of 200. i.e. Each sequential executor has a task queue size of 20 (200/10).
+This conseq has a max concurrency of 10, and a total task queue size of 200. Each sequential executor/thread has a task queue size of 20 (i.e. 200/10).
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).withTotalTaskQueueSize(200).build();
 ```
 
-This conseq has a max of 10 concurrent threads/executors. Each executor has an unbounded task queue size.
+This conseq has a max of 10 concurrent executors. Each executor has an unbounded task queue size.
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().ofSize(10).build();
 ```
 
-This conseq falls back to all default because total task queue size is the only set value
+This conseq falls back to all default - When total task queue size is the only set value for a conseq, the value is disregarded.
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().withTotalTaskQueueSize(100).build();
 ```
