@@ -92,7 +92,7 @@ A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacit
 ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build();
 ```
 
-This conseq has a max of 10 concurrent executors, and a total task queue size of 200; each sequential executor/thread has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 ( 20 x 10):
+This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 (i.e. 20 x 10):
 ```
 ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
