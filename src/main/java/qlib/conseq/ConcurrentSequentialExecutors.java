@@ -63,10 +63,10 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
             throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
         }
         final Integer executorQueueSize = totalTaskQueueSize == null ? null : totalTaskQueueSize / totalBuckets;
-        sequentialExecutorServiceLoader = new SequentialExecutorServiceLoader(executorQueueSize);
+        this.sequentialExecutorServiceLoader = new SequentialExecutorServiceLoader(executorQueueSize);
         this.executorCache = Caffeine.newBuilder()
                 .maximumSize(totalBuckets)
-                .build(sequentialExecutorServiceLoader);
+                .build(this.sequentialExecutorServiceLoader);
         LOG.log(Level.INFO, "Constructed conseq : {0}", this.toString());
     }
 
