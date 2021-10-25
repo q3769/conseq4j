@@ -63,7 +63,7 @@ Ok then what, going back to Setup 1? Well sure, you can do that, at the expense 
 ### Setup 3
 ```
 public class MessageConsumer {
-    private ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().maxConcurrentExecutors(10).build();
+    private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
     
     public void onMessage(Message shoppingEvent) {
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); // You still got up to 10 threads working for you, but all shopping events of the same shopping cart will be done by a single thread
@@ -85,21 +85,21 @@ public interface ConcurrentSequencer {
 
 The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
 
-The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `ConcurrentSequentialExecutors.newBuilder().withConsistentBucketHasher(myConsistentHasher).build()` instead of `ConcurrentSequentialExecutors.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
+The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `Conseq.newBuilder().withConsistentBucketHasher(myConsistentHasher).build()` instead of `Conseq.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's max maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbounded number of executors:
 ```
-ConcurrentSequencer conseqDefault = ConcurrentSequentialExecutors.newBuilder().build();
+ConcurrentSequencer conseqDefault = Conseq.newBuilder().build();
 ```
 
 This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 (i.e. 20 x 10):
 ```
-ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
+ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
 This conseq has a max of 10 concurrent executors; each executor has an unbounded task queue size:
 ```
-ConcurrentSequencer conseq = ConcurrentSequentialExecutors.newBuilder().maxConcurrentExecutors(10).build();
+ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
 ## Full disclosure
