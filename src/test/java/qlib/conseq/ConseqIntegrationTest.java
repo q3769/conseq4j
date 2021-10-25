@@ -38,9 +38,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author q3769
  */
-public class ConcurrentSequentialExecutorsIntegrationTest {
+public class ConseqIntegrationTest {
 
-    private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutorsIntegrationTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConseqIntegrationTest.class.getName());
     private static final Duration TASK_DURATION = Duration.ofMillis(42);
     private static final Duration SMALL_TASK_DURATION = Duration.ofSeconds(TASK_DURATION.getSeconds() / 10);
     private static final Duration DURATION_UNTIL_ALL_TASKS_DONE = Duration.ofSeconds(TASK_DURATION.getSeconds() * 100);
@@ -48,7 +48,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
 
     @Test
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
-        ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder()
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT); // SpyingTaskPayload
                                                                                                       // is an example,
@@ -97,7 +97,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     @Test
     public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder()
+        ConcurrentSequencer maxConcurrencyBoundConseq = Conseq.newBuilder()
                 .maxConcurrentExecutors(maxConcurrency)
                 .singleExecutorTaskQueueSize(TASK_COUNT * 10)
                 .build();
@@ -116,14 +116,15 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, the max concurrency (think "max thread
-                                                       // pool getMaxConcurrentExecutors") is set to be smaller than your potential tasks,
+                                                       // pool getMaxConcurrentExecutors") is set to be smaller than
+                                                       // your potential tasks,
                                                        // then the total number of concurrent threads to have run your
                                                        // tasks will be bound by the max concurrency you set.
     }
 
     @Test
     public void conseqShouldRunRelatedTasksInOrder() throws InterruptedException, ExecutionException {
-        ConcurrentSequencer defaultConseq = ConcurrentSequentialExecutors.newBuilder()
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTaskPayload> regularPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<SpyingTaskPayload> smallPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);

@@ -33,9 +33,9 @@ import java.util.logging.Logger;
 /**
  * @author q3769
  */
-public final class ConcurrentSequentialExecutors implements ConcurrentSequencer {
+public final class Conseq implements ConcurrentSequencer {
 
-    private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutors.class.getName());
+    private static final Logger LOG = Logger.getLogger(Conseq.class.getName());
 
     public static Builder newBuilder() {
         return new Builder();
@@ -45,7 +45,7 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
     private final SequentialExecutorServiceCacheLoader sequentialExecutorServiceCacheLoader;
     private final ConsistentHasher consistentHasher;
 
-    private ConcurrentSequentialExecutors(Builder builder) {
+    private Conseq(Builder builder) {
         LOG.log(Level.INFO, "Constructing conseq with builder : {0}", builder);
         if (builder.consistentHasher != null && builder.maxConcurrentExecutors != null) {
             throw new IllegalArgumentException(
@@ -142,8 +142,8 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
                     + consistentHasher + ", singleExecutorTaskQueueSize=" + singleExecutorTaskQueueSize + '}';
         }
 
-        public ConcurrentSequentialExecutors build() {
-            return new ConcurrentSequentialExecutors(this);
+        public Conseq build() {
+            return new Conseq(this);
         }
 
         public Builder maxConcurrentExecutors(int maxCountOfConcurrentExecutors) {

@@ -1,6 +1,6 @@
-# ConseQ
+# Conseq
 
-ConseQ (Concurrent Sequencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
+Conseq (Concurrent Sequencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
 
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
@@ -58,7 +58,7 @@ public class MessageConsumer {
 ```
 As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: The shot-gun threads processed the events out of order!
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save your beer by using this ConseQ (Concurrent Sequencer) API as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you could save your beer by using this Conseq (Concurrent Sequencer) API as in Setup 3:
 
 ### Setup 3
 ```
@@ -71,7 +71,7 @@ public class MessageConsumer {
     ...
 ```
 
-Consider using the ConseQ API when the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure at the end).
+Consider using the Conseq API when the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure at the end).
 
 #### More details
 

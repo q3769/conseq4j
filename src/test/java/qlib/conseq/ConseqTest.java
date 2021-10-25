@@ -27,9 +27,9 @@ import org.junit.jupiter.api.Test;
 /**
  * @author q3769
  */
-public class ConcurrentSequentialExecutorsTest {
+public class ConseqTest {
 
-    private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutorsTest.class.getName());
+    private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
 
     private static ConsistentHasher stubHasher() {
         return new ConsistentHasher() {
@@ -50,7 +50,7 @@ public class ConcurrentSequentialExecutorsTest {
 
     @Test
     public void defaultConcurrencyAndQueueSizeShouldBeUnbound() {
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
+        Conseq target = Conseq.newBuilder()
                 .build();
         assertEquals(Integer.MAX_VALUE, target.getMaxConcurrentExecutors());
         assertEquals(Integer.MAX_VALUE, target.geSingleExecutorTaskQueueSize());
@@ -59,7 +59,7 @@ public class ConcurrentSequentialExecutorsTest {
     @Test
     public void shouldHonorMaxExecutors() {
         int stubConcurrency = 5;
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
+        Conseq target = Conseq.newBuilder()
                 .maxConcurrentExecutors(stubConcurrency)
                 .build();
         assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
@@ -68,7 +68,7 @@ public class ConcurrentSequentialExecutorsTest {
     @Test
     public void shouldReturnSameExcecutorOnSameName() {
         Object sequenceKey = new Object();
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
+        Conseq target = Conseq.newBuilder()
                 .build();
 
         Executor e1 = target.getSequentialExecutor(sequenceKey);
@@ -81,7 +81,7 @@ public class ConcurrentSequentialExecutorsTest {
     public void cannotSetBothCustomizedHasherAndMaxExecutors() {
         final int stubConcurrency = 999;
         try {
-            ConcurrentSequentialExecutors.newBuilder()
+            Conseq.newBuilder()
                     .maxConcurrentExecutors(stubConcurrency)
                     .consistentHasher(stubHasher())
                     .build();
@@ -95,7 +95,7 @@ public class ConcurrentSequentialExecutorsTest {
     @Test
     public void shouldHonorSingleExecutorTaskQueueSize() {
         final int singleExecutorQueueSize = 100;
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
+        Conseq target = Conseq.newBuilder()
                 .singleExecutorTaskQueueSize(singleExecutorQueueSize)
                 .build();
         assertEquals(singleExecutorQueueSize, target.geSingleExecutorTaskQueueSize());
