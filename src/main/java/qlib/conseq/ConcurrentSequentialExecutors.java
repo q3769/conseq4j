@@ -34,7 +34,7 @@ import java.util.logging.Logger;
 /**
  * @author q3769
  */
-public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
+public final class ConcurrentSequentialExecutors implements ConcurrentSequencer {
 
     private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutors.class.getName());
 
@@ -67,6 +67,14 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
         this.executorCache = Caffeine.newBuilder()
                 .maximumSize(totalBuckets)
                 .build(sequentialExecutorServiceLoader);
+        LOG.log(Level.INFO, "Constructed conseq : {0}", this.toString());
+    }
+
+    @Override
+    public String toString() {
+        return "ConcurrentSequentialExecutors{" + "executorCache=" + executorCache
+                + ", sequentialExecutorServiceLoader=" + sequentialExecutorServiceLoader + ", bucketHasher="
+                + bucketHasher + '}';
     }
 
     /**
@@ -100,6 +108,11 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
             } else {
                 this.executorQueueSize = executorQueueSize;
             }
+        }
+
+        @Override
+        public String toString() {
+            return "SequentialExecutorServiceLoader{" + "executorQueueSize=" + executorQueueSize + '}';
         }
 
         public int getExecutorQueueSize() {
