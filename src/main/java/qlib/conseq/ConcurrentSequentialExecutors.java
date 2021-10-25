@@ -43,9 +43,8 @@ public class ConcurrentSequentialExecutors implements ConcurrentSequencer {
     }
 
     private final LoadingCache<Integer, ExecutorService> executorCache;
-
-    private final ConsistentBucketHasher bucketHasher;
     private final SequentialExecutorServiceLoader sequentialExecutorServiceLoader;
+    private final ConsistentBucketHasher bucketHasher;
 
     private ConcurrentSequentialExecutors() {
         this(DefaultBucketHasher.withTotalBuckets(null), null);
