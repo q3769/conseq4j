@@ -85,9 +85,9 @@ public interface ConcurrentSequencer {
 
 The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
 
-The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `Conseq.newBuilder().withConsistentBucketHasher(myConsistentHasher).build()` instead of `Conseq.newBuilder().ofSize(myMaxConcurrencyInt).build()`.
+The default hashing algorithm of this API is from the Guava library, namely MurmurHash3-128. That should be good enough but for those who have PhDs in hashing, you can provide your own consistent hasher by using `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()` instead of `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).build()`.
 
-A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's max maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbounded number of executors:
+A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbounded number of executors:
 ```
 ConcurrentSequencer conseqDefault = Conseq.newBuilder().build();
 ```
