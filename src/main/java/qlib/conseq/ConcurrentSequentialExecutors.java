@@ -22,7 +22,6 @@ package qlib.conseq;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
-import java.util.Objects;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -43,57 +42,49 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
     }
 
     private final LoadingCache<Integer, ExecutorService> executorCache;
-    private final SequentialExecutorServiceLoader sequentialExecutorServiceLoader;
-    private final ConsistentBucketHasher bucketHasher;
+    private final SequentialExecutorServiceCacheLoader sequentialExecutorServiceCacheLoader;
+    private final ConsistentHasher consistentHasher;
 
-    private ConcurrentSequentialExecutors() {
-        this(DefaultBucketHasher.withTotalBuckets(null), null);
-    }
-
-    private ConcurrentSequentialExecutors(Integer maxCountOfConcurrentExecutors, Integer totalTaskQueueSize) {
-        this(DefaultBucketHasher.withTotalBuckets(maxCountOfConcurrentExecutors), totalTaskQueueSize);
-    }
-
-    private ConcurrentSequentialExecutors(ConsistentBucketHasher bucketHasher, Integer totalTaskQueueSize) {
-        LOG.log(Level.INFO, "Constructing conseq with consistent hasher : {0}, totalTaskQueueSize : {1}", new Object[] {
-                bucketHasher, totalTaskQueueSize });
-        this.bucketHasher = Objects.requireNonNull(bucketHasher, "Bucket hasher cannot be null");
-        final int totalBuckets = bucketHasher.getTotalBuckets();
-        if (totalBuckets <= 0) {
-            throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
+    private ConcurrentSequentialExecutors(Builder builder) {
+        LOG.log(Level.INFO, "Constructing conseq with builder : {0}", builder);
+        if (builder.consistentHasher != null && builder.maxConcurrentExecutors != null) {
+            throw new IllegalArgumentException(
+                    "Cannot set hasher and max executors at the same time because hasher's total bucket count has to equal and be determined by max executors");
         }
-        final Integer executorQueueSize = totalTaskQueueSize == null ? null : totalTaskQueueSize / totalBuckets;
-        this.sequentialExecutorServiceLoader = new SequentialExecutorServiceLoader(executorQueueSize);
+        if (builder.maxConcurrentExecutors == null && builder.consistentHasher == null) {
+            this.consistentHasher = DefaultHasher.withTotalBuckets(null);
+        } else if (builder.maxConcurrentExecutors != null) {
+            assert builder.consistentHasher == null;
+            this.consistentHasher = DefaultHasher.withTotalBuckets(builder.maxConcurrentExecutors);
+        } else {
+            assert builder.consistentHasher != null;
+            this.consistentHasher = builder.consistentHasher;
+        }
+        this.sequentialExecutorServiceCacheLoader = SequentialExecutorServiceCacheLoader.withExecutorQueueSize(
+                builder.singleExecutorTaskQueueSize);
         this.executorCache = Caffeine.newBuilder()
-                .maximumSize(totalBuckets)
-                .build(this.sequentialExecutorServiceLoader);
-        LOG.log(Level.INFO, "Constructed conseq : {0}", this.toString());
-    }
+                .maximumSize(consistentHasher.getTotalBuckets())
+                .build(this.sequentialExecutorServiceCacheLoader);
 
-    @Override
-    public String toString() {
-        return "ConcurrentSequentialExecutors{" + "executorCache=" + executorCache
-                + ", sequentialExecutorServiceLoader=" + sequentialExecutorServiceLoader + ", bucketHasher="
-                + bucketHasher + '}';
     }
 
     /**
      * @return Max count of concurrent executors
      */
-    public int size() {
-        return this.bucketHasher.getTotalBuckets();
+    public int getMaxConcurrentExecutors() {
+        return this.consistentHasher.getTotalBuckets();
     }
 
     @Override
     public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.executorCache.get(this.bucketHasher.hashToBucket(sequenceKey));
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    int getIndividualExecutorTaskQueueSize() {
-        return this.sequentialExecutorServiceLoader.getExecutorQueueSize();
+    int geSingleExecutorTaskQueueSize() {
+        return this.sequentialExecutorServiceCacheLoader.getExecutorQueueSize();
     }
 
-    private static class SequentialExecutorServiceLoader implements CacheLoader<Integer, ExecutorService> {
+    private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer, ExecutorService> {
 
         private static final int UNBOUNDED = Integer.MAX_VALUE;
         private static final int SINGLE_THREAD_COUNT = 1;
@@ -101,7 +92,11 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
 
         private final int executorQueueSize;
 
-        public SequentialExecutorServiceLoader(Integer executorQueueSize) {
+        public static SequentialExecutorServiceCacheLoader withExecutorQueueSize(Integer executorQueueSize) {
+            return new SequentialExecutorServiceCacheLoader(executorQueueSize);
+        }
+
+        private SequentialExecutorServiceCacheLoader(Integer executorQueueSize) {
             if (executorQueueSize == null || executorQueueSize <= 0) {
                 LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", executorQueueSize);
                 this.executorQueueSize = UNBOUNDED;
@@ -134,57 +129,35 @@ public final class ConcurrentSequentialExecutors implements ConcurrentSequencer 
 
     public static class Builder {
 
-        private Integer maxCountOfConcurrentExecutors;
-        private ConsistentBucketHasher consistentBucketHasher;
-        private Integer totalTaskQueueSize;
+        private Integer maxConcurrentExecutors;
+        private ConsistentHasher consistentHasher;
+        private Integer singleExecutorTaskQueueSize;
 
         private Builder() {
         }
 
         @Override
         public String toString() {
-            return "Builder{" + "maxCountOfConcurrentExecutors=" + maxCountOfConcurrentExecutors
-                    + ", consistentBucketHasher=" + consistentBucketHasher + ", totalTaskQueueSize="
-                    + totalTaskQueueSize + '}';
+            return "Builder{" + "maxConcurrentExecutors=" + maxConcurrentExecutors + ", consistentHasher="
+                    + consistentHasher + ", singleExecutorTaskQueueSize=" + singleExecutorTaskQueueSize + '}';
         }
 
         public ConcurrentSequentialExecutors build() {
-            if (this.maxCountOfConcurrentExecutors == null && this.consistentBucketHasher == null) {
-                LOG.log(Level.WARNING, "Building default conseq, disregarding any customization in builder : {0}",
-                        this);
-                return new ConcurrentSequentialExecutors();
-            }
-            if (this.maxCountOfConcurrentExecutors != null) {
-                return new ConcurrentSequentialExecutors(this.maxCountOfConcurrentExecutors, this.totalTaskQueueSize);
-            }
-            LOG.log(Level.WARNING,
-                    "Building conseq using customized consistent bucket hasher : {0}, total task queue size : {1}",
-                    new Object[] { this.consistentBucketHasher, this.totalTaskQueueSize });
-            return new ConcurrentSequentialExecutors(this.consistentBucketHasher, totalTaskQueueSize);
+            return new ConcurrentSequentialExecutors(this);
         }
 
-        public Builder ofSize(int maxCountOfConcurrentExecutors) {
-            if (this.consistentBucketHasher != null) {
-                throw new IllegalStateException(
-                        "Cannot set max concurrency after already set consistent bucket hasher : "
-                                + this.consistentBucketHasher);
-            }
-            this.maxCountOfConcurrentExecutors = maxCountOfConcurrentExecutors;
+        public Builder maxConcurrentExecutors(int maxCountOfConcurrentExecutors) {
+            this.maxConcurrentExecutors = maxCountOfConcurrentExecutors;
             return this;
         }
 
-        public Builder withConsistentBucketHasher(ConsistentBucketHasher bucketHasher) {
-            if (this.maxCountOfConcurrentExecutors != null) {
-                throw new IllegalStateException(
-                        "Cannot set consistent bucket hasher after already set max concurrency : "
-                                + this.maxCountOfConcurrentExecutors);
-            }
-            this.consistentBucketHasher = bucketHasher;
+        public Builder consistentHasher(ConsistentHasher bucketHasher) {
+            this.consistentHasher = bucketHasher;
             return this;
         }
 
-        public Builder withTotalTaskQueueSize(int totalTaskQueueSize) {
-            this.totalTaskQueueSize = totalTaskQueueSize;
+        public Builder singleExecutorTaskQueueSize(int singleExecutorTaskQueueSize) {
+            this.singleExecutorTaskQueueSize = singleExecutorTaskQueueSize;
             return this;
         }
     }

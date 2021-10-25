@@ -31,8 +31,8 @@ public class ConcurrentSequentialExecutorsTest {
 
     private static final Logger LOG = Logger.getLogger(ConcurrentSequentialExecutorsTest.class.getName());
 
-    private static ConsistentBucketHasher stubHasher() {
-        return new ConsistentBucketHasher() {
+    private static ConsistentHasher stubHasher() {
+        return new ConsistentHasher() {
 
             @Override
             public int hashToBucket(Object sequenceKey) {
@@ -52,17 +52,17 @@ public class ConcurrentSequentialExecutorsTest {
     public void defaultConcurrencyAndQueueSizeShouldBeUnbound() {
         ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
                 .build();
-        assertEquals(Integer.MAX_VALUE, target.size());
-        assertEquals(Integer.MAX_VALUE, target.getIndividualExecutorTaskQueueSize());
+        assertEquals(Integer.MAX_VALUE, target.getMaxConcurrentExecutors());
+        assertEquals(Integer.MAX_VALUE, target.geSingleExecutorTaskQueueSize());
     }
 
     @Test
-    public void shouldHonorSpecifiedConcurrency() {
+    public void shouldHonorMaxExecutors() {
         int stubConcurrency = 5;
         ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
-                .ofSize(stubConcurrency)
+                .maxConcurrentExecutors(stubConcurrency)
                 .build();
-        assertEquals(stubConcurrency, target.size());
+        assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
     }
 
     @Test
@@ -78,14 +78,14 @@ public class ConcurrentSequentialExecutorsTest {
     }
 
     @Test
-    public void cannotSetMaxConcurrencyIfAlreadySetCustomizedHasher() {
+    public void cannotSetBothCustomizedHasherAndMaxExecutors() {
         final int stubConcurrency = 999;
         try {
             ConcurrentSequentialExecutors.newBuilder()
-                    .withConsistentBucketHasher(stubHasher())
-                    .ofSize(stubConcurrency)
+                    .maxConcurrentExecutors(stubConcurrency)
+                    .consistentHasher(stubHasher())
                     .build();
-        } catch (IllegalStateException ex) {
+        } catch (IllegalArgumentException ex) {
             LOG.info("expected");
             return;
         }
@@ -93,38 +93,12 @@ public class ConcurrentSequentialExecutorsTest {
     }
 
     @Test
-    public void cannotSetCustomizedHasherIfAlreadySetConcurrency() {
-        final int stubConcurrency = 999;
-        try {
-            ConcurrentSequentialExecutors.newBuilder()
-                    .ofSize(stubConcurrency)
-                    .withConsistentBucketHasher(stubHasher())
-                    .build();
-        } catch (IllegalStateException ex) {
-            LOG.info("expected");
-            return;
-        }
-        fail();
-    }
-
-    @Test
-    public void shouldDiscardTotalTaskQueueSizeIfMaxConcurrencyIsUnbounded() {
-        int stubTotalTaskQueueSize = 999;
+    public void shouldHonorSingleExecutorTaskQueueSize() {
+        final int singleExecutorQueueSize = 100;
         ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
-                .withTotalTaskQueueSize(stubTotalTaskQueueSize)
+                .singleExecutorTaskQueueSize(singleExecutorQueueSize)
                 .build();
-        assertEquals(Integer.MAX_VALUE, target.getIndividualExecutorTaskQueueSize());
-    }
-
-    @Test
-    public void individualExecutorQueueSizeShouldBeProportioanlToConseqTotalTaskQueueSize() {
-        final int maxConcurrency = 5;
-        final int conseqTaskQueueSize = 100;
-        ConcurrentSequentialExecutors target = ConcurrentSequentialExecutors.newBuilder()
-                .ofSize(maxConcurrency)
-                .withTotalTaskQueueSize(conseqTaskQueueSize)
-                .build();
-        assertEquals(conseqTaskQueueSize / maxConcurrency, target.getIndividualExecutorTaskQueueSize());
+        assertEquals(singleExecutorQueueSize, target.geSingleExecutorTaskQueueSize());
     }
 
 }

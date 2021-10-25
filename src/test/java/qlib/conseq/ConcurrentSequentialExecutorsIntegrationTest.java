@@ -98,8 +98,8 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
     public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = ConcurrentSequentialExecutors.newBuilder()
-                .ofSize(maxConcurrency)
-                .withTotalTaskQueueSize(TASK_COUNT * 10)
+                .maxConcurrentExecutors(maxConcurrency)
+                .singleExecutorTaskQueueSize(TASK_COUNT * 10)
                 .build();
         List<SpyingTaskPayload> dataPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<Future<SpyingTaskPayload>> taskFutures = new ArrayList<>();
@@ -116,7 +116,7 @@ public class ConcurrentSequentialExecutorsIntegrationTest {
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, the max concurrency (think "max thread
-                                                       // pool size") is set to be smaller than your potential tasks,
+                                                       // pool getMaxConcurrentExecutors") is set to be smaller than your potential tasks,
                                                        // then the total number of concurrent threads to have run your
                                                        // tasks will be bound by the max concurrency you set.
     }

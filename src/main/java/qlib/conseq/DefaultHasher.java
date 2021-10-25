@@ -27,25 +27,25 @@ import java.util.Objects;
 /**
  * @author q3769
  */
-public class DefaultBucketHasher implements ConsistentBucketHasher {
+public class DefaultHasher implements ConsistentHasher {
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
     private static final int UNBOUNDED = Integer.MAX_VALUE;
 
-    public static DefaultBucketHasher withTotalBuckets(Integer totalBuckets) {
+    public static DefaultHasher withTotalBuckets(Integer totalBuckets) {
         if (totalBuckets == null) {
-            return new DefaultBucketHasher();
+            return new DefaultHasher();
         }
-        return new DefaultBucketHasher(totalBuckets);
+        return new DefaultHasher(totalBuckets);
     }
 
     private final int totalBuckets;
 
-    private DefaultBucketHasher() {
+    private DefaultHasher() {
         this.totalBuckets = UNBOUNDED;
     }
 
-    private DefaultBucketHasher(int totalBuckets) {
+    private DefaultHasher(int totalBuckets) {
         if (totalBuckets <= 0) {
             throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
         }

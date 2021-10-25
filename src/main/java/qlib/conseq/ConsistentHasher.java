@@ -22,7 +22,7 @@ package qlib.conseq;
 /**
  * @author q3769
  */
-public interface ConsistentBucketHasher {
+public interface ConsistentHasher {
 
     int hashToBucket(Object sequenceKey);
 
