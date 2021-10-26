@@ -77,7 +77,7 @@ Consider using the Conseq API when the incoming events carry some kind of correl
 
 #### More details
 
-On the API level, you get a good old JDK `ExecutorService` as the sequential executor from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+On the API level, you get a good old JDK `ExecutorService` as a sequential executor from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
 ```
 public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
