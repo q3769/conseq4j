@@ -104,7 +104,7 @@ This conseq has a max of 10 concurrent executors; each executor has an unbounded
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
-## Full disclosure
+## Full disclosure: the "asynchronous conundrum"
 For a multi-threaded/concurrent system, there are generally two approaches to ensure correct order of message consumption:
 1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related messages are never processed out of order. This implies that
 - The message producer ensures that messages are posted to the messaging provider in correct order.
