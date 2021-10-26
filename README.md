@@ -56,7 +56,7 @@ public class MessageConsumer {
     }    
     ...
 ```
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad; called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: 
 
 *The shot-gun threads processed the events out of order!*
 
