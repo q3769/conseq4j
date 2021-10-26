@@ -1,7 +1,7 @@
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769.qlib/conseq.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769.qlib%22%20AND%20a:%22conseq%22)
 # Conseq
 
-Conseq (Concurrent Sequencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
+Conseq (**con**current **seq**uencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
 
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
