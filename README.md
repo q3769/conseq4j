@@ -1,3 +1,4 @@
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769.qlib/conseq.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769.qlib%22%20AND%20a:%22conseq%22)
 # Conseq
 
 Conseq (Concurrent Sequencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
