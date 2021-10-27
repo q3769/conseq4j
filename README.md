@@ -26,7 +26,7 @@ implementation 'io.github.q3769.qlib:conseq:20211026.0.1'
 ## Use it...
 For those who are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received, and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
 ### Setup 1
 ```
@@ -61,7 +61,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 *The shot-gun threads processed the events out of order!*
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limitting performance. Or, you may be able to save your beer by using this Conseq API as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to save your beer by using this Conseq API as in Setup 3:
 
 ### Setup 3
 ```
@@ -95,7 +95,7 @@ A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacit
 ConcurrentSequencer conseqDefault = Conseq.newBuilder().build();
 ```
 
-This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 (i.e. 20 x 10):
+This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
@@ -112,6 +112,6 @@ Sometimes we have to acknowledge the "asynchronous conundrum" - the fact that as
 1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related messages are never processed out of order. This implies that
 - The message producer ensures that messages are posted to the messaging provider in correct order.
 - The messaging provider ensures that messages are delivered to the message consumer in the same order they are received.
-- The message consumer ensures that related messages are processed in the same order, e.g. by using a sequence/correlation key as with this API in Setup 3. 
+- The message consumer ensures that related messages are processed in the same order, e.g., by using a sequence/correlation key as with this API in Setup 3. 
 
-2. Reactive/Responsive: This is on the business rule level. Sometimes we have to accept that preventative messures of message order preservation are not always possible. At the time of processing on the message consumer side, things can be out of order already. E.g. when the messages are coming from different message producers and sources, there may be no garantee of correct ordering in the first place, in spite of the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things are out of order, using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g. in Setup 2, a rule of doing a history (persistent store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other responsive measures inlcude using State Machines.
+2. Reactive/Responsive: This is on the business rule level. Sometimes we have to accept that preventative meassures of message order preservation are not always possible. At the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things are out of order, using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a rule of doing a history (persistent store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other responsive measures include using State Machines.
