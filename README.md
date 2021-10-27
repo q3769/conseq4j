@@ -78,13 +78,13 @@ Consider using the Conseq API when the incoming events carry some kind of correl
 
 #### More details
 
-On the API level, you get a good old JDK `ExecutorService` as a sequential executor from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+On the API level, you get a good old JDK `ExecutorService` instance from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
 ```
 public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
-As such, you can use that executor to run your own tasks, with all the same syntax and semantics an `ExecutorService` has to offer. Rest assured that related events with the same sequence key are never processed out of order, while unrelated events enjoy concurrent processing of up to the maximum number of executors.
+As such, you can use that executor instance to run tasks, with all the same syntax and semantics an `ExecutorService` has to offer. Rest assured that related events with the same sequence key are never processed out of order, while unrelated events enjoy concurrent processing of up to the maximum number of executors.
 
 The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
 
