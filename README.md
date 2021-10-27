@@ -92,7 +92,7 @@ The default hashing algorithm of this API is from the Guava library, namely Murm
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks are processed concurrently by a potentially unbounded number of executors:
 ```
-ConcurrentSequencer conseqDefault = Conseq.newBuilder().build();
+ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default
 ```
 
 This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
@@ -100,7 +100,7 @@ This conseq has a max of 10 concurrent executors, each executor has a task queue
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-This conseq has a max of 10 concurrent executors; each executor has an unbounded task queue size:
+This conseq has a max of 10 concurrent executors, each executor has an unbounded task queue size:
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
