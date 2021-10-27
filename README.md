@@ -84,7 +84,7 @@ public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
-As such, the single-threaded executor returned bears all the same syntax and semantics an `ExecutorService` has to offer. Repeated calls on the same (equal) sequence key get back the same (cached) executor instance. Thus you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+As such, the single-threaded executor returned bears all the same syntax and semantics an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (cached) executor instance. Thus you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
 The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
 
