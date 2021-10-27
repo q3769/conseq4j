@@ -54,10 +54,10 @@ Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt 
 ### Setup 2
 ```
 public class MessageConsumer {
-    private ExecutorService concurrencer = Executors.newFixedThreadPool(10);
+    private ExecutorService shotgunConcurrencer = Executors.newFixedThreadPool(10);
     
     public void onMessage(Message shoppingEvent) {
-        concurrencer.execute(() -> process(shoppingEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
+        shotgunConcurrencer.execute(() -> process(shoppingEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
     }    
     ...
 ```
