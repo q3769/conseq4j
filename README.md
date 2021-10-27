@@ -109,12 +109,16 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).buil
 
 Sometimes we have to acknowledge the "asynchronous conundrum" - the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally. In asynchronous messaging, there are generally two approaches to achieve ordering:
 
-1. Proactive/Preventive: This is on the technical level. Sometimes we can make sure that related messages are never processed out of order. This implies that
+### 1. Proactive/Preventive
 
-    a) The message producer ensures that messages are posted to the messaging provider in correct order.
+This is on the technical level. Sometimes we can make sure that related messages are never processed out of order. This implies that
+
+(a) The message producer ensures that messages are posted to the messaging provider in correct order.
    
-    b) The messaging provider ensures that messages are delivered to the message consumer in the same order they are received.
+(b) The messaging provider ensures that messages are delivered to the message consumer in the same order they are received.
     
-    c) The message consumer ensures that related messages are processed in the same order, e.g., by using a sequence/correlation key as with this API in Setup 3. 
+(c) The message consumer ensures that related messages are processed in the same order, e.g., by using a sequence/correlation key as with this API in Setup 3. 
 
-2. Reactive/Responsive: This is on the business rule level. Sometimes we have to accept that preventative meassures of message order preservation are not always possible. At the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things are out of order, using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a rule of doing a history (persistent store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other responsive measures include using State Machines.
+### 2. Reactive/Responsive
+    
+This is on the business rule level. Sometimes we have to accept that preventative meassures of message order preservation are not always possible. At the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things are out of order, using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a rule of doing a history (persistent store) look-up on the time stamps of all the events for the same shopping session in question could help put things back in order. Other responsive measures include using State Machines.
