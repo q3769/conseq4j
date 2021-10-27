@@ -105,7 +105,7 @@ This conseq has a max of 10 concurrent executors, each executor has an unbounded
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
-## Full disclosure: the Asynchronous Conundrum
+## Full disclosure: Asynchronous Conundrum
 
 Acknowledge the "asynchronous conundrum" - the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally. In asynchronous messaging, there are generally two approaches to achieve ordering:
 
