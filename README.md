@@ -26,7 +26,7 @@ implementation 'io.github.q3769.qlib:conseq:20211026.0.1'
 ## Use it...
 For those who are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1 in your consumer class. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
 ### Setup 1
 ```
@@ -45,7 +45,7 @@ That is all well and good, but processing all messages in sequential order globa
 
 To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
 
-Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application was brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order albeit within a very short period of time. 
+Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application had been brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order, albeit within a very short period of time. 
 
 ### Setup 2
 ```
