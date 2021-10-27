@@ -26,11 +26,15 @@ implementation 'io.github.q3769.qlib:conseq:20211026.0.2'
 ## Use it...
 For those who are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1 in the consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to `onMessage` returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
+The typical use case is with an asynchronous message consumer. First off, you can do Setup 1 in the consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
 ### Setup 1
 ```
 public class MessageConsumer {
+
+    /**
+     * run-time invocation of this method is managed by the messaging provider
+     */
     public void onMessage(Message shoppingEvent) {
         process(shoppingEvent);
     }
