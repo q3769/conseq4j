@@ -36,9 +36,12 @@ public class MessageConsumer {
      * Suppose run-time invocation of this method is managed by the messaging provider
      */
     public void onMessage(Message shoppingEvent) {
-        process(shoppingEvent);
+        process(shoppingEvent); // call business method below
     }
 
+    /**
+     * Business processing method
+     */
     private void process(Message shoppingEvent) {
         ...
     }
@@ -56,6 +59,9 @@ Imagine while shopping for a T-Shirt, the shopper changed the size of the shirt 
 public class MessageConsumer {
     private ExecutorService shotgunConcurrencer = Executors.newFixedThreadPool(10);
     
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider
+     */
     public void onMessage(Message shoppingEvent) {
         shotgunConcurrencer.execute(() -> process(shoppingEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
     }    
@@ -72,6 +78,9 @@ Ok then what, going back to Setup 1? Well sure, you can do that, at the expense 
 public class MessageConsumer {
     private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
     
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider
+     */
     public void onMessage(Message shoppingEvent) {
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); // You still got up to 10 threads working for you, but all shopping events of the same shopping cart will be done by a single thread
     }
