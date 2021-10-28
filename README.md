@@ -78,8 +78,6 @@ public class MessageConsumer {
     ...
 ```
 
-Consider using the Conseq API when the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure at the end).
-
 #### More details
 
 On the API level, you get a good old JDK `ExecutorService` instance from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
@@ -111,9 +109,13 @@ This conseq has a max of 10 concurrent executors, each executor has a task queue
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
+Consider using the Conseq API when the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure at the end).
+
 ## Full disclosure: Asynchronous Conundrum
 
-Acknowledge the "asynchronous conundrum" - the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally. In asynchronous messaging, there are generally two approaches to achieve ordering:
+The "asynchronous conundrum" refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to preserve meaningful order while processing asynchoronously in a concurrent system. 
+
+In asynchronous messaging, there are generally two approaches to achieve ordering:
 
 ### 1. Proactive/Preventive
 
