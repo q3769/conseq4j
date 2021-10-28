@@ -33,7 +33,7 @@ The typical use case is with an asynchronous message consumer. First off, you ca
 public class MessageConsumer {
 
     /**
-     * run-time invocation of this method is managed by the messaging provider
+     * Suppose run-time invocation of this method is managed by the messaging provider
      */
     public void onMessage(Message shoppingEvent) {
         process(shoppingEvent);
