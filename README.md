@@ -65,7 +65,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 *The shot-gun threads processed the events out of order!*
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to save your beer by using this Conseq API as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to save your beer by using a "conseq" as in Setup 3:
 
 ### Setup 3
 ```
@@ -88,7 +88,7 @@ public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
-As such, the single-threaded executor returned by the above method bears all the same syntax and semantics an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (cached) executor instance. 
+As such, the single-threaded executor returned by the above method bears all the same syntax and semantics an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created and cached) executor instance. 
 
 Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
