@@ -38,7 +38,7 @@ public class MessageConsumer {
      * Suppose run-time invocation of this method is managed by the messaging provider
      */
     public void onMessage(Message shoppingEvent) {
-        process(shoppingEvent); // call business method below
+        process(shoppingEvent); // delegate to business method
     }
 
     /**
