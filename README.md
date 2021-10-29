@@ -6,6 +6,8 @@ Conseq (**con**current **seq**uencer) is a Java concurrent API to sequence relat
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
+Consider using the Conseq API when, inside a globally sequenced processor, you want to achieve processing concurrency while preserving meaningful local order (see the full disclosure at the end).
+
 ## Prerequisite
 Java 8 or better
 
@@ -118,11 +120,9 @@ This conseq has a max of 10 concurrent executors, each executor has a task queue
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-Consider using the Conseq API when, inside a globally sequenced processor, you want to increase processing concurrency while preserving meaningful local order (see the full disclosure at the end).
-
 ## Full disclosure: Asynchronous Conundrum
 
-The "asynchronous conundrum" refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to preserve meaningful order while processing asynchoronously in a concurrent system. 
+The "asynchronous conundrum" refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
 
 In asynchronous messaging, there are generally two approaches to achieve ordering:
 
