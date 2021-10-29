@@ -118,7 +118,7 @@ This conseq has a max of 10 concurrent executors, each executor has a task queue
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-Consider using the Conseq API when the incoming events carry some kind of correlatable information that can be used or converted as a sequence key (see the full disclosure at the end).
+Consider using the Conseq API when, inside a globally sequenced processor, you want to increase processing concurrency while preserving meaningful local order (see the full disclosure at the end).
 
 ## Full disclosure: Asynchronous Conundrum
 
