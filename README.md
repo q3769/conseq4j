@@ -73,7 +73,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 *The shot-gun threads processed the events out of order!*
 
-Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to save your beer by using a "conseq" as in Setup 3:
+Ok then what, going back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to keep reasonable concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
 ### Setup 3
 ```
