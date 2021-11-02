@@ -23,6 +23,7 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import java.nio.ByteBuffer;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * @author q3769
@@ -67,6 +68,9 @@ public class DefaultHasher implements ConsistentHasher {
         if (sequenceKey instanceof Long) {
             return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.totalBuckets);
         }
+        if (sequenceKey instanceof UUID) {
+            Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
+        }
         if (sequenceKey instanceof Integer) {
             return Hashing.consistentHash(HASH_FUNCTION.hashInt((Integer) sequenceKey), this.totalBuckets);
         }
@@ -76,7 +80,7 @@ public class DefaultHasher implements ConsistentHasher {
         if (sequenceKey instanceof ByteBuffer) {
             return Hashing.consistentHash(HASH_FUNCTION.hashBytes((ByteBuffer) sequenceKey), this.totalBuckets);
         }
-        return Hashing.consistentHash(HASH_FUNCTION.hashInt(sequenceKey.hashCode()), this.totalBuckets);
+        return Hashing.consistentHash(HASH_FUNCTION.hashInt(Objects.hashCode(sequenceKey)), this.totalBuckets);
     }
 
     @Override

@@ -49,7 +49,7 @@ public final class Conseq implements ConcurrentSequencer {
         LOG.log(Level.INFO, "Constructing conseq with builder : {0}", builder);
         if (builder.maxConcurrentExecutors != null && builder.consistentHasher != null) {
             throw new IllegalArgumentException(
-                    "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors");
+                    "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
         }
         if (builder.maxConcurrentExecutors == null && builder.consistentHasher == null) {
             this.consistentHasher = DefaultHasher.withTotalBuckets(null);
