@@ -97,7 +97,7 @@ public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
-As such, the single-threaded executor returned by the above method bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created and cached) executor instance. 
+As such, the single-threaded executor returned by the above method bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. 
 
 Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
