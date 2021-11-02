@@ -103,7 +103,7 @@ Thus, starting from the single-thread consumer, as long as you summon the conseq
 
 The sequence key can be any type of `Object`, but good choices are identifiers that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. The default hasher of this API works reasonbly well with these types: `CharSequence/String`, `Long`, `Integer`, `UUID`, `byte[]`, and `ByteBuffer`; other types default to using `Object.hashCode` as the hash input, which is most likely undesirable because that may render the conseq to behave like a shot-gun concurrencer as in Setup 2. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc.... 
 
-At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more even, the better. The task distribution is mainly driven by:
+At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 - How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 - How evenly the consistent hash algorithm can spread different sequence keys into different hash buckets
 
