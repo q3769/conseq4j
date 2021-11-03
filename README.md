@@ -111,8 +111,8 @@ The default hash algorithm of this API is from the Guava library, namely MurmurH
 
 ```
 public interface ConsistentHasher {
-    int hashToBucket(Object sequenceKey);
-    int getTotalBuckets(); // equals the max number of concurrent executors
+    int hashToBucket(Object sequenceKey); // hashes the sequenceKey into one of the ints in the range of [0, totalBuckets)
+    int getTotalBuckets(); // count of total buckets will determine and equal the max number of concurrent executors of the conseq
 }
 ```
 
