@@ -110,7 +110,7 @@ public interface ConcurrentSequencer {
 
 As such, the single-threaded executor returned by the above method bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
-The sequence key can be any type of `Object`. Relying internally on hashing, however, the default Conseq API prefers to work with these sequence key types: 
+The sequence key can be any type of `Object`. Relying internally on hashing, though, the Conseq API's default implementation prefers to work with these sequence key types: 
 
 - `CharSequence/String`
 - `Long`
@@ -119,7 +119,7 @@ The sequence key can be any type of `Object`. Relying internally on hashing, how
 - `byte[]`
 - `ByteBuffer`
  
-Other sequence key types default to using `Object.hashCode` or its override as the hash input, which is likely to be undesirable when the `hashCode` method is not properly overriden - the default `hashCode` implementation of `Object`, e.g., will render the conseq to behave more like a shot-gun concurrencer as in Setup 2. Therefore, it is not recommended to use sequence key types other than the preferred ones without a proper `hashCode` override or custom `ConsistentHasher` (more on `ConsistentHasher` later). **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such; most likely, such identifiers tend to be of the preferred sequence key types on the API level. 
+Other sequence key types fall back to using `Object.hashCode` or its override as the hash input, which may be undesirable when the `hashCode` method is not properly overriden - the default `hashCode` implementation of `Object`, e.g., will render the conseq to behave more like a shot-gun concurrencer as in Setup 2. Therefore, it is not recommended to use sequence key types other than the preferred ones without a proper `hashCode` override or custom `ConsistentHasher` (more on `ConsistentHasher` later). **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such; more often than not, such identifiers tend to be of the preferred sequence key types organically. 
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
