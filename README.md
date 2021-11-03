@@ -119,7 +119,7 @@ The sequence key can be any type of `Object`. Relying internally on hashing, how
 - `byte[]`
 - `ByteBuffer`
  
-Other sequence key types default to using `Object.hashCode` or its override as the hash input, which is likely to be undesirable when the `hashCode` method is not properly overriden - the default `hashCode` implementation of `Object`, e.g., will render the conseq to behave more like a shot-gun concurrencer as in Setup 2. Therefore, it is not recommended to use sequence key types other than the preferred ones without a proper `hashCode` override or custom `ConsistentHasher` (more on `ConsistentHasher` later). **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such; meanwhile, such identifiers tend to be of the preferred sequence key types organically on the API level. 
+Other sequence key types default to using `Object.hashCode` or its override as the hash input, which is likely to be undesirable when the `hashCode` method is not properly overriden - the default `hashCode` implementation of `Object`, e.g., will render the conseq to behave more like a shot-gun concurrencer as in Setup 2. Therefore, it is not recommended to use sequence key types other than the preferred ones without a proper `hashCode` override or custom `ConsistentHasher` (more on `ConsistentHasher` later). **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such; most likely, such identifiers tend to be of the preferred sequence key types on the API level. 
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
@@ -147,7 +147,7 @@ This conseq has a max of 10 concurrent executors, each executor has an unbounded
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
-This is a typical way of setting up a conseq. The real numbers are up to your discretion, but "when in doubt, use the default". It has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
+The following is a typical way of setting up a conseq. The exact capacity numbers are up to your discretion. This particular conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
