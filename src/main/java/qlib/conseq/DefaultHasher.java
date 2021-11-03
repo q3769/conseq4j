@@ -69,7 +69,7 @@ public class DefaultHasher implements ConsistentHasher {
             return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.totalBuckets);
         }
         if (sequenceKey instanceof UUID) {
-            Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
+            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
         }
         if (sequenceKey instanceof Integer) {
             return Hashing.consistentHash(HASH_FUNCTION.hashInt((Integer) sequenceKey), this.totalBuckets);

@@ -12,7 +12,9 @@ Consider using the Conseq API when, inside a globally sequenced processor, you w
 Java 8 or better
 
 ## Get it...
+
 In Maven
+
 ```
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
@@ -20,17 +22,21 @@ In Maven
     <version>20211026.0.3</version>
 </dependency>
 ```
+
 In Gradle
+
 ```
 implementation 'io.github.q3769.qlib:conseq:20211026.0.3'
 ```
 
 ## Use it...
+
 For those who are in a hurry, skip directly to Setup 3.
 
 The typical use case is with an asynchronous message consumer. First off, you can do Setup 1 in the consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
 ### Setup 1
+
 ```
 public class MessageConsumer {
 
@@ -57,6 +63,7 @@ To speed up the process, you really want to do Setup 2 if you can, just "shot-gu
 Imagine while online shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application had been brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order, albeit within a very short period of time. 
 
 ### Setup 2
+
 ```
 public class MessageConsumer {
     private ExecutorService shotgunConcurrencer = Executors.newFixedThreadPool(10);
@@ -69,6 +76,7 @@ public class MessageConsumer {
     }    
     ...
 ```
+
 As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: 
 
 *The shot-gun threads processed the events out of order!*
@@ -76,6 +84,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 Ok then what, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
 ### Setup 3
+
 ```
 public class MessageConsumer {
     private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
@@ -92,11 +101,13 @@ public class MessageConsumer {
 #### More details
 
 On the API level, you get a good old JDK `ExecutorService` instance from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+
 ```
 public interface ConcurrentSequencer {
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
+
 As such, the single-threaded executor returned by the above method bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. 
 
 Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
@@ -104,6 +115,7 @@ Thus, starting from the single-thread consumer, as long as you summon the conseq
 The sequence key can be any type of `Object`. Relying internally on hash, however, the default Conseq API prefers and works well with these sequence key types: `CharSequence/String`, `Long`, `Integer`, `UUID`, `byte[]`, and `ByteBuffer`. Other types default to using `Object.hashCode` as the hash input, which is most likely undesirable because that may render the conseq to behave like a shot-gun concurrencer as in Setup 2. **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. 
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
+
 - How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 - How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
@@ -117,16 +129,19 @@ public interface ConsistentHasher {
 ```
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
+
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unbounded capacities
 ```
 
 This conseq has a max of 10 concurrent executors, each executor has an unbounded task queue size:
+
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
 This conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
+
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
