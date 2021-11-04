@@ -122,7 +122,15 @@ At run-time, a conseq's concurrency is not only decided by the preset maximum nu
 - How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 - How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()`, instead of the usual `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()`, to build the conseq instance. 
+The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using 
+
+- `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()`
+
+instead of **the usual setup** of
+
+- `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()`
+
+to build the conseq instance. 
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
