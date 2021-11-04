@@ -150,7 +150,7 @@ The following is a typical way of setting up a conseq. The exact capacity number
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-## Full disclosure (Asynchronous Conundrum)
+## Full disclosure - Asynchronous Conundrum
 
 The "asynchronous conundrum" refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
 
