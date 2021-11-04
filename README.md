@@ -100,7 +100,7 @@ public class MessageConsumer {
 
 #### More details
 
-On the API level, you get a good old JDK `ExecutorService` instance from one of conseq's overloaded `getSequentialExecutor` methods:
+On the API level, you get a good old JDK `ExecutorService` instance from one of the overloaded `getSequentialExecutor` methods:
 
 ```
 public interface ConcurrentSequencer {
@@ -113,9 +113,9 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The returned instance is a single-threaded executor; it bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The returned instance is a single-threaded executor; it bears all the same syntactic richness and semantic robustness that an `ExecutorService` has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
-For simplicity, the Conseq API only supports a limited set of sequence key types. Internally, the Conseq API relies on hashing to determine the target executor for a sequence key.  **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. More often than not, such identifiers tend to be of the supported sequence key types organically; otherwise, you may have to convert your desired sequence key into one of the supported types.
+For simplicity, the Conseq API only supports a limited set of JDK types for the sequence key. Internally, the Conseq API relies on hashing to determine the target executor for a sequence key.  **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key into one of the supported types.
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
