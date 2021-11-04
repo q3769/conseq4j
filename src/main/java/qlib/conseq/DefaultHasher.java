@@ -31,12 +31,20 @@ public class DefaultHasher implements ConsistentHasher {
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
     private static final int UNBOUNDED = Integer.MAX_VALUE;
+    private static final int UUID_BYTE_SIZE = 128 / 8;
 
     public static DefaultHasher withTotalBuckets(Integer totalBuckets) {
         if (totalBuckets == null) {
             return new DefaultHasher();
         }
         return new DefaultHasher(totalBuckets);
+    }
+
+    private static byte[] toBytes(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[UUID_BYTE_SIZE]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
     }
 
     private final int totalBuckets;
@@ -90,13 +98,6 @@ public class DefaultHasher implements ConsistentHasher {
     @Override
     public int hashToBucket(ByteBuffer sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
-    }
-
-    private static byte[] toBytes(UUID uuid) {
-        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
-        bb.putLong(uuid.getMostSignificantBits());
-        bb.putLong(uuid.getLeastSignificantBits());
-        return bb.array();
     }
 
 }
