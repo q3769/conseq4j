@@ -124,11 +124,15 @@ At run-time, a conseq's concurrency is not only decided by the preset maximum nu
 
 The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using 
 
-- `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()`
+```
+Conseq.newBuilder().consistentHasher(myConsistentHasher).build()
+```
 
 instead of **the usual setup** of
 
-- `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()`
+```
+Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()
+```
 
 to build the conseq instance. 
 
