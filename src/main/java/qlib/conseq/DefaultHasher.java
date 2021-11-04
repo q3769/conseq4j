@@ -79,7 +79,7 @@ public class DefaultHasher implements ConsistentHasher {
 
     @Override
     public int hashToBucket(UUID sequenceKey) {
-        return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
+        return Hashing.consistentHash(HASH_FUNCTION.hashBytes(toBytes(sequenceKey)), this.totalBuckets);
     }
 
     @Override
@@ -90,6 +90,13 @@ public class DefaultHasher implements ConsistentHasher {
     @Override
     public int hashToBucket(ByteBuffer sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
+    }
+
+    private static byte[] toBytes(UUID uuid) {
+        ByteBuffer bb = ByteBuffer.wrap(new byte[16]);
+        bb.putLong(uuid.getMostSignificantBits());
+        bb.putLong(uuid.getLeastSignificantBits());
+        return bb.array();
     }
 
 }
