@@ -22,6 +22,8 @@ package qlib.conseq;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -75,13 +77,38 @@ public final class Conseq implements ConcurrentSequencer {
         return this.consistentHasher.getTotalBuckets();
     }
 
+    int geSingleExecutorTaskQueueSize() {
+        return this.sequentialExecutorServiceCacheLoader.getExecutorQueueSize();
+    }
+
     @Override
-    public ExecutorService getSequentialExecutor(Object sequenceKey) {
+    public ExecutorService getSequentialExecutor(CharSequence sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    int geSingleExecutorTaskQueueSize() {
-        return this.sequentialExecutorServiceCacheLoader.getExecutorQueueSize();
+    @Override
+    public ExecutorService getSequentialExecutor(Integer sequenceKey) {
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
+    }
+
+    @Override
+    public ExecutorService getSequentialExecutor(Long sequenceKey) {
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
+    }
+
+    @Override
+    public ExecutorService getSequentialExecutor(UUID sequenceKey) {
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
+    }
+
+    @Override
+    public ExecutorService getSequentialExecutor(byte[] sequenceKey) {
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
+    }
+
+    @Override
+    public ExecutorService getSequentialExecutor(ByteBuffer sequenceKey) {
+        return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer, ExecutorService> {

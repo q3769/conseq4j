@@ -23,6 +23,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
@@ -45,6 +46,7 @@ public class ConseqIntegrationTest {
     private static final Duration SMALL_TASK_DURATION = Duration.ofSeconds(TASK_DURATION.getSeconds() / 10);
     private static final Duration DURATION_UNTIL_ALL_TASKS_DONE = Duration.ofSeconds(TASK_DURATION.getSeconds() * 100);
     private static final int TASK_COUNT = 10;
+    private static final Random RANDOM = new Random();
 
     @Test
     public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() throws InterruptedException {
@@ -57,11 +59,11 @@ public class ConseqIntegrationTest {
                                                                                                       // type
 
         taskPayloads.forEach(payload -> {
-            final Object sequenceKey = payload.getCorrelationKey(); // Sequence key can come from anywhere but most
-                                                                    // likely from the input data payload. Note that the
-                                                                    // same sequence key means sqeuential execution of
-                                                                    // the tasks behind the same (physically or
-                                                                    // logically) single thread.
+            final Long sequenceKey = payload.getCorrelationKey(); // Sequence key can come from anywhere but most
+                                                                  // likely from the input data payload. Note that the
+                                                                  // same sequence key means sqeuential execution of
+                                                                  // the tasks behind the same (physically or
+                                                                  // logically) single thread.
             final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get
                                                                                                          // an instance
                                                                                                          // of good old
@@ -130,7 +132,7 @@ public class ConseqIntegrationTest {
         List<SpyingTaskPayload> smallPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<Future<SpyingTaskPayload>> regularFutures = new ArrayList<>();
         List<Future<SpyingTaskPayload>> quickFutures = new ArrayList<>();
-        Object sequenceKey = UUID.randomUUID();
+        UUID sequenceKey = UUID.randomUUID();
         final ExecutorService regularTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
         final ExecutorService quickTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Same sequence key
                                                                                                     // for regular and
@@ -174,7 +176,7 @@ public class ConseqIntegrationTest {
     private List<SpyingTaskPayload> getStubInputItemWithRandomCorrelationKeys(int collectionSize) {
         List<SpyingTaskPayload> result = new ArrayList<>();
         for (int i = 0; i < collectionSize; i++) {
-            result.add(new SpyingTaskPayload(UUID.randomUUID()));
+            result.add(new SpyingTaskPayload(RANDOM.nextLong()));
         }
         return result;
     }

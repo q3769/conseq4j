@@ -100,40 +100,29 @@ public class MessageConsumer {
 
 #### More details
 
-On the API level, you get a good old JDK `ExecutorService` instance from a conseq's `getSequentialExecutor(Object sequenceKey)` method:
+On the API level, you get a good old JDK `ExecutorService` instance from one of conseq's overloaded `getSequentialExecutor` methods:
 
 ```
 public interface ConcurrentSequencer {
-    ExecutorService getSequentialExecutor(Object sequenceKey);
+    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
+    ExecutorService getSequentialExecutor(Integer sequenceKey);
+    ExecutorService getSequentialExecutor(Long sequenceKey);
+    ExecutorService getSequentialExecutor(UUID sequenceKey);
+    ExecutorService getSequentialExecutor(byte[] sequenceKey);
+    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
 }
 ```
 
-As such, the single-threaded executor returned by the above method bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The returned instance is a single-threaded executor; it bears all the same syntactic richness and semantic robustness an `ExecutorService` has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/cached) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
-The sequence key can be any type of `Object`. Relying internally on hashing, though, the Conseq API's default implementation prefers to work with these sequence key types: 
-
-- `CharSequence/String`
-- `Long`
-- `Integer`
-- `UUID`
-- `byte[]`
-- `ByteBuffer`
- 
-Other sequence key types fall back to using `Object.hashCode` or its override as the hash input, which may be undesirable when the `hashCode` method is not properly overriden - the default `hashCode` implementation of `Object`, e.g., will render the conseq to behave more like a shot-gun concurrencer as in Setup 2. Therefore, it is not recommended to use sequence key types other than the preferred ones without a proper `hashCode` override or custom `ConsistentHasher` (more on `ConsistentHasher` later). **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such; more often than not, such identifiers tend to be of the preferred sequence key types organically. 
+For simplicity, the Conseq API only supports a limited set of sequence key types. Internally, the Conseq API relies on hashing to determine the target executor for a sequence key.  **Good sequence key choices are consistent business domain identifiers** that can, after hashing, group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. More often than not, such identifiers tend to be of the supported sequence key types organically; otherwise, you may have to convert your desired sequence key into one of the supported types.
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
 - How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 - How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()`, instead of the usual `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).build()`, to build the conseq instance. E.g., on the off chance that you have to use other sequence key types than the preferred ones (say, `YourSequenceKeyType`), and you are unhappy with the default of using `YourSequenceKeyType.hashCode` as the hash input, then you can provide your own `ConsistentHasher` implementation, so that you can properly hash a sequence key instance of `YourSequenceKeyType` consistently into a preset number of total buckets:
-
-```
-public interface ConsistentHasher {
-    int hashToBucket(Object sequenceKey); // consistently hashes the sequenceKey into an int, in the range of [0, totalBuckets)
-    int getTotalBuckets(); // count of total buckets will determine and equal the max number of concurrent executors of the conseq
-}
-```
+The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using `Conseq.newBuilder().consistentHasher(myConsistentHasher).build()`, instead of the usual `Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).build()`, to build the conseq instance. 
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
@@ -171,4 +160,4 @@ This is on the technical level. Sometimes it is possible to ensure related messa
 
 ### 2. Reactive/Responsive
     
-This is on the business rule level. Sometimes preventative meassures of message order preservation are either not possible or not worthwhile to persue. By the time of processing at the message consumer side, things can be out of order already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee of correct ordering from the get-go, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things do go out of order, by using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session could help put things back in order. Other responsive measures include using State Machines.
+This is on the business rule level. Sometimes preventative measures of message order preservation are either not possible or not worthwhile to pursue. By the time of processing at the message consumer side, things can be out of order already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee of correct ordering from the get-go, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things do go out of order, by using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session could help put things back in order. Other responsive measures include using State Machines.

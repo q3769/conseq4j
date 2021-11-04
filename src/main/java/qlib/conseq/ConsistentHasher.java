@@ -19,12 +19,25 @@
  */
 package qlib.conseq;
 
+import java.nio.ByteBuffer;
+import java.util.UUID;
+
 /**
  * @author q3769
  */
 public interface ConsistentHasher {
 
-    int hashToBucket(Object sequenceKey);
+    int hashToBucket(CharSequence sequenceKey);
+
+    int hashToBucket(Integer sequenceKey);
+
+    int hashToBucket(Long sequenceKey);
+
+    int hashToBucket(UUID sequenceKey);
+
+    int hashToBucket(byte[] sequenceKey);
+
+    int hashToBucket(ByteBuffer sequenceKey);
 
     int getTotalBuckets();
 }

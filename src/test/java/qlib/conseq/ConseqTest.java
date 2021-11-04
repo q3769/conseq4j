@@ -19,6 +19,8 @@
  */
 package qlib.conseq;
 
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.*;
@@ -35,13 +37,43 @@ public class ConseqTest {
         return new ConsistentHasher() {
 
             @Override
-            public int hashToBucket(Object sequenceKey) {
+            public int getTotalBuckets() {
                 throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
                                                                                // choose Tools | Templates.
             }
 
             @Override
-            public int getTotalBuckets() {
+            public int hashToBucket(CharSequence sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
+                                                                               // choose Tools | Templates.
+            }
+
+            @Override
+            public int hashToBucket(Integer sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
+                                                                               // choose Tools | Templates.
+            }
+
+            @Override
+            public int hashToBucket(Long sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
+                                                                               // choose Tools | Templates.
+            }
+
+            @Override
+            public int hashToBucket(UUID sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
+                                                                               // choose Tools | Templates.
+            }
+
+            @Override
+            public int hashToBucket(byte[] sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
+                                                                               // choose Tools | Templates.
+            }
+
+            @Override
+            public int hashToBucket(ByteBuffer sequenceKey) {
                 throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
                                                                                // choose Tools | Templates.
             }
@@ -67,7 +99,7 @@ public class ConseqTest {
 
     @Test
     public void shouldReturnSameExcecutorOnSameName() {
-        Object sequenceKey = new Object();
+        UUID sequenceKey = UUID.randomUUID();
         Conseq target = Conseq.newBuilder()
                 .build();
 

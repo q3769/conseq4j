@@ -22,7 +22,6 @@ package qlib.conseq;
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import java.nio.ByteBuffer;
-import java.util.Objects;
 import java.util.UUID;
 
 /**
@@ -59,33 +58,38 @@ public class DefaultHasher implements ConsistentHasher {
     }
 
     @Override
-    public int hashToBucket(Object sequenceKey) {
-        Objects.requireNonNull(sequenceKey, "Sequence key cannot be null");
-        if (sequenceKey instanceof CharSequence) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars((CharSequence) sequenceKey),
-                    this.totalBuckets);
-        }
-        if (sequenceKey instanceof Long) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashLong((Long) sequenceKey), this.totalBuckets);
-        }
-        if (sequenceKey instanceof UUID) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
-        }
-        if (sequenceKey instanceof Integer) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashInt((Integer) sequenceKey), this.totalBuckets);
-        }
-        if (sequenceKey instanceof byte[]) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((byte[]) sequenceKey), this.totalBuckets);
-        }
-        if (sequenceKey instanceof ByteBuffer) {
-            return Hashing.consistentHash(HASH_FUNCTION.hashBytes((ByteBuffer) sequenceKey), this.totalBuckets);
-        }
-        return Hashing.consistentHash(HASH_FUNCTION.hashInt(Objects.hashCode(sequenceKey)), this.totalBuckets);
+    public int getTotalBuckets() {
+        return this.totalBuckets;
     }
 
     @Override
-    public int getTotalBuckets() {
-        return this.totalBuckets;
+    public int hashToBucket(CharSequence sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey), this.totalBuckets);
+    }
+
+    @Override
+    public int hashToBucket(Integer sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashInt(sequenceKey), this.totalBuckets);
+    }
+
+    @Override
+    public int hashToBucket(Long sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashLong(sequenceKey), this.totalBuckets);
+    }
+
+    @Override
+    public int hashToBucket(UUID sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey.toString()), this.totalBuckets);
+    }
+
+    @Override
+    public int hashToBucket(byte[] sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
+    }
+
+    @Override
+    public int hashToBucket(ByteBuffer sequenceKey) {
+        return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
     }
 
 }

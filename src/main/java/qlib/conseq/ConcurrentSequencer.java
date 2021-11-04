@@ -19,6 +19,8 @@
  */
 package qlib.conseq;
 
+import java.nio.ByteBuffer;
+import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -26,6 +28,16 @@ import java.util.concurrent.ExecutorService;
  */
 public interface ConcurrentSequencer {
 
-    ExecutorService getSequentialExecutor(Object sequenceKey);
+    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
+
+    ExecutorService getSequentialExecutor(Integer sequenceKey);
+
+    ExecutorService getSequentialExecutor(Long sequenceKey);
+
+    ExecutorService getSequentialExecutor(UUID sequenceKey);
+
+    ExecutorService getSequentialExecutor(byte[] sequenceKey);
+
+    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
 
 }

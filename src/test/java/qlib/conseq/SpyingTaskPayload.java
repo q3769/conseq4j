@@ -27,12 +27,12 @@ import java.util.UUID;
 public class SpyingTaskPayload {
 
     protected final UUID id = UUID.randomUUID();
-    private final Object correlationKey;
+    private final Long correlationKey;
     private Long runStartTimeNanos;
     private Long runEndTimeNanos;
     private String runThreadName;
 
-    public SpyingTaskPayload(Object correlationKey) {
+    public SpyingTaskPayload(Long correlationKey) {
         this.correlationKey = correlationKey;
     }
 
@@ -58,7 +58,7 @@ public class SpyingTaskPayload {
         return id;
     }
 
-    public Object getCorrelationKey() {
+    public Long getCorrelationKey() {
         return correlationKey;
     }
 
