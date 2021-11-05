@@ -146,7 +146,7 @@ This conseq has a max of 10 concurrent executors, each executor has an unbounded
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
 ```
 
-This conseq has an unbounded number of concurrent executors, each executor has a task queue size of 20:
+This conseq has an unbounded max number of concurrent executors, each executor has a task queue size of 20:
 
 ```
 Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
