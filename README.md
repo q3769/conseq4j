@@ -104,7 +104,7 @@ public class MessageConsumer {
 
 #### More details
 
-On the API level, you get a good old JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) instance from one of the overloaded `getSequentialExecutor` methods:
+On the API level, you get a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) instance from one of the overloaded `getSequentialExecutor` methods:
 
 ```
 public interface ConcurrentSequencer {
