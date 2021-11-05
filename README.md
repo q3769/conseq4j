@@ -58,7 +58,7 @@ public class MessageConsumer {
     ...
 ```
 
-- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative when running on multiprocessing infrastructure, to say the least.
+- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, when running on multiprocessing infrastructure.
 
 To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
 
@@ -123,8 +123,8 @@ For simplicity, the Conseq API only supports a limited set of JDK types for the 
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
-- How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
-- How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
+1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
+2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
 The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using 
 
