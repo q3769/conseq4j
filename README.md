@@ -113,7 +113,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The returned `ExecutorService` instance is a single-threaded executor; it bears all the same syntactic richness and semantic robustness that an `ExecutorService` has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The returned `ExecutorService` instance is a single-threaded executor; it bears all the same syntactic richness and semantic robustness that a JDK `ExecutorService` has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
 For simplicity, the Conseq API only supports a limited set of JDK types for the sequence key. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key into one of the supported types.
 
@@ -128,13 +128,11 @@ The default hash algorithm of this API is from the [Guava](https://github.com/go
 Conseq.newBuilder().consistentHasher(myConsistentHasher).build()
 ```
 
-instead of **the usual setup** of
+to build the conseq instance, instead of **the usual setup** of
 
 ```
 Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()
-```
-
-to build the conseq instance. 
+``` 
 
 A default conseq has all its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
@@ -146,6 +144,12 @@ This conseq has a max of 10 concurrent executors, each executor has an unbounded
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
+```
+
+This conseq has an unbounded number of concurrent executors, each executor has a task queue size of 20:
+
+```
+Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
 ```
 
 The following is a typical way of setting up a conseq. The exact capacity numbers are up to your discretion. This particular conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
