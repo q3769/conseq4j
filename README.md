@@ -33,7 +33,9 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 For those who are in a hurry, skip directly to Setup 3.
 
-The typical use case is with an asynchronous message consumer. First off, you can do Setup 1 in the consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
+While Conseq is a generic Java concurrent API, a typical use case is with an asynchronous message consumer, running on JRE of a multi-core node. 
+
+First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
 ### Setup 1
 
@@ -56,7 +58,7 @@ public class MessageConsumer {
     ...
 ```
 
-That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it?
+*That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative when running on multiprocessing infrastructure, to say the least.*
 
 To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
 
@@ -97,6 +99,8 @@ public class MessageConsumer {
     }
     ...
 ```
+
+*That is: related events - sequential process; unrelated events - potentially concurrent process.*
 
 #### More details
 
