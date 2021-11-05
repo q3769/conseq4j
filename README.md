@@ -129,13 +129,13 @@ At run-time, a conseq's concurrency is not only decided by the preset maximum nu
 The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own `ConsistentHasher` by using 
 
 ```
-Conseq.newBuilder().consistentHasher(myConsistentHasher).build()
+ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHasher).build();
 ```
 
-to build the conseq instance, instead of **the usual setup** of
+to build the conseq instance, instead of **the usual setup**
 
 ```
-Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build()
+ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build();
 ``` 
 
 A default conseq has both its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
@@ -153,7 +153,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).buil
 This conseq has an unbounded max number of concurrent executors, each executor has a task queue size of 20:
 
 ```
-Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
+ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
 ```
 
 The following is a typical way of setting up a conseq. The exact capacity numbers are up to your discretion. This particular conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
