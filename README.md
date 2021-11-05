@@ -58,7 +58,7 @@ public class MessageConsumer {
     ...
 ```
 
-*That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative when running on multiprocessing infrastructure, to say the least.*
+- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative when running on multiprocessing infrastructure, to say the least.
 
 To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
 
@@ -81,7 +81,7 @@ public class MessageConsumer {
 
 As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: 
 
-*The shot-gun threads processed the events out of order!*
+- The shot-gun threads processed the events out of order!
 
 Ok then what, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
@@ -100,7 +100,7 @@ public class MessageConsumer {
     ...
 ```
 
-*That is: related events - sequential process; unrelated events - potentially concurrent process.*
+- That is: related events - sequential process; unrelated events - potentially concurrent process.
 
 #### More details
 
