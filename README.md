@@ -33,7 +33,7 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer (running on a multi-core node). For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
 
-First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
+First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method has returned. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
 
 ### Setup 1: globally sequential
 
@@ -58,7 +58,7 @@ public class MessageConsumer {
 
 - That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially when working with multiprocessing systems.
 
-To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
+To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
 Imagine while online shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application had been brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order, albeit within a very short period of time. 
 
@@ -77,7 +77,7 @@ public class MessageConsumer {
     ...
 ```
 
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder how that could have happened... Oh, got it: 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled upon (got real mad, called you a bunch of names and knocked over your beer). And you wonder how that could have happened... Oh, got it: 
 
 - The shot-gun threads processed the events out of order!
 
@@ -115,9 +115,9 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The returned `ExecutorService` instance is a logically single-threaded executor; it bears all the same syntactic richness and semantic robustness that [the JDK implementation of `ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) has to offer in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The returned `ExecutorService` instance is a logically single-threaded executor; it bears all the same syntactic richness and semantic robustness that [the JDK implementation of `ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) has to offer, in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
-For simplicity, the Conseq API only supports a limited set of JDK types for the sequence key. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key into one of the supported types, e.g, a `CharSequence`/`String` or a `long`.
+For simplicity, the Conseq API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key into one of the supported types, e.g., a `CharSequence`/`String` or a `long`.
 
 At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
