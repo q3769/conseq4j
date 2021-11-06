@@ -100,7 +100,7 @@ public class MessageConsumer {
     ...
 ```
 
-- That is, when it comes to processing: related events - sequential; unrelated events - concurrent, potentially.
+- That is, when it comes to processing: related events - sequential; unrelated events - concurrent (potentially).
 
 #### More details
 
