@@ -31,7 +31,7 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 ## Use it...
 
-While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer that runs on a multi-core node. For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
+While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer (running on a multi-core node). For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
 
 First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
 
