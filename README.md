@@ -6,7 +6,7 @@ Conseq (**con**current **seq**uencer) is a Java concurrent API to sequence relat
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
-Consider using the Conseq API when, inside a globally sequenced processor, you want to achieve execution concurrency while preserving meaningful local order (see the full disclosure at the end).
+Consider using the Conseq API when, from inside a globally sequenced processor, you want to achieve execution concurrency while preserving meaningful local order (see the full disclosure at the end).
 
 ## Prerequisite
 Java 8 or better
@@ -31,9 +31,7 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 ## Use it...
 
-For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
-
-While Conseq is a generic Java concurrent API, a typical use case is with an asynchronous message consumer, running on a JRE in a multi-core node. 
+While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer that runs in a JRE of a multi-core node. For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
 
 First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
 
