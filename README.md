@@ -164,7 +164,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).sing
 
 ## Full disclosure - Asynchronous Conundrum
 
-The Asynchronous Conundrum refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
+Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
 
 In asynchronous messaging, there are generally two approaches to achieve ordering:
 
