@@ -31,11 +31,11 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 ## Use it...
 
-For those who are in a hurry, skip directly to Setup 3.
+For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
 
-While Conseq is a generic Java concurrent API, a typical use case is with an asynchronous message consumer, running on JRE of a multi-core node. 
+While Conseq is a generic Java concurrent API, a typical use case is with an asynchronous message consumer, running on a JRE in a multi-core node. 
 
-First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
+First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
 
 ### Setup 1: globally sequential
 
@@ -58,7 +58,7 @@ public class MessageConsumer {
     ...
 ```
 
-- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially when running on a multiprocessing infrastructure.
+- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially when working with multiprocessing systems.
 
 To speed up the process, you really want to do Setup 2 if you can, just "shot-gun" a bunch of concurrent threads, except sometimes you can't - not when the order of message consumption matters:
 
@@ -162,9 +162,9 @@ The following is a typical way of setting up a conseq. The exact capacity number
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-## Full disclosure - asynchronous conundrum
+## Full disclosure - Asynchronous Conundrum
 
-The "asynchronous conundrum" refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
+The Asynchronous Conundrum refers to fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
 
 In asynchronous messaging, there are generally two approaches to achieve ordering:
 
