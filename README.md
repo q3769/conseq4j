@@ -37,7 +37,7 @@ While Conseq is a generic Java concurrent API, a typical use case is with an asy
 
 First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same/correct order as they are delivered by the messaging provider. 
 
-### Setup 1
+### Setup 1: Globally sequential
 
 ```
 public class MessageConsumer {
@@ -64,7 +64,7 @@ To speed up the process, you really want to do Setup 2 if you can, just "shot-gu
 
 Imagine while online shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application had been brought down for maintenance, so the 10 events were held and piled up in the messaging provider. Now your consumer application came back online, and all the 10 events were delivered to you in the correct order, albeit within a very short period of time. 
 
-### Setup 2
+### Setup 2: Globally concurrent
 
 ```
 public class MessageConsumer {
@@ -85,7 +85,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 Ok then what, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
-### Setup 3
+### Setup 3: Globally concurrently, locally sequential
 
 ```
 public class MessageConsumer {
