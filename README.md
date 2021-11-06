@@ -33,7 +33,7 @@ implementation 'io.github.q3769.qlib:conseq:20211104.0.2'
 
 While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer that runs in a JRE of a multi-core node. For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrently-locally-sequential).
 
-First off, you can do Setup 1 in the message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
+First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method returns. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered by the messaging provider. 
 
 ### Setup 1: globally sequential
 
@@ -77,7 +77,7 @@ public class MessageConsumer {
     ...
 ```
 
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder why that happened... Oh, got it: 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled on (got real mad, called you a bunch of names and knocked over your beer). And you wonder how that could have happened... Oh, got it: 
 
 - The shot-gun threads processed the events out of order!
 
