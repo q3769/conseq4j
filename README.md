@@ -141,7 +141,7 @@ A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities 
 1. the conseq's maximum count of concurrent executors, and
 2. each executor's task queue size 
 
-As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
+As always, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unbounded capacities
