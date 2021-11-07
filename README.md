@@ -83,7 +83,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 Ok then what, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
-### Setup 3: globally concurrent, locally sequential
+### Setup 3: globally concurrent, locally sequential (a.k.a. conseq)
 
 ```
 public class MessageConsumer {
@@ -136,7 +136,12 @@ to build the conseq instance, instead of **the usual setup**
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build();
 ``` 
 
-A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
+A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
+
+1. the conseq's maximum count of concurrent executors, and
+2. each executor's task queue size 
+
+As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unbounded capacities
