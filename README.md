@@ -119,7 +119,7 @@ The returned `ExecutorService` instance is a logically single-threaded executor;
 
 For simplicity, the Conseq API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key into one of the supported types, e.g., a `CharSequence`/`String` or a `long`.
 
-At run-time, a conseq's concurrency is not only decided by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
+At run-time, the concurrency of a conseq is decided not only by the preset maximum number of concurrent executors, but also by how evenly the tasks are distributed to run among those executors - the more evenly, the better. The task distribution is mainly driven by:
 
 1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
