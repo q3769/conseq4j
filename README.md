@@ -124,22 +124,22 @@ At run-time, the concurrency of a conseq is decided not only by the preset maxim
 1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are potentially available.)
 2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. It should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq/ConsistentHasher.java) by using 
+The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. To build a Conseq instance with the default hasher, you provide the intended maximum number of concurrent executors:
+
+```
+ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).build();
+``` 
+
+That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq/ConsistentHasher.java):
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHasher).build();
 ```
 
-to build the conseq instance, instead of **the usual setup**
-
-```
-ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build();
-``` 
-
 A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
 
 1. the conseq's maximum count of concurrent executors, and
-2. each executor's task queue size 
+2. each executor's task queue size (See document on [capacity](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) of a bounded `BlockingQueue`) 
 
 As always, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
@@ -159,7 +159,7 @@ This conseq has an unbounded max number of concurrent executors, each executor h
 ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
 ```
 
-The following is a typical way of setting up a conseq. The exact capacity numbers are up to your discretion. This particular conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
+The following is a **typical way of setting up a conseq**. The exact capacity numbers are up to your discretion. This particular conseq has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
