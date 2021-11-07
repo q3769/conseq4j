@@ -176,9 +176,9 @@ In asynchronous messaging, there are generally two approaches to achieve orderin
 This is on the technical level. Sometimes it is possible to ensure related messages are never processed out of order. This implies that
 
 (1) The message producer ensures that messages are posted to the messaging provider in correct order.
-   
+
 (2) The messaging provider ensures that messages are delivered to the message consumer in the same order they are received.
-    
+
 (3) The message consumer ensures that related messages are processed in the same order, e.g., by using a sequence/correlation key as with this API in Setup 3. 
 
 ### 2. Reactive/Responsive
