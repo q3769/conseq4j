@@ -56,7 +56,7 @@ public class MessageConsumer {
     ...
 ```
 
-- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially when working with multiprocessing systems.
+- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially for multiprocessing systems.
 
 To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
