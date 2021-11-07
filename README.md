@@ -136,7 +136,7 @@ to build the conseq instance, instead of **the usual setup**
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(myMaxCountOfConcurrentExecutors).singleExecutorTaskQueueSize(myExecutorTaskQueueSize).build();
 ``` 
 
-A default conseq has both its capacities unbounded (`Integer.MAX_VALUE`). Capacities include the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
+A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to the conseq's maximum count of concurrent executors and each executor's task queue size. As usual, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unbounded capacities
