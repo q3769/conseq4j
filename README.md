@@ -139,7 +139,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHa
 A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
 
 1. the conseq's maximum count of concurrent executors, and
-2. each executor's task queue size (See document on [capacity](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) of a bounded `BlockingQueue`) 
+2. each executor's task queue size (See [Javadoc on capacity](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) of a bounded `BlockingQueue`) 
 
 As always, even with unbounded capacities, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
