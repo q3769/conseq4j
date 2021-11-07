@@ -24,9 +24,9 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import java.nio.ByteBuffer;
 import java.util.UUID;
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -151,7 +151,7 @@ public final class Conseq implements ConcurrentSequencer {
             LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
                     this.executorQueueSize);
             return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
-                    TimeUnit.MILLISECONDS, new ArrayBlockingQueue<>(this.executorQueueSize));
+                    TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(this.executorQueueSize));
         }
     }
 
