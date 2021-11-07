@@ -83,7 +83,7 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 Ok then what, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
 
-### Setup 3: globally concurrently, locally sequential
+### Setup 3: globally concurrent, locally sequential
 
 ```
 public class MessageConsumer {
