@@ -100,7 +100,7 @@ public class MessageConsumer {
 
 - That is, when it comes to processing: related events - sequential; unrelated events - concurrent (potentially).
 
-#### More details
+Some more details...
 
 On the API level, you get a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) instance from one of the Conseq's `getSequentialExecutor` methods:
 
@@ -126,7 +126,7 @@ At run-time, the concurrency of a conseq is decided not only by the preset maxim
 
 The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq/ConsistentHasher.java), as in Build -1, when building a Conseq instance:
 
-##### Build -1: custom hasher
+#### Build -1: custom hasher
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHasher).build();
@@ -139,7 +139,7 @@ A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities 
 
 As always, even with unbounded capacities as in Build 0, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
-##### Build 0: all default, unbounded capacities
+#### Build 0: all default, unbounded capacities
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unbounded capacities
@@ -147,7 +147,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().build(); // all default, unboun
 
 The conseq in Build 1 has a max of 10 concurrent executors, each executor has an unbounded task queue size:
 
-##### Build 1: partially bounded on max concurrent executors
+#### Build 1: partially bounded on max concurrent executors
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
@@ -155,7 +155,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).buil
 
 The conseq in Build 2 has an unbounded max number of concurrent executors, each executor has a task queue size of 20:
 
-##### Build 2: partially bounded on task queue size
+#### Build 2: partially bounded on task queue size
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
@@ -163,15 +163,15 @@ ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20)
 
 The conseq in Build 3 has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
 
-##### Build 3: fully bounded on both max concurrent executors and task queue size
+#### Build 3: fully bounded on both max concurrent executors and task queue size
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
 ```
 
-##### Considerations on capacities
+#### Considerations on capacities
 
-When running in a Cloud environment, you might want to consider leaving at least one of the conseq's capacities as default/unbounded, especially the task queue size of the individual executor. When an executor's capacity is exceeded, the [default/JDK policy](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html) is to reject further tasks by throwing exceptions. If you fully bound a conseq's capacities as in Build 3, you may be able to prevent the running node/JVM from crashing but tasks beyond the preset capacities will be rejected and error out, which is undesirable. By having some unbounded capacity as in Build 0 through Build 2, the idea is to leverage the Cloud's autoscaling mechanism to properly scale out the system before either undesired effects happens:  task rejection or node crash. In other words, the conseq's capacities should be large enough to ensure autoscaling kicks in before either of the undesired effects.
+When running in a Cloud environment, you might want to consider leaving at least one of the conseq's capacities as default/unbounded, especially the task queue size of the individual executor. When an executor's capacity is exceeded, the [default/JDK policy](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html) is to reject further tasks by throwing exceptions. If you fully bound a conseq's capacities as in Build 3, you may be able to prevent the running node/JVM from crashing but tasks beyond the preset capacities will be rejected and error out, which is undesirable. By having some unbounded capacity as in Build 0/1/2, the idea is to leverage the Cloud's autoscaling mechanism to properly scale out the system before either undesired effects happens:  task rejection or node crash. In other words, the conseq's capacities should be large enough to ensure autoscaling kicks in before either of the undesired effects.
 
 ## Full disclosure - Asynchronous Conundrum
 
