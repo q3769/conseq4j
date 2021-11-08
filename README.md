@@ -171,7 +171,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).sing
 
 #### Considerations on capacities
 
-When running in a Cloud environment, you might want to consider leaving at least one of the conseq's capacities as default/unbounded, especially the task queue size of the individual executor. When an executor's capacity is exceeded, the [default/JDK policy](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html) is to reject further tasks by throwing exceptions. If you fully bound a conseq's capacities as in Build 3, you may be able to prevent the running node/JVM from crashing but tasks beyond the preset capacities will be rejected, which is undesirable. By having some unbounded capacity as in Build 0/1/2, the idea is to leverage the Cloud's autoscaling mechanism to properly scale out the system and prevent the undesired outcomes - task rejection and node crash - from happening. In other words, the conseq's capacities should be large enough to ensure that the autoscaling kicks in before either of those undesired outcomes does.
+When running in a Cloud environment, you might want to consider leaving at least one of the conseq's capacities as default/unbounded, especially the task queue size of the individual executor. When an executor's capacity is exceeded, the [default/JDK policy](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html) is to reject further tasks by throwing exceptions. If you fully bound a conseq's capacities as in Build 3, you may be able to prevent the running node/JVM from crashing but tasks beyond the preset capacities will be rejected, which is undesirable. By having some unbounded capacity as in Build 0/1/2, the idea is to leverage the Cloud's autoscaling mechanism to properly scale out the system and prevent the undesired outcomes - task rejection and node crash. In other words, the conseq's capacities should be large enough to ensure that the autoscaling kicks in before either of those undesired outcomes does.
 
 ## Full disclosure - Asynchronous Conundrum
 
@@ -181,7 +181,7 @@ In asynchronous messaging, there are generally two approaches to achieve orderin
 
 ### 1. Proactive/Preventive
 
-This is on the technical level. Sometimes it is possible to ensure related messages are never processed out of order. This implies:
+This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of order. This implies:
 
 (1) The message producer ensures that messages are posted to the messaging provider in correct order.
 
@@ -191,4 +191,4 @@ This is on the technical level. Sometimes it is possible to ensure related messa
 
 ### 2. Reactive/Responsive
     
-This is on the business rule level. Sometimes preventative measures of message order preservation are either not possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things do go out of order, by using business rules. This can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session could help put things back in order. Other responsive measures include using State Machines.
+This is more on the business rule level. Sometimes preventative measures of message order preservation are either not possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things do go out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session could help put things back in order. Other responsive measures include using State Machines.
