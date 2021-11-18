@@ -147,7 +147,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().build();
 
 The conseq in Option 1 has a max of 10 concurrent executors, each executor has an unbounded task queue size:
 
-#### Option 1: partially bounded on max concurrent executors
+#### Option 1: partially bounded capacity on max concurrent executors
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
@@ -155,7 +155,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).buil
 
 The conseq in Option 2 has an unbounded max number of concurrent executors, each executor has a task queue size of 20:
 
-#### Option 2: partially bounded on task queue size
+#### Option 2: partially bounded capacity on task queue size
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
@@ -163,7 +163,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20)
 
 The conseq in Option 3 has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
 
-#### Option 3: fully bounded on both max concurrent executors and task queue size
+#### Option 3: fully bounded capacities on both max concurrent executors and task queue size
 
 ```
 ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
