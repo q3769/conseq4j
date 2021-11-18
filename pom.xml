@@ -3,11 +3,11 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq</artifactId>
-    <version>20211104.0.3</version>
+    <version>20211104.0.4</version>
     <packaging>jar</packaging>
     <name>conseq</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
-    <url>https://github.com/q3769/qlib-conseq</url>
+    <url>https://github.com/q3769/conseq</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -15,12 +15,12 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/q3769/qlib-conseq/tree/main</url>
+        <url>https://github.com/q3769/conseq/tree/main</url>
         <connection>
-            scm:git:git://github.com:q3769/qlib-conseq.git
+            scm:git:git://github.com:q3769/conseq.git
         </connection>
         <developerConnection>
-            scm:git:ssh://github.com:q3769/qlib-conseq.git
+            scm:git:ssh://github.com:q3769/conseq.git
         </developerConnection>
     </scm>
     <developers>
