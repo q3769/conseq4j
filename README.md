@@ -6,7 +6,7 @@ Conseq (**con**current **seq**uencer) is a Java concurrent API to sequence relat
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
-Consider using the Conseq API when, from inside a globally sequenced processor, you want to achieve execution concurrency while preserving meaningful local order (see the full disclosure at the end).
+Consider using the Conseq API when you want to achieve execution concurrency globally while preserving meaningful local order at the same time (see the full disclosure at the end).
 
 ## Prerequisite
 Java 8 or better
