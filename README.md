@@ -175,13 +175,13 @@ When running in a Cloud environment, you might want to consider leaving at least
 
 ## Full disclosure - Asynchronous Conundrum
 
-The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally, often times it is not trivial to maintain meaningful order while processing asynchoronously in a concurrent system. 
+The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally: In asynchronous systems, certain level of limit and impedance mismatch exist between maintaining meaningful local order and maximizing global concurrency. 
 
-In asynchronous messaging, there are generally two approaches to achieve ordering:
+In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
 
 ### 1. Proactive/Preventive
 
-This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of order. This implies:
+This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of order in a globally concurrent execution. This implies:
 
 (1) The message producer ensures that messages are posted to the messaging provider in correct order.
 
