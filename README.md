@@ -68,6 +68,7 @@ Imagine while online shopping for a T-Shirt, the shopper changed the size of the
 
 ```
 public class MessageConsumer {
+
     private ExecutorService shotgunConcurrencer = Executors.newFixedThreadPool(10);
     
     /**
@@ -89,6 +90,7 @@ Ok what then, go back to Setup 1? Well sure, you can do that, at the expense of 
 
 ```
 public class MessageConsumer {
+
     private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
     
     /**
