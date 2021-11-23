@@ -80,11 +80,11 @@ public class MessageConsumer {
     ...
 ```
 
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled upon (got real mad, called you a bunch of names and knocked over your beer). And you wonder how such thing could have ever happened... Oh, got it: 
+As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled upon (got real mad, called you a bunch of names and knocked over your beer!). And you wonder how such thing could have ever happened... Oh, got it: 
 
 - The shot-gun threads processed the events out of order!
 
-Ok what then, go back to Setup 1? Well sure, you can do that, at the expense of limiting performance. Or you may be able to achieve decent concurrency (and save your beer) by using a "conseq" as in Setup 3:
+Ok what then, go back to Setup 1? Yes, indeed you can do that, at the expense of limiting performance. Or, you may be able to achieve decent concurrency (and save your beer!) by using a "conseq" as in Setup 3:
 
 ### Setup 3: globally concurrent, locally sequential (a.k.a. conseq)
 
