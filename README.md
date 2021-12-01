@@ -18,14 +18,14 @@ In Maven
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20211104.0.4</version>
+    <version>20211201.0.0</version>
 </dependency>
 ```
 
 In Gradle
 
 ```
-implementation 'io.github.q3769.qlib:conseq4j:20211104.0.4'
+implementation 'io.github.q3769.qlib:conseq4j:20211201.0.0'
 ```
 
 ## Use it...
