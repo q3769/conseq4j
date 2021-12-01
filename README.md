@@ -1,12 +1,11 @@
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769.qlib/conseq.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769.qlib%22%20AND%20a:%22conseq%22)
-# Conseq
+# conseq4j
 
-Conseq (**con**current **seq**uencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
+conseq4j (**con**current **seq**uencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
 
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
 
-Consider using the Conseq API when you want to achieve concurrent processing globally while preserving meaningful local execution order at the same time (see the full disclosure at the end).
+Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local execution order at the same time (see the full disclosure at the end).
 
 ## Prerequisite
 Java 8 or better
@@ -18,7 +17,7 @@ In Maven
 ```
 <dependency>
     <groupId>io.github.q3769.qlib</groupId>
-    <artifactId>conseq</artifactId>
+    <artifactId>conseq4j</artifactId>
     <version>20211104.0.4</version>
 </dependency>
 ```
@@ -26,14 +25,14 @@ In Maven
 In Gradle
 
 ```
-implementation 'io.github.q3769.qlib:conseq:20211104.0.4'
+implementation 'io.github.q3769.qlib:conseq4j:20211104.0.4'
 ```
 
 ## Use it...
 
-For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq/blob/main/README.md#setup-3-globally-concurrent-locally-sequential-aka-conseq) and then maybe Option 3.
+For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq4j/blob/main/README.md#setup-3-globally-concurrent-locally-sequential-aka-conseq4j) and then maybe Option 3.
 
-While being a generic Java concurrent API, Conseq has a typical use case with an asynchronous message consumer running on a multi-core node. 
+While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer running on a multi-core node. 
 
 First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method has returned. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered through the messaging provider. 
 
@@ -121,14 +120,14 @@ public interface ConcurrentSequencer {
 
 The returned `ExecutorService` instance is a logically single-threaded executor; it bears all the same syntactic richness and semantic robustness that [the JDK implementation of `ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) has to offer, in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
-For simplicity, the Conseq API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key type into one of the supported types such as a `CharSequence`/`String` or a `long`.
+For simplicity, the conseq4j API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key type into one of the supported types such as a `CharSequence`/`String` or a `long`.
 
 At run-time, the global concurrency of a conseq is decided not only by the preset maximum number of concurrent executors - largely so, naturally - but also by how evenly the tasks are distributed among those executors: the more evenly, the better. The task distribution is mainly driven by:
 
 1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are configured to be potentially available.)
 2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq/ConsistentHasher.java), as in Option -1, when building a Conseq instance:
+The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq4j/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq4j/ConsistentHasher.java), as in Option -1, when building a Conseq instance:
 
 #### Option -1: custom hasher
 

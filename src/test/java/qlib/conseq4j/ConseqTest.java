@@ -17,8 +17,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.conseq;
+package qlib.conseq4j;
 
+import qlib.conseq4j.Conseq;
+import qlib.conseq4j.ConsistentHasher;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.Executor;

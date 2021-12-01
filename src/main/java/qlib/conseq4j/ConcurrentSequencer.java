@@ -17,27 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.conseq;
+package qlib.conseq4j;
 
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author q3769
  */
-public interface ConsistentHasher {
+public interface ConcurrentSequencer {
 
-    int hashToBucket(CharSequence sequenceKey);
+    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
 
-    int hashToBucket(Integer sequenceKey);
+    ExecutorService getSequentialExecutor(Integer sequenceKey);
 
-    int hashToBucket(Long sequenceKey);
+    ExecutorService getSequentialExecutor(Long sequenceKey);
 
-    int hashToBucket(UUID sequenceKey);
+    ExecutorService getSequentialExecutor(UUID sequenceKey);
 
-    int hashToBucket(byte[] sequenceKey);
+    ExecutorService getSequentialExecutor(byte[] sequenceKey);
 
-    int hashToBucket(ByteBuffer sequenceKey);
+    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
 
-    int getTotalBuckets();
 }

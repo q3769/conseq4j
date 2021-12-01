@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.conseq;
+package qlib.conseq4j;
 
 import java.time.Duration;
 import java.util.logging.Level;

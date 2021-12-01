@@ -17,8 +17,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qlib.conseq;
+package qlib.conseq4j;
 
+import qlib.conseq4j.ConcurrentSequencer;
+import qlib.conseq4j.Conseq;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashSet;

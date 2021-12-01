@@ -2,12 +2,12 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769.qlib</groupId>
-    <artifactId>conseq</artifactId>
-    <version>20211104.0.4</version>
+    <artifactId>conseq4j</artifactId>
+    <version>20211201.0.0</version>
     <packaging>jar</packaging>
-    <name>conseq</name>
+    <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
-    <url>https://github.com/q3769/conseq</url>
+    <url>https://github.com/q3769/conseq4j</url>
     <licenses>
         <license>
             <name>MIT License</name>
@@ -15,12 +15,12 @@
         </license>
     </licenses>
     <scm>
-        <url>https://github.com/q3769/conseq/tree/main</url>
+        <url>https://github.com/q3769/conseq4j/tree/main</url>
         <connection>
-            scm:git:git://github.com:q3769/conseq.git
+            scm:git:git://github.com:q3769/conseq4j.git
         </connection>
         <developerConnection>
-            scm:git:ssh://github.com:q3769/conseq.git
+            scm:git:ssh://github.com:q3769/conseq4j.git
         </developerConnection>
     </scm>
     <developers>
