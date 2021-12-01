@@ -30,7 +30,7 @@ implementation 'io.github.q3769.qlib:conseq4j:20211104.0.4'
 
 ## Use it...
 
-For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/qlib-conseq4j/blob/main/README.md#setup-3-globally-concurrent-locally-sequential-aka-conseq4j) and then maybe Option 3.
+For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/conseq4j#setup-3-globally-concurrent-locally-sequential-aka-conseq) and then maybe Option 3.
 
 While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer running on a multi-core node. 
 
@@ -127,7 +127,7 @@ At run-time, the global concurrency of a conseq is decided not only by the prese
 1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are configured to be potentially available.)
 2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
 
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/qlib-conseq4j/blob/5c3213c7b8c38d4a4c1d1a79f767fbfbc8e7bb18/src/main/java/qlib/conseq4j/ConsistentHasher.java), as in Option -1, when building a Conseq instance:
+The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/conseq4j/blob/2154c01f9cb35b1a8aa75622807608e9ce3a82e1/src/main/java/qlib/conseq4j/ConsistentHasher.java), as in Option -1, when building a Conseq instance:
 
 #### Option -1: custom hasher
 
