@@ -1,12 +1,11 @@
 #!/bin/sh
 #
-
 echo 
 if [ -e .commit ]
 	then
 	rm .commit
 	#mvn semver:patch -DskipOnZero=true
-	mvn io.github.q3769:semver-maven-plugin:20210213.1.1:patch -DskipOnZero=true
+	mvn io.github.q3769:semver-maven-plugin:20210213.1.1:patch
 	git add pom.xml
 	git commit --amend -C HEAD --no-verify
 fi
