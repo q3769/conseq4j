@@ -87,7 +87,7 @@ public class ConseqTest {
         Conseq target = Conseq.newBuilder()
                 .build();
         assertEquals(Integer.MAX_VALUE, target.getMaxConcurrentExecutors());
-        assertEquals(Integer.MAX_VALUE, target.geSingleExecutorTaskQueueSize());
+        assertEquals(Integer.MAX_VALUE, target.getSingleExecutorTaskQueueSize());
     }
 
     @Test
@@ -132,7 +132,7 @@ public class ConseqTest {
         Conseq target = Conseq.newBuilder()
                 .singleExecutorTaskQueueSize(singleExecutorQueueSize)
                 .build();
-        assertEquals(singleExecutorQueueSize, target.geSingleExecutorTaskQueueSize());
+        assertEquals(singleExecutorQueueSize, target.getSingleExecutorTaskQueueSize());
     }
 
 }

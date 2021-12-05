@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769.qlib</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20211201.0.3</version>
+    <version>20211201.0.4</version>
     <packaging>jar</packaging>
     <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>

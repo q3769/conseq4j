@@ -77,7 +77,7 @@ public final class Conseq implements ConcurrentSequencer {
         return this.consistentHasher.getTotalBuckets();
     }
 
-    int geSingleExecutorTaskQueueSize() {
+    int getSingleExecutorTaskQueueSize() {
         return this.sequentialExecutorServiceCacheLoader.getExecutorQueueSize();
     }
 
