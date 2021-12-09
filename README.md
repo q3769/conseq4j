@@ -27,7 +27,7 @@ In Maven
 In Gradle
 
 ```
-implementation 'io.github.q3769.qlib:conseq4j:20211208.0.0'
+implementation 'io.github.q3769:conseq4j:20211208.0.0'
 ```
 
 ## Use it...
