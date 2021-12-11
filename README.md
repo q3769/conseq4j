@@ -34,7 +34,7 @@ implementation 'io.github.q3769:conseq4j:20211208.0.1'
 
 For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/conseq4j#setup-3-globally-concurrent-locally-sequential-aka-conseq) and then maybe Option 3.
 
-While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer running on a multi-core node. 
+While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer that can benefit from concurrent processing.
 
 First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method has returned. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered through the messaging provider. 
 
@@ -59,7 +59,7 @@ public class MessageConsumer {
     ...
 ```
 
-- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially for multiprocessing systems.
+- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially for multiprocessing systems and/or IO bound processes.
 
 To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
 
