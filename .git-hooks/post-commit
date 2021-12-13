@@ -16,7 +16,7 @@ if [ -e .commit ]
     echo "Remote POM version: " $REMOTE_POM_SEMVER
     cp pom.xml.local pom.xml
     rm pom.xml.local
-    mvn io.github.q3769:semver-maven-plugin:20211209.1.0:merge -Dsemver=$REMOTE_POM_SEMVER
+    mvn io.github.q3769:semver-maven-plugin:20211209.1.1:merge -Dsemver=$REMOTE_POM_SEMVER
     MERGED_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
     echo "Merged POM semver: " $MERGED_POM_SEMVER
     git add pom.xml
