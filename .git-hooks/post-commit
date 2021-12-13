@@ -2,24 +2,24 @@
 #
 echo
 if [ -e .commit ]
-	then
-	rm .commit
-	git fetch --all
-	CURRENT_BRANCH=`git branch --show-current`
-	echo "Current branch: " $CURRENT_BRANCH
-	CURRENT_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
-	echo "Current POM version: " $CURRENT_POM_SEMVER
-	cp pom.xml pom.xml.local
-	rm pom.xml
-	git checkout origin/$CURRENT_BRANCH pom.xml
-	REMOTE_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
-	echo "Remote POM version: " $REMOTE_POM_SEMVER
-	cp pom.xml.local pom.xml
-	rm pom.xml.local
-	mvn io.github.q3769:semver-maven-plugin:20211209.1.0:merge -Dsemver=$REMOTE_POM_SEMVER
-	MERGED_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
-	echo "Merged POM semver: " $MERGED_POM_SEMVER
+    then
+    rm .commit
+    git fetch --all
+    CURRENT_BRANCH=`git branch --show-current`
+    echo "Current branch: " $CURRENT_BRANCH
+    CURRENT_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
+    echo "Current POM version: " $CURRENT_POM_SEMVER
+    cp pom.xml pom.xml.local
+    rm pom.xml
+    git checkout origin/$CURRENT_BRANCH pom.xml
+    REMOTE_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
+    echo "Remote POM version: " $REMOTE_POM_SEMVER
+    cp pom.xml.local pom.xml
+    rm pom.xml.local
+    mvn io.github.q3769:semver-maven-plugin:20211209.1.0:merge -Dsemver=$REMOTE_POM_SEMVER
+    MERGED_POM_SEMVER=`mvn org.apache.maven.plugins:maven-help-plugin:3.2.0:evaluate -Dexpression=project.version -q -DforceStdout | tr -d "[:space:]"`
+    echo "Merged POM semver: " $MERGED_POM_SEMVER
     git add pom.xml
-	git commit --amend -C HEAD --no-verify
+    git commit --amend -C HEAD --no-verify
 fi
 exit
