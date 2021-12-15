@@ -120,7 +120,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The returned `ExecutorService` instance is a logically single-threaded executor; it bears all the same syntactic richness and semantic robustness that [the JDK implementation of `ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) has to offer, in terms of sequentially running your tasks. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The returned `ExecutorService` instance is a logically single-threaded executor; executing tasks sequentially, it bears all the same syntactic richness and semantic robustness that the [JDK implementation](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) of `ExecutorService` has to offer. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
 For simplicity, the conseq4j API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key type into one of the supported types such as a `CharSequence`/`String` or a `long`.
 
@@ -140,7 +140,7 @@ ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHa
 A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
 
 1. the conseq's maximum count of concurrent executors
-2. each executor's task queue size (See [Javadoc on capacity](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) of a bounded `BlockingQueue`) 
+2. each executor's task queue size (See JDK [Javadoc](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) on capacity of a bounded `BlockingQueue`) 
 
 As always, even with unbounded capacities as in Option 0, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
 
