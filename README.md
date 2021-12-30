@@ -2,7 +2,7 @@
 
 # conseq4j
 
-Conseq4J (**con**current **seq**uencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
+conseq4j (**con**current **seq**uencer) is a Java concurrent API to sequence related tasks while concurring unrelated ones.
 
 ## User story
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
@@ -87,7 +87,9 @@ As it turned out, with Setup 2, the shopper actually received a T-Shirt of size 
 
 Ok what then, go back to Setup 1? Yes, indeed you can do that, at the expense of limiting performance. Or, you may be able to achieve decent concurrency (and save your beer!) by using a "conseq" as in Setup 3:
 
-### Setup 3: globally concurrent, locally sequential (a.k.a. conseq)
+### Setup 3: globally concurrent, locally sequential 
+
+I.e. using a Concurrent Sequencer (conseq)
 
 ```
 public class MessageConsumer {
