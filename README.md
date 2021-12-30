@@ -32,7 +32,7 @@ implementation 'io.github.q3769:conseq4j:20211208.0.1'
 
 ## Use it...
 
-For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/conseq4j#setup-3-globally-concurrent-locally-sequential-aka-conseq) and then maybe Option 3.
+For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/conseq4j#setup-3-globally-concurrent-locally-sequential) and then maybe Option 3.
 
 While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer that can benefit from concurrent processing.
 
