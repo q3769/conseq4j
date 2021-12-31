@@ -89,8 +89,6 @@ Ok what then, go back to Setup 1? Yes, indeed you can do that, at the expense of
 
 ### Setup 3: globally concurrent, locally sequential 
 
-I.e. using a Concurrent Sequencer (conseq)
-
 ```
 public class MessageConsumer {
 
@@ -105,7 +103,9 @@ public class MessageConsumer {
     ...
 ```
 
-- That is, when it comes to processing: related events - sequential; unrelated events - concurrent (potentially).
+That is, to use a Concurrent Sequencer (conseq) in the ansychronous consumer:
+
+- Related events - sequentially processed; unrelated events - concurrently processed (see detail below).
 
 Some more details...
 
