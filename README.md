@@ -139,7 +139,7 @@ The default hash algorithm of this API is from the [Guava](https://github.com/go
 ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHasher).build();
 ```
 
-A default conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
+By default, a conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
 
 1. the conseq's maximum count of concurrent executors
 2. each executor's task queue size (See JDK [Javadoc](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) on capacity of a bounded `BlockingQueue`) 
