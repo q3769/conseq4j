@@ -103,7 +103,7 @@ public class MessageConsumer {
     ...
 ```
 
-That is, to use a conseq (concurrent sequencer) in the asynchronous consumer.
+That is, to use a conseq (concurrent sequencer) in the asynchronous consumer, such that:
 
 - Related events are sequentially processed; unrelated events are concurrently processed (see detail below).
 
