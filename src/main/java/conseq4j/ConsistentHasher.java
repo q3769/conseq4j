@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 QingtianWang.
+ * Copyright 2021 Qingtian Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,24 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qt.conseq4j;
+package conseq4j;
 
-import java.time.Duration;
-import java.util.concurrent.Callable;
+import java.nio.ByteBuffer;
+import java.util.UUID;
 
 /**
  * @author q3769
  */
-class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<SpyingTaskPayload> {
+public interface ConsistentHasher {
 
-    public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
-        super(taskData, taskRunDuration);
-    }
+    int hashToBucket(CharSequence sequenceKey);
 
-    @Override
-    public SpyingTaskPayload call() throws Exception {
-        doRun();
-        return this.taskData;
-    }
+    int hashToBucket(Integer sequenceKey);
 
+    int hashToBucket(Long sequenceKey);
+
+    int hashToBucket(UUID sequenceKey);
+
+    int hashToBucket(byte[] sequenceKey);
+
+    int hashToBucket(ByteBuffer sequenceKey);
+
+    int getTotalBuckets();
 }

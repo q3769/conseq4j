@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 Qingtian Wang.
+ * Copyright 2021 QingtianWang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,27 +17,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qt.conseq4j;
+package conseq4j;
 
-import java.nio.ByteBuffer;
-import java.util.UUID;
+import java.time.Duration;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author q3769
  */
-public interface ConsistentHasher {
+class SpyingRunnableTask extends AbstractSpyingConseqable implements Runnable {
 
-    int hashToBucket(CharSequence sequenceKey);
+    private static final Logger LOG = Logger.getLogger(SpyingRunnableTask.class.getName());
 
-    int hashToBucket(Integer sequenceKey);
+    public SpyingRunnableTask(SpyingTaskPayload taskInputItem, Duration taskRunDuration) {
+        super(taskInputItem, taskRunDuration);
+    }
 
-    int hashToBucket(Long sequenceKey);
+    @Override
+    public void run() {
+        try {
+            doRun();
+        } catch (InterruptedException ex) {
+            LOG.log(Level.SEVERE, null, ex);
+        }
+    }
 
-    int hashToBucket(UUID sequenceKey);
-
-    int hashToBucket(byte[] sequenceKey);
-
-    int hashToBucket(ByteBuffer sequenceKey);
-
-    int getTotalBuckets();
 }

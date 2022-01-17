@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 Qingtian Wang.
+ * Copyright 2021 QingtianWang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,27 +17,24 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package qt.conseq4j;
+package conseq4j;
 
-import java.nio.ByteBuffer;
-import java.util.UUID;
-import java.util.concurrent.ExecutorService;
+import java.time.Duration;
+import java.util.concurrent.Callable;
 
 /**
  * @author q3769
  */
-public interface ConcurrentSequencer {
+class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<SpyingTaskPayload> {
 
-    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
+    public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
+        super(taskData, taskRunDuration);
+    }
 
-    ExecutorService getSequentialExecutor(Integer sequenceKey);
-
-    ExecutorService getSequentialExecutor(Long sequenceKey);
-
-    ExecutorService getSequentialExecutor(UUID sequenceKey);
-
-    ExecutorService getSequentialExecutor(byte[] sequenceKey);
-
-    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
+    @Override
+    public SpyingTaskPayload call() throws Exception {
+        doRun();
+        return this.taskData;
+    }
 
 }
