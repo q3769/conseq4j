@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220116.0.0</version>
+    <version>20220116.0.1</version>
     <packaging>jar</packaging>
     <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
@@ -132,6 +132,18 @@
             <groupId>com.google.guava</groupId>
             <artifactId>guava</artifactId>
             <version>31.0.1-jre</version>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility</artifactId>
+            <version>4.1.1</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.awaitility</groupId>
+            <artifactId>awaitility-proxy</artifactId>
+            <version>3.1.6</version>
+            <scope>test</scope>
         </dependency>
     </dependencies>
     <properties>
