@@ -29,7 +29,6 @@ import java.util.UUID;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
@@ -87,8 +86,7 @@ public class ConseqIntegrationTest {
                                                                                         // input data item into a
                                                                                         // runnable command.
         });
-        // Thread.sleep(DURATION_UNTIL_ALL_TASKS_DONE.getSeconds() * 1000);
-        await().atLeast(DURATION_UNTIL_ALL_TASKS_DONE.getSeconds(), TimeUnit.SECONDS);
+        await().atLeast(DURATION_UNTIL_ALL_TASKS_DONE);
 
         Set<String> runThreadNames = taskPayloads.stream()
                 .map(item -> item.getRunThreadName())
