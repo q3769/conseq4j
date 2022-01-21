@@ -19,10 +19,10 @@
  */
 package conseq4j;
 
-import com.google.common.collect.MapMaker;
+import com.github.benmanes.caffeine.cache.Cache;
+import com.github.benmanes.caffeine.cache.Caffeine;
 
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ForkJoinPool;
 
@@ -31,7 +31,7 @@ import java.util.concurrent.ForkJoinPool;
  */
 public final class Conseq implements ConcurrentSequencer {
 
-    private final ConcurrentMap<Object, CompletableFuture<Void>> executionQueues;
+    private final Cache<Object, CompletableFuture<Void>> executionQueues;
 
     private final Executor executor;
 
@@ -44,22 +44,22 @@ public final class Conseq implements ConcurrentSequencer {
     }
 
     private Conseq(Integer parallelism) {
-        final MapMaker mapMaker = new MapMaker();
         if (parallelism == null) {
             this.executor = ForkJoinPool.commonPool();
         } else {
             this.executor = new ForkJoinPool(parallelism);
-            mapMaker.concurrencyLevel(parallelism);
         }
-        this.executionQueues = mapMaker.weakValues()
-                .makeMap();
+        this.executionQueues = Caffeine.newBuilder()
+                .weakValues()
+                .build();
     }
 
     @Override
     public void runAsync(Object sequenceKey, Runnable task) {
-        this.executionQueues.compute(sequenceKey, (key, presentExecutionQueue) -> (presentExecutionQueue == null)
-                ? CompletableFuture.runAsync(task, this.executor) : presentExecutionQueue.thenRunAsync(task,
-                        this.executor));
+        this.executionQueues.asMap()
+                .compute(sequenceKey, (key, presentExecutionQueue) -> (presentExecutionQueue == null)
+                        ? CompletableFuture.runAsync(task, this.executor) : presentExecutionQueue.thenRunAsync(task,
+                                this.executor));
     }
 
 }
