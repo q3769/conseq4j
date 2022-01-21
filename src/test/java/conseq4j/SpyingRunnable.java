@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 QingtianWang.
+ * Copyright 2022 QingtianWang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,24 +17,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package conseq4j;
 
 import java.time.Duration;
-import java.util.concurrent.Callable;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.java.Log;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
-class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<SpyingTaskPayload> {
+@Data
+@Log
+@RequiredArgsConstructor
+public class SpyingRunnable implements Runnable {
 
-    public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
-        super(taskData, taskRunDuration);
-    }
+    final Integer scheduledSequence;
+    Instant runStart;
+    Instant runEnd;
+    String runThreadName;
+    final Duration runDuration;
 
     @Override
-    public SpyingTaskPayload call() throws Exception {
-        doRun();
-        return this.taskData;
+    public void run() {
+        this.setRunStart(Instant.now());
+        this.setRunThreadName(Thread.currentThread()
+                .getName());
+        try {
+            Thread.sleep(this.getRunDuration()
+                    .toMillis());
+        } catch (InterruptedException ex) {
+            Logger.getLogger(SpyingRunnable.class.getName())
+                    .log(Level.SEVERE, null, ex);
+        }
+        this.setRunEnd(Instant.now());
+        log.log(Level.INFO, "End running: {0}", this);
     }
 
 }

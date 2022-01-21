@@ -19,11 +19,18 @@
  */
 package conseq4j;
 
-import java.nio.ByteBuffer;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
-import java.util.concurrent.Executor;
+import java.util.logging.Level;
 import java.util.logging.Logger;
-import static org.junit.jupiter.api.Assertions.*;
+import java.util.stream.Collectors;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -32,105 +39,79 @@ import org.junit.jupiter.api.Test;
 public class ConseqTest {
 
     private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
+    private static final Duration TASK_DURATION = Duration.ofMillis(42);
+    private static final int TASK_COUNT = 10;
 
-    private static ConsistentHasher stubHasher() {
-        return new ConsistentHasher() {
+    @Test
+    public void defaultConcurrencyBoundedByTotalTaskCount() throws InterruptedException {
+        ConcurrentSequencer defaultConseq = Conseq.ofDefault();
+        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
+        tasks.stream()
+                .forEach(task -> defaultConseq.runAsync(UUID.randomUUID(), task));
+        final Duration durationTillAllTasksDone = Duration.ofSeconds(TASK_DURATION.getSeconds() * (TASK_COUNT + 1));
+        // await().atLeast(durationTillAllTasksDone);
+        Thread.sleep(durationTillAllTasksDone.toMillis());
 
-            @Override
-            public int getTotalBuckets() {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(CharSequence sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(Integer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(Long sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(UUID sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(byte[] sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-
-            @Override
-            public int hashToBucket(ByteBuffer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
-            }
-        };
+        Set<String> runThreadNames = tasks.stream()
+                .map(task -> task.getRunThreadName())
+                .collect(Collectors.toSet());
+        final int totalRunThreads = runThreadNames.size();
+        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        assertTrue(runThreadNames.size() > 1, "Expecting concurrency, not sequencing");
+        assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
     @Test
-    public void defaultConcurrencyAndQueueSizeShouldBeUnbound() {
-        Conseq target = Conseq.newBuilder()
-                .build();
-        assertEquals(Integer.MAX_VALUE, target.getMaxConcurrentExecutors());
-        assertEquals(Integer.MAX_VALUE, target.getSingleExecutorTaskQueueSize());
+    public void concurrencyBoundedByConfiguration() throws InterruptedException {
+        final int customizedConcurrency = TASK_COUNT / 2;
+        ConcurrentSequencer conseqWithConcurrencyCustomized = Conseq.ofConcurrency(customizedConcurrency);
+        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
+        tasks.stream()
+                .forEach(task -> conseqWithConcurrencyCustomized.runAsync(UUID.randomUUID(), task));
+        final Duration durationTillAllTasksDone = Duration.ofSeconds(TASK_DURATION.getSeconds() * (TASK_COUNT + 1));
+        // await().atLeast(durationTillAllTasksDone);
+        Thread.sleep(durationTillAllTasksDone.toMillis());
+
+        Set<String> runThreadNames = tasks.stream()
+                .map(task -> task.getRunThreadName())
+                .collect(Collectors.toSet());
+        final int totalRunThreads = runThreadNames.size();
+        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        assertTrue(runThreadNames.size() > 1, "Expecting concurrency, not sequencing");
+        assertTrue(totalRunThreads < TASK_COUNT);
+        assertTrue(totalRunThreads >= customizedConcurrency);
     }
 
     @Test
-    public void shouldHonorMaxExecutors() {
-        int stubConcurrency = 5;
-        Conseq target = Conseq.newBuilder()
-                .maxConcurrentExecutors(stubConcurrency)
-                .build();
-        assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
+    public void consecutiveOrderOnSameSequenceKeyRegardlessConcurrency() throws InterruptedException {
+        final int bigConcurrency = 1000;
+        final ConcurrentSequencer conseqOfhighConcurrency = Conseq.ofConcurrency(bigConcurrency);
+        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
+        final Duration longerDuration = TASK_DURATION.multipliedBy(10);
+        List<SpyingRunnable> bigTasks = getSpyingRunnables(TASK_COUNT, longerDuration);
+        List<SpyingRunnable> allTasks = new ArrayList(bigTasks);
+        allTasks.addAll(tasks);
+
+        allTasks.stream()
+                .forEach(task -> conseqOfhighConcurrency.runAsync("sameSequenceKey", task));
+        final long untilAllDone = longerDuration.toMillis() * allTasks.size();
+        // await().atLeast(Duration.ofMillis(untilAllDone));
+        Thread.sleep(untilAllDone);
+
+        List<Instant> doneTimes = allTasks.stream()
+                .map(task -> task.getRunEnd())
+                .collect(Collectors.toList());
+        List<Instant> sorted = new ArrayList(doneTimes);
+        Collections.sort(sorted);
+        assertEquals(doneTimes, sorted);
     }
 
-    @Test
-    public void shouldReturnSameExcecutorOnSameName() {
-        UUID sequenceKey = UUID.randomUUID();
-        Conseq target = Conseq.newBuilder()
-                .build();
-
-        Executor e1 = target.getSequentialExecutor(sequenceKey);
-        Executor e2 = target.getSequentialExecutor(sequenceKey);
-
-        assertSame(e1, e2);
-    }
-
-    @Test
-    public void cannotSetBothCustomizedHasherAndMaxExecutors() {
-        final int stubConcurrency = 999;
-        try {
-            Conseq.newBuilder()
-                    .maxConcurrentExecutors(stubConcurrency)
-                    .consistentHasher(stubHasher())
-                    .build();
-        } catch (IllegalArgumentException ex) {
-            LOG.info("expected");
-            return;
+    private static List<SpyingRunnable> getSpyingRunnables(int total, Duration runDuration) {
+        List<SpyingRunnable> result = new ArrayList<>();
+        for (int i = 0; i < total; i++) {
+            result.add(new SpyingRunnable(i, runDuration));
         }
-        fail();
-    }
-
-    @Test
-    public void shouldHonorSingleExecutorTaskQueueSize() {
-        final int singleExecutorQueueSize = 100;
-        Conseq target = Conseq.newBuilder()
-                .singleExecutorTaskQueueSize(singleExecutorQueueSize)
-                .build();
-        assertEquals(singleExecutorQueueSize, target.getSingleExecutorTaskQueueSize());
+        return result;
     }
 
 }
