@@ -44,11 +44,7 @@ public final class Conseq implements ConcurrentSequencer {
     }
 
     private Conseq(Integer parallelism) {
-        if (parallelism == null) {
-            this.executor = ForkJoinPool.commonPool();
-        } else {
-            this.executor = new ForkJoinPool(parallelism);
-        }
+        this.executor = parallelism == null ? ForkJoinPool.commonPool() : new ForkJoinPool(parallelism);
         this.executionQueues = Caffeine.newBuilder()
                 .weakValues()
                 .build();
