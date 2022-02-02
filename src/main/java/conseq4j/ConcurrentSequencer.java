@@ -24,7 +24,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 

@@ -35,7 +35,7 @@ import java.util.concurrent.TimeoutException;
 public class UnstoppableExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
-            "Shutdown not supported. Tasks being executed by this service may be from unrelated users; shutdown features are disabled to protect undesired task cancalation on other users.";
+            "Shutdown not supported. Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to protect against undesired task cancalation on other owners.";
 
     private final ExecutorService executorService;
 
