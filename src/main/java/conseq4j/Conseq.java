@@ -49,17 +49,13 @@ public final class Conseq implements ConcurrentSequencer {
 
     private Conseq(Builder builder) {
         LOG.log(Level.INFO, "Constructing conseq with builder : {0}", builder);
-        if (builder.maxConcurrentExecutors != null && builder.consistentHasher != null) {
+        if (builder.maxConcurrentExecutors > 0 && builder.consistentHasher != null) {
             throw new IllegalArgumentException(
                     "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
         }
-        if (builder.maxConcurrentExecutors == null && builder.consistentHasher == null) {
-            this.consistentHasher = DefaultHasher.withTotalBuckets(null);
-        } else if (builder.maxConcurrentExecutors != null) {
-            assert builder.consistentHasher == null;
+        if (builder.consistentHasher == null) {
             this.consistentHasher = DefaultHasher.withTotalBuckets(builder.maxConcurrentExecutors);
         } else {
-            assert builder.consistentHasher != null;
             this.consistentHasher = builder.consistentHasher;
         }
         this.sequentialExecutorServiceCacheLoader = SequentialExecutorServiceCacheLoader.withExecutorQueueSize(
@@ -119,12 +115,12 @@ public final class Conseq implements ConcurrentSequencer {
 
         private final int executorQueueSize;
 
-        public static SequentialExecutorServiceCacheLoader withExecutorQueueSize(Integer executorQueueSize) {
+        public static SequentialExecutorServiceCacheLoader withExecutorQueueSize(int executorQueueSize) {
             return new SequentialExecutorServiceCacheLoader(executorQueueSize);
         }
 
-        private SequentialExecutorServiceCacheLoader(Integer executorQueueSize) {
-            if (executorQueueSize == null || executorQueueSize <= 0) {
+        private SequentialExecutorServiceCacheLoader(int executorQueueSize) {
+            if (executorQueueSize <= 0) {
                 LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", executorQueueSize);
                 this.executorQueueSize = UNBOUNDED;
             } else {
@@ -157,9 +153,9 @@ public final class Conseq implements ConcurrentSequencer {
 
     public static class Builder {
 
-        private Integer maxConcurrentExecutors;
+        private int maxConcurrentExecutors;
         private ConsistentHasher consistentHasher;
-        private Integer singleExecutorTaskQueueSize;
+        private int singleExecutorTaskQueueSize;
 
         private Builder() {
         }

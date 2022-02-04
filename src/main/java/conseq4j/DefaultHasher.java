@@ -23,19 +23,25 @@ import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * @author q3769
  */
 public class DefaultHasher implements ConsistentHasher {
 
+    private static final Logger LOG = Logger.getLogger(DefaultHasher.class.getName());
+
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
     private static final int UNBOUNDED = Integer.MAX_VALUE;
     private static final int UUID_BYTE_SIZE = 128 / 8;
 
-    public static DefaultHasher withTotalBuckets(Integer totalBuckets) {
-        if (totalBuckets == null) {
-            return new DefaultHasher();
+    public static DefaultHasher withTotalBuckets(int totalBuckets) {
+        if (totalBuckets <= 0) {
+            LOG.log(Level.WARNING, "Total bucket count: {0} is not a positive number, defaulting to: {1}",
+                    new Object[] { totalBuckets, UNBOUNDED });
+            return new DefaultHasher(UNBOUNDED);
         }
         return new DefaultHasher(totalBuckets);
     }
@@ -48,10 +54,6 @@ public class DefaultHasher implements ConsistentHasher {
     }
 
     private final int totalBuckets;
-
-    private DefaultHasher() {
-        this.totalBuckets = UNBOUNDED;
-    }
 
     private DefaultHasher(int totalBuckets) {
         if (totalBuckets <= 0) {
