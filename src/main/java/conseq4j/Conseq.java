@@ -146,11 +146,11 @@ public final class Conseq implements ConcurrentSequencer {
             LOG.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
             if (this.executorQueueSize == UNBOUNDED) {
                 LOG.log(Level.INFO, "Building new single thread executor with unbounded task queue size");
-                return new UnstoppableExecutorService(Executors.newSingleThreadExecutor());
+                return new IrrevocableExecutorService(Executors.newSingleThreadExecutor());
             }
             LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
                     this.executorQueueSize);
-            return new UnstoppableExecutorService(new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
+            return new IrrevocableExecutorService(new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
                     KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(this.executorQueueSize)));
         }
     }

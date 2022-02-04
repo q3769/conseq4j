@@ -32,14 +32,14 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Qingtian Wang
  */
-public class UnstoppableExecutorService implements ExecutorService {
+public class IrrevocableExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
             "Shutdown not supported. Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to protect against undesired task cancalation on other owners.";
 
     private final ExecutorService executorService;
 
-    public UnstoppableExecutorService(ExecutorService executorService) {
+    public IrrevocableExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
