@@ -27,6 +27,7 @@ import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
@@ -38,6 +39,7 @@ import java.util.logging.Logger;
 public final class Conseq implements ConcurrentSequencer {
 
     private static final Logger LOG = Logger.getLogger(Conseq.class.getName());
+    private static final int UNBOUNDED_QUEUE_SIZE = Integer.MAX_VALUE;
 
     public static Builder newBuilder() {
         return new Builder();
@@ -54,7 +56,7 @@ public final class Conseq implements ConcurrentSequencer {
                     "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
         }
         if (builder.consistentHasher == null) {
-            this.consistentHasher = DefaultHasher.withTotalBuckets(builder.maxConcurrentExecutors);
+            this.consistentHasher = DefaultHasher.ofTotalBuckets(builder.maxConcurrentExecutors);
         } else {
             this.consistentHasher = builder.consistentHasher;
         }
@@ -109,7 +111,6 @@ public final class Conseq implements ConcurrentSequencer {
 
     private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer, ExecutorService> {
 
-        private static final int UNBOUNDED = Integer.MAX_VALUE;
         private static final int SINGLE_THREAD_COUNT = 1;
         private static final long KEEP_ALIVE_SAME_THREAD = 0L;
 
@@ -120,12 +121,7 @@ public final class Conseq implements ConcurrentSequencer {
         }
 
         private SequentialExecutorServiceCacheLoader(int executorQueueSize) {
-            if (executorQueueSize <= 0) {
-                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", executorQueueSize);
-                this.executorQueueSize = UNBOUNDED;
-            } else {
-                this.executorQueueSize = executorQueueSize;
-            }
+            this.executorQueueSize = executorQueueSize;
         }
 
         @Override
@@ -140,9 +136,13 @@ public final class Conseq implements ConcurrentSequencer {
         @Override
         public ExecutorService load(Integer sequentialExecutorCacheKey) throws Exception {
             LOG.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
-            if (this.executorQueueSize == UNBOUNDED) {
-                LOG.log(Level.INFO, "Building new single thread executor with unbounded task queue size");
+            if (this.executorQueueSize < 0) {
+                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", UNBOUNDED_QUEUE_SIZE);
                 return new IrrevocableExecutorService(Executors.newSingleThreadExecutor());
+            }
+            if (this.executorQueueSize == 0) {
+                return new IrrevocableExecutorService(new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
+                        KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new SynchronousQueue<>(true)));
             }
             LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
                     this.executorQueueSize);
@@ -155,7 +155,7 @@ public final class Conseq implements ConcurrentSequencer {
 
         private int maxConcurrentExecutors;
         private ConsistentHasher consistentHasher;
-        private int singleExecutorTaskQueueSize;
+        private int singleExecutorTaskQueueSize = UNBOUNDED_QUEUE_SIZE;
 
         private Builder() {
         }

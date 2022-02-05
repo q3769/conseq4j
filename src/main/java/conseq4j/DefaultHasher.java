@@ -29,19 +29,19 @@ import java.util.logging.Logger;
 /**
  * @author q3769
  */
-public class DefaultHasher implements ConsistentHasher {
+final class DefaultHasher implements ConsistentHasher {
 
     private static final Logger LOG = Logger.getLogger(DefaultHasher.class.getName());
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
-    private static final int UNBOUNDED = Integer.MAX_VALUE;
+    private static final int UNBOUNDED_BUCKET_COUNT = Integer.MAX_VALUE;
     private static final int UUID_BYTE_SIZE = 128 / 8;
 
-    public static DefaultHasher withTotalBuckets(int totalBuckets) {
+    public static DefaultHasher ofTotalBuckets(int totalBuckets) {
         if (totalBuckets <= 0) {
             LOG.log(Level.WARNING, "Total bucket count: {0} is not a positive number, defaulting to: {1}",
-                    new Object[] { totalBuckets, UNBOUNDED });
-            return new DefaultHasher(UNBOUNDED);
+                    new Object[] { totalBuckets, UNBOUNDED_BUCKET_COUNT });
+            return new DefaultHasher(UNBOUNDED_BUCKET_COUNT);
         }
         return new DefaultHasher(totalBuckets);
     }
