@@ -28,10 +28,12 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
+import lombok.ToString;
 
 /**
  * @author Qingtian Wang
  */
+@ToString
 final class IrrevocableExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =

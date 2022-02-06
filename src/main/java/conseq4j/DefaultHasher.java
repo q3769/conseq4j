@@ -25,10 +25,12 @@ import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.ToString;
 
 /**
  * @author q3769
  */
+@ToString
 final class DefaultHasher implements ConsistentHasher {
 
     private static final Logger LOG = Logger.getLogger(DefaultHasher.class.getName());
@@ -60,11 +62,6 @@ final class DefaultHasher implements ConsistentHasher {
             throw new IllegalArgumentException("Total hash buckets must be positive : " + totalBuckets);
         }
         this.totalBuckets = totalBuckets;
-    }
-
-    @Override
-    public String toString() {
-        return "DefaultBucketHasher{" + "totalBuckets=" + totalBuckets + '}';
     }
 
     @Override

@@ -81,14 +81,6 @@ public class ConseqTest {
     }
 
     @Test
-    public void defaultConcurrencyAndQueueSizeShouldBeUnbound() {
-        Conseq target = Conseq.newBuilder()
-                .build();
-        assertEquals(Integer.MAX_VALUE, target.getMaxConcurrentExecutors());
-        assertEquals(Integer.MAX_VALUE, target.getSingleExecutorTaskQueueSize());
-    }
-
-    @Test
     public void shouldHonorMaxExecutors() {
         int stubConcurrency = 5;
         Conseq target = Conseq.newBuilder()
@@ -123,14 +115,4 @@ public class ConseqTest {
         }
         fail();
     }
-
-    @Test
-    public void shouldHonorSingleExecutorTaskQueueSize() {
-        final int singleExecutorQueueSize = 100;
-        Conseq target = Conseq.newBuilder()
-                .singleExecutorTaskQueueSize(singleExecutorQueueSize)
-                .build();
-        assertEquals(singleExecutorQueueSize, target.getSingleExecutorTaskQueueSize());
-    }
-
 }

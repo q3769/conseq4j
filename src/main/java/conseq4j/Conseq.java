@@ -22,6 +22,8 @@ package conseq4j;
 import com.github.benmanes.caffeine.cache.CacheLoader;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
+import com.google.common.util.concurrent.ListeningExecutorService;
+import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
@@ -32,25 +34,25 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import lombok.ToString;
 
 /**
  * @author q3769
  */
+@ToString
 public final class Conseq implements ConcurrentSequencer {
 
     private static final Logger LOG = Logger.getLogger(Conseq.class.getName());
-    private static final int UNBOUNDED_QUEUE_SIZE = Integer.MAX_VALUE;
 
     public static Builder newBuilder() {
         return new Builder();
     }
 
-    private final LoadingCache<Integer, ExecutorService> executorCache;
-    private final SequentialExecutorServiceCacheLoader sequentialExecutorServiceCacheLoader;
+    private final LoadingCache<Integer, ListeningExecutorService> executorCache;
     private final ConsistentHasher consistentHasher;
 
     private Conseq(Builder builder) {
-        LOG.log(Level.INFO, "Constructing conseq with builder : {0}", builder);
+        LOG.log(Level.INFO, "Constructing conseq with builder: {0}", builder);
         if (builder.maxConcurrentExecutors > 0 && builder.consistentHasher != null) {
             throw new IllegalArgumentException(
                     "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
@@ -60,11 +62,9 @@ public final class Conseq implements ConcurrentSequencer {
         } else {
             this.consistentHasher = builder.consistentHasher;
         }
-        this.sequentialExecutorServiceCacheLoader = SequentialExecutorServiceCacheLoader.withExecutorQueueSize(
-                builder.singleExecutorTaskQueueSize);
         this.executorCache = Caffeine.newBuilder()
                 .maximumSize(consistentHasher.getTotalBuckets())
-                .build(this.sequentialExecutorServiceCacheLoader);
+                .build(SequentialExecutorServiceCacheLoader.withExecutorQueueSize(builder.singleExecutorTaskQueueSize));
 
     }
 
@@ -75,41 +75,39 @@ public final class Conseq implements ConcurrentSequencer {
         return this.consistentHasher.getTotalBuckets();
     }
 
-    int getSingleExecutorTaskQueueSize() {
-        return this.sequentialExecutorServiceCacheLoader.getExecutorQueueSize();
-    }
-
     @Override
-    public ExecutorService getSequentialExecutor(CharSequence sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     @Override
-    public ExecutorService getSequentialExecutor(Integer sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(Integer sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     @Override
-    public ExecutorService getSequentialExecutor(Long sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(Long sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     @Override
-    public ExecutorService getSequentialExecutor(UUID sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(UUID sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     @Override
-    public ExecutorService getSequentialExecutor(byte[] sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(byte[] sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
     @Override
-    public ExecutorService getSequentialExecutor(ByteBuffer sequenceKey) {
+    public ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer, ExecutorService> {
+    @ToString
+    private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer,
+            ListeningExecutorService> {
 
         private static final int SINGLE_THREAD_COUNT = 1;
         private static final long KEEP_ALIVE_SAME_THREAD = 0L;
@@ -117,16 +115,14 @@ public final class Conseq implements ConcurrentSequencer {
         private final int executorQueueSize;
 
         public static SequentialExecutorServiceCacheLoader withExecutorQueueSize(int executorQueueSize) {
-            return new SequentialExecutorServiceCacheLoader(executorQueueSize);
+            final SequentialExecutorServiceCacheLoader sequentialExecutorServiceCacheLoader =
+                    new SequentialExecutorServiceCacheLoader(executorQueueSize);
+            LOG.log(Level.INFO, "Created {0}", sequentialExecutorServiceCacheLoader);
+            return sequentialExecutorServiceCacheLoader;
         }
 
         private SequentialExecutorServiceCacheLoader(int executorQueueSize) {
             this.executorQueueSize = executorQueueSize;
-        }
-
-        @Override
-        public String toString() {
-            return "SequentialExecutorServiceLoader{" + "executorQueueSize=" + executorQueueSize + '}';
         }
 
         public int getExecutorQueueSize() {
@@ -134,36 +130,35 @@ public final class Conseq implements ConcurrentSequencer {
         }
 
         @Override
-        public ExecutorService load(Integer sequentialExecutorCacheKey) throws Exception {
+        public ListeningExecutorService load(Integer sequentialExecutorCacheKey) throws Exception {
             LOG.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
+            final ExecutorService executorService;
             if (this.executorQueueSize < 0) {
-                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", UNBOUNDED_QUEUE_SIZE);
-                return new IrrevocableExecutorService(Executors.newSingleThreadExecutor());
+                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", this.executorQueueSize);
+                executorService = Executors.newSingleThreadExecutor();
+            } else {
+                LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
+                        this.executorQueueSize);
+                executorService = this.executorQueueSize == 0 ? new ThreadPoolExecutor(SINGLE_THREAD_COUNT,
+                        SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new SynchronousQueue<>(
+                                true)) : new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
+                                        KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(
+                                                this.executorQueueSize));
             }
-            if (this.executorQueueSize == 0) {
-                return new IrrevocableExecutorService(new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
-                        KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new SynchronousQueue<>(true)));
-            }
-            LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
-                    this.executorQueueSize);
-            return new IrrevocableExecutorService(new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
-                    KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(this.executorQueueSize)));
+            return MoreExecutors.listeningDecorator(new IrrevocableExecutorService(executorService));
         }
     }
 
+    @ToString
     public static class Builder {
 
-        private int maxConcurrentExecutors;
+        private static final int UNBOUNDED = Integer.MAX_VALUE;
+
+        private int maxConcurrentExecutors = UNBOUNDED;
         private ConsistentHasher consistentHasher;
-        private int singleExecutorTaskQueueSize = UNBOUNDED_QUEUE_SIZE;
+        private int singleExecutorTaskQueueSize = UNBOUNDED;
 
         private Builder() {
-        }
-
-        @Override
-        public String toString() {
-            return "Builder{" + "maxConcurrentExecutors=" + maxConcurrentExecutors + ", consistentHasher="
-                    + consistentHasher + ", singleExecutorTaskQueueSize=" + singleExecutorTaskQueueSize + '}';
         }
 
         public Conseq build() {

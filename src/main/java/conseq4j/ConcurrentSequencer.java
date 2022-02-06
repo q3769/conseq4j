@@ -19,25 +19,25 @@
  */
 package conseq4j;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import java.nio.ByteBuffer;
 import java.util.UUID;
-import java.util.concurrent.ExecutorService;
 
 /**
  * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 
-    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
+    ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey);
 
-    ExecutorService getSequentialExecutor(Integer sequenceKey);
+    ListeningExecutorService getSequentialExecutor(Integer sequenceKey);
 
-    ExecutorService getSequentialExecutor(Long sequenceKey);
+    ListeningExecutorService getSequentialExecutor(Long sequenceKey);
 
-    ExecutorService getSequentialExecutor(UUID sequenceKey);
+    ListeningExecutorService getSequentialExecutor(UUID sequenceKey);
 
-    ExecutorService getSequentialExecutor(byte[] sequenceKey);
+    ListeningExecutorService getSequentialExecutor(byte[] sequenceKey);
 
-    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
+    ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
 
 }
