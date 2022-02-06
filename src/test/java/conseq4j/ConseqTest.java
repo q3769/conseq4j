@@ -19,9 +19,12 @@
  */
 package conseq4j;
 
+import com.google.common.util.concurrent.ListeningExecutorService;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
@@ -112,6 +115,32 @@ public class ConseqTest {
         } catch (IllegalArgumentException ex) {
             LOG.info("expected");
             return;
+        }
+        fail();
+    }
+
+    @Test
+    public void irrevocable() {
+        Conseq target = Conseq.newBuilder()
+                .build();
+        final ListeningExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
+        sequentialExecutor.execute(() -> {
+            try {
+                TimeUnit.SECONDS.sleep(1L);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(ConseqTest.class.getName())
+                        .log(Level.SEVERE, null, ex);
+            }
+        });
+
+        try {
+            sequentialExecutor.shutdown();
+        } catch (UnsupportedOperationException ex) {
+            try {
+                sequentialExecutor.shutdownNow();
+            } catch (UnsupportedOperationException ex2) {
+                return;
+            }
         }
         fail();
     }
