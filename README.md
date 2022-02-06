@@ -20,14 +20,14 @@ In Maven
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220202.0.2</version>
+    <version>20220204.1.0</version>
 </dependency>
 ```
 
 In Gradle
 
 ```
-implementation 'io.github.q3769:conseq4j:20220202.0.2'
+implementation 'io.github.q3769:conseq4j:20220204.1.0'
 ```
 
 ## Use it...
@@ -113,16 +113,16 @@ On the API level, you get a JDK [`ExecutorService`](https://docs.oracle.com/java
 
 ```
 public interface ConcurrentSequencer {
-    ExecutorService getSequentialExecutor(CharSequence sequenceKey);
-    ExecutorService getSequentialExecutor(Integer sequenceKey);
-    ExecutorService getSequentialExecutor(Long sequenceKey);
-    ExecutorService getSequentialExecutor(UUID sequenceKey);
-    ExecutorService getSequentialExecutor(byte[] sequenceKey);
-    ExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
+    ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey);
+    ListeningExecutorService getSequentialExecutor(Integer sequenceKey);
+    ListeningExecutorService getSequentialExecutor(Long sequenceKey);
+    ListeningExecutorService getSequentialExecutor(UUID sequenceKey);
+    ListeningExecutorService getSequentialExecutor(byte[] sequenceKey);
+    ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
 }
 ```
 
-The returned `ExecutorService` instance is a logically single-threaded executor; executing tasks sequentially, it bears all the same syntactic richness and semantic robustness that the [JDK implementation](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) of `ExecutorService` has to offer. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
+The logically single-threaded executor returned is, first of all, an instance of JDK `ExecutorService`. Within the sequential execution context, it bears the same syntactic richness and semantic robustness that the [JDK implementation](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) of `ExecutorService` has to offer. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
 
 For simplicity, the conseq4j API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key type into one of the supported types such as a `String` or a `long`.
 
