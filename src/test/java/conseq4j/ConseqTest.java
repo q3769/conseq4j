@@ -1,115 +1,148 @@
 /*
- * The MIT License
- * Copyright 2021 Qingtian Wang.
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
+ * The MIT License Copyright 2021 Qingtian Wang. Permission is hereby granted, free of charge, to
+ * any person obtaining a copy of this software and associated documentation files (the "Software"),
+ * to deal in the Software without restriction, including without limitation the rights to use,
+ * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
+ * permit persons to whom the Software is furnished to do so, subject to the following conditions:
+ * The above copyright notice and this permission notice shall be included in all copies or
+ * substantial portions of the Software. THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY
+ * KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+ * FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS
+ * BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR
+ * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
+ * IN THE SOFTWARE.
  */
 package conseq4j;
 
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import lombok.extern.java.Log;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
  * @author q3769
  */
+@Log
 public class ConseqTest {
 
-    private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
-    private static final Duration TASK_DURATION = Duration.ofMillis(42);
-    private static final int TASK_COUNT = 10;
+    private static final int TASK_COUNT = 100;
 
     @Test
-    public void defaultConcurrencyBoundedByTotalTaskCount() throws InterruptedException {
-        ConcurrentSequencer defaultConseq = Conseq.ofDefault();
-        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
-        tasks.stream()
-                .forEach(task -> defaultConseq.runAsync(UUID.randomUUID(), task));
-        final Duration durationTillAllTasksDone = Duration.ofSeconds(TASK_DURATION.getSeconds() * (TASK_COUNT + 1));
-        // await().atLeast(durationTillAllTasksDone);
-        Thread.sleep(durationTillAllTasksDone.toMillis());
+    public void concurrencyBoundedByTotalTaskCount() throws InterruptedException {
+        final int concurrencyGreaterThanTasks = TASK_COUNT * 2;
+        assertTrue(concurrencyGreaterThanTasks > TASK_COUNT);
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+                .concurrency(concurrencyGreaterThanTasks)
+                .build();
+        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
 
-        Set<String> runThreadNames = tasks.stream()
-                .map(task -> task.getRunThreadName())
+        List<Future<SpyingTask>> results = new ArrayList<>();
+        tasks.forEach(task -> results.add(defaultConseq.submit(UUID.randomUUID(), (Callable) task)));
+
+        Set<String> runThreadNames = results.stream()
+                .map(r -> {
+                    String threadName = null;
+                    try {
+                        threadName = r.get()
+                                .getRunThreadName();
+                    } catch (InterruptedException | ExecutionException ex) {
+                        log.log(Level.SEVERE, null, ex);
+                    }
+                    return threadName == null ? null : threadName;
+                })
                 .collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertTrue(runThreadNames.size() > 1, "Expecting concurrency, not sequencing");
+        log.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
     @Test
-    public void concurrencyBoundedByConfiguration() throws InterruptedException {
-        final int customizedConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer conseqWithConcurrencyCustomized = Conseq.ofConcurrency(customizedConcurrency);
-        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
-        tasks.stream()
-                .forEach(task -> conseqWithConcurrencyCustomized.runAsync(UUID.randomUUID(), task));
-        final Duration durationTillAllTasksDone = Duration.ofSeconds(TASK_DURATION.getSeconds() * (TASK_COUNT + 1));
-        // await().atLeast(durationTillAllTasksDone);
-        Thread.sleep(durationTillAllTasksDone.toMillis());
+    public void concurrencyBoundedByMaxConccurrency() throws InterruptedException {
+        List<SpyingTask> sameTasks = getSpyingTasks(TASK_COUNT);
+        final int lowConcurrency = TASK_COUNT / 10;
+        ConcurrentSequencer lcConseq = Conseq.newBuilder()
+                .concurrency(lowConcurrency)
+                .build();
+        List<Future<SpyingTask>> lcFutures = new ArrayList<>();
+        long lowConcurrencyStart = System.nanoTime();
+        sameTasks.forEach(task -> lcFutures.add(lcConseq.submit(UUID.randomUUID(), (Callable) task)));
+        lcFutures.forEach(f -> {
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                log.log(Level.SEVERE, null, ex);
+            }
+        });
+        long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        Set<String> runThreadNames = tasks.stream()
-                .map(task -> task.getRunThreadName())
-                .collect(Collectors.toSet());
-        final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertTrue(runThreadNames.size() > 1, "Expecting concurrency, not sequencing");
-        assertTrue(totalRunThreads < TASK_COUNT);
-        assertTrue(totalRunThreads >= customizedConcurrency);
+        final int highConcurrency = TASK_COUNT;
+        ConcurrentSequencer hcConseq = Conseq.newBuilder()
+                .concurrency(highConcurrency)
+                .build();
+        List<Future<SpyingTask>> hcFutures = new ArrayList<>();
+        long highConcurrencyStart = System.nanoTime();
+        sameTasks.forEach(task -> hcFutures.add(hcConseq.submit(UUID.randomUUID(), (Callable) task)));
+        hcFutures.forEach(f -> {
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                log.log(Level.SEVERE, null, ex);
+            }
+        });
+        long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
+
+        log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}", new Object[] { Duration
+                .ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
+        assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
+    }
+
+    private void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
+        assertTrue(lowConcurrencyTime > highConcurrencyTime * 2);
     }
 
     @Test
-    public void consecutiveOrderOnSameSequenceKeyRegardlessConcurrency() throws InterruptedException {
-        final int bigConcurrency = 1000;
-        final ConcurrentSequencer conseqOfhighConcurrency = Conseq.ofConcurrency(bigConcurrency);
-        List<SpyingRunnable> tasks = getSpyingRunnables(TASK_COUNT, TASK_DURATION);
-        final Duration longerDuration = TASK_DURATION.multipliedBy(10);
-        List<SpyingRunnable> bigTasks = getSpyingRunnables(TASK_COUNT, longerDuration);
-        List<SpyingRunnable> allTasks = new ArrayList(bigTasks);
-        allTasks.addAll(tasks);
+    public void defaultConcurrencyRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+                .build();
+        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        UUID sameSequenceKey = UUID.randomUUID();
 
-        allTasks.stream()
-                .forEach(task -> conseqOfhighConcurrency.runAsync("sameSequenceKey", task));
-        final long untilAllDone = longerDuration.toMillis() * allTasks.size();
-        // await().atLeast(Duration.ofMillis(untilAllDone));
-        Thread.sleep(untilAllDone);
+        tasks.forEach(task -> {
+            defaultConseq.execute(sameSequenceKey, task);
+        });
+        TimeUnit.MILLISECONDS.sleep(TASK_COUNT * SpyingTask.MAX_RUN_TIME_MILLIS);
 
-        List<Instant> doneTimes = allTasks.stream()
-                .map(task -> task.getRunEnd())
-                .collect(Collectors.toList());
-        List<Instant> sorted = new ArrayList(doneTimes);
-        Collections.sort(sorted);
-        assertEquals(doneTimes, sorted);
+        Set<String> uniqueThreadNames = new HashSet<>();
+        tasks.forEach(task -> uniqueThreadNames.add(task.getRunThreadName()));
+        assertEquals(1, uniqueThreadNames.size());
+
+        for (int i = 0; i < tasks.size() - 1; i++) {
+            final Instant currentEnd = tasks.get(i)
+                    .getRunEnd();
+            final Instant nextStart = tasks.get(i + 1)
+                    .getRunStart();
+            assertFalse(currentEnd.isAfter(nextStart));
+        }
     }
 
-    private static List<SpyingRunnable> getSpyingRunnables(int total, Duration runDuration) {
-        List<SpyingRunnable> result = new ArrayList<>();
+    private static List<SpyingTask> getSpyingTasks(int total) {
+        List<SpyingTask> result = new ArrayList<>();
         for (int i = 0; i < total; i++) {
-            result.add(new SpyingRunnable(i, runDuration));
+            result.add(new SpyingTask(i));
         }
         return result;
     }

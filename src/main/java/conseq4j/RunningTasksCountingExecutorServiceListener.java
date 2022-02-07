@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2022 QingtianWang.
+ * Copyright 2022 Qingitan Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -20,42 +20,11 @@
 
 package conseq4j;
 
-import java.time.Duration;
-import java.time.Instant;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.java.Log;
-
 /**
- * @author Qingtian Wang
+ * @author Qingitan Wang
  */
-@Data
-@Log
-@RequiredArgsConstructor
-public class SpyingRunnable implements Runnable {
+interface RunningTasksCountingExecutorServiceListener {
 
-    final Integer scheduledSequence;
-    Instant runStart;
-    Instant runEnd;
-    String runThreadName;
-    final Duration runDuration;
-
-    @Override
-    public void run() {
-        this.setRunStart(Instant.now());
-        this.setRunThreadName(Thread.currentThread()
-                .getName());
-        try {
-            Thread.sleep(this.getRunDuration()
-                    .toMillis());
-        } catch (InterruptedException ex) {
-            Logger.getLogger(SpyingRunnable.class.getName())
-                    .log(Level.SEVERE, null, ex);
-        }
-        this.setRunEnd(Instant.now());
-        log.log(Level.INFO, "End running: {0}", this);
-    }
+    void afterEachExecute(ListenableRunningTasksCountingExecutorService listenableExecutorService);
 
 }
