@@ -24,16 +24,15 @@ import com.google.common.hash.Hashing;
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import lombok.ToString;
+import lombok.extern.java.Log;
 
 /**
  * @author q3769
  */
 @ToString
+@Log
 final class DefaultHasher implements ConsistentHasher {
-
-    private static final Logger LOG = Logger.getLogger(DefaultHasher.class.getName());
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
     private static final int UNBOUNDED_BUCKET_COUNT = Integer.MAX_VALUE;
@@ -41,7 +40,7 @@ final class DefaultHasher implements ConsistentHasher {
 
     public static DefaultHasher ofTotalBuckets(int totalBuckets) {
         if (totalBuckets <= 0) {
-            LOG.log(Level.WARNING, "Total bucket count: {0} is not a positive number, defaulting to: {1}",
+            log.log(Level.WARNING, "Total bucket count: {0} is not a positive number, defaulting to: {1}",
                     new Object[] { totalBuckets, UNBOUNDED_BUCKET_COUNT });
             return new DefaultHasher(UNBOUNDED_BUCKET_COUNT);
         }

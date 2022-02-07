@@ -26,6 +26,7 @@ import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
 import java.nio.ByteBuffer;
 import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.LinkedBlockingQueue;
@@ -33,16 +34,15 @@ import java.util.concurrent.SynchronousQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import lombok.ToString;
+import lombok.extern.java.Log;
 
 /**
  * @author q3769
  */
 @ToString
+@Log
 public final class Conseq implements ConcurrentSequencer {
-
-    private static final Logger LOG = Logger.getLogger(Conseq.class.getName());
 
     public static Builder newBuilder() {
         return new Builder();
@@ -52,7 +52,6 @@ public final class Conseq implements ConcurrentSequencer {
     private final ConsistentHasher consistentHasher;
 
     private Conseq(Builder builder) {
-        LOG.log(Level.INFO, "Constructing conseq with builder: {0}", builder);
         if (builder.maxConcurrentExecutors > 0 && builder.consistentHasher != null) {
             throw new IllegalArgumentException(
                     "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
@@ -112,14 +111,19 @@ public final class Conseq implements ConcurrentSequencer {
         private static final int SINGLE_THREAD_COUNT = 1;
         private static final long KEEP_ALIVE_SAME_THREAD = 0L;
 
-        private final int executorQueueSize;
-
         public static SequentialExecutorServiceCacheLoader withExecutorQueueSize(int executorQueueSize) {
             final SequentialExecutorServiceCacheLoader sequentialExecutorServiceCacheLoader =
                     new SequentialExecutorServiceCacheLoader(executorQueueSize);
-            LOG.log(Level.INFO, "Created {0}", sequentialExecutorServiceCacheLoader);
+            log.log(Level.INFO, "Created {0}", sequentialExecutorServiceCacheLoader);
             return sequentialExecutorServiceCacheLoader;
         }
+
+        private static ThreadPoolExecutor newSingleThreadExecutor(BlockingQueue<Runnable> blockingTaskQueue) {
+            return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
+                    TimeUnit.MILLISECONDS, blockingTaskQueue);
+        }
+
+        private final int executorQueueSize;
 
         private SequentialExecutorServiceCacheLoader(int executorQueueSize) {
             this.executorQueueSize = executorQueueSize;
@@ -131,25 +135,23 @@ public final class Conseq implements ConcurrentSequencer {
 
         @Override
         public ListeningExecutorService load(Integer sequentialExecutorCacheKey) throws Exception {
-            LOG.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
+            log.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
             final ExecutorService executorService;
             if (this.executorQueueSize < 0) {
-                LOG.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", this.executorQueueSize);
+                log.log(Level.WARNING, "Defaulting executor queue size : {0} into unbounded", this.executorQueueSize);
                 executorService = Executors.newSingleThreadExecutor();
             } else {
-                LOG.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
+                log.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
                         this.executorQueueSize);
-                executorService = this.executorQueueSize == 0 ? new ThreadPoolExecutor(SINGLE_THREAD_COUNT,
-                        SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new SynchronousQueue<>(
-                                true)) : new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT,
-                                        KEEP_ALIVE_SAME_THREAD, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(
-                                                this.executorQueueSize));
+                executorService = this.executorQueueSize == 0 ? newSingleThreadExecutor(new SynchronousQueue<>(true))
+                        : newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorQueueSize));
             }
             return MoreExecutors.listeningDecorator(new IrrevocableExecutorService(executorService));
         }
     }
 
     @ToString
+    @Log
     public static class Builder {
 
         private static final int UNBOUNDED = Integer.MAX_VALUE;
@@ -162,6 +164,7 @@ public final class Conseq implements ConcurrentSequencer {
         }
 
         public Conseq build() {
+            log.log(Level.INFO, "Building conseq using {0}", this);
             return new Conseq(this);
         }
 
