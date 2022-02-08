@@ -21,7 +21,6 @@
 package conseq4j;
 
 import java.util.concurrent.ConcurrentMap;
-import java.util.logging.Level;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
 
@@ -52,7 +51,6 @@ class SweepingExecutorServiceListener implements RunningTasksCountingExecutorSer
             try {
                 executorPool.returnObject(presentExecutor);
             } catch (Exception ex) {
-                log.log(Level.SEVERE, null, ex);
                 throw new IllegalStateException("Error returning executor " + presentExecutor + " back to pool "
                         + executorPool, ex);
             }

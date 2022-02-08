@@ -173,8 +173,8 @@ public final class Conseq implements ConcurrentSequencer {
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException ex) {
-                log.log(Level.SEVERE, "Error executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
-                throw new IllegalStateException(ex);
+                throw new IllegalStateException("Error executing tasks " + tasks + " on sequence key " + sequenceKey,
+                        ex);
             }
             return computed;
         });
@@ -195,11 +195,11 @@ public final class Conseq implements ConcurrentSequencer {
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException ex) {
-                log.log(Level.SEVERE, "Error executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
-                throw new IllegalStateException(ex);
+                throw new IllegalStateException("Error executing tasks " + tasks + " on sequence key " + sequenceKey,
+                        ex);
             } catch (TimeoutException ex) {
-                log.log(Level.SEVERE, "Timeout executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
-                throw new IllegalStateException(ex);
+                throw new IllegalStateException("Timeout executing tasks " + tasks + " on sequence key " + sequenceKey,
+                        ex);
             }
             return computed;
         });
