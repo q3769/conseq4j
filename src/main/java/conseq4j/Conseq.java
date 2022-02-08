@@ -32,11 +32,15 @@ import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
 @Log
 @ToString
 public final class Conseq implements ConcurrentSequencer {
+
+    public static Builder newBuilder() {
+        return new Builder();
+    }
 
     private final ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors;
     private final ObjectPool<ListenableRunningTasksCountingExecutorService> executorPool;
@@ -54,39 +58,11 @@ public final class Conseq implements ConcurrentSequencer {
                 concurrencySemaphore, builder.executorTaskQueueCapacity), genericObjectPoolConfig);
     }
 
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    @ToString
-    @Log
-    public static class Builder {
-
-        private ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors =
-                new ConcurrentHashMap<>();
-        private int executorTaskQueueCapacity = Integer.MAX_VALUE;
-        private int concurrency = Integer.MAX_VALUE;
-
-        public Conseq build() {
-            log.log(Level.INFO, "Building conseq with builder {0}", this);
-            return new Conseq(this);
-        }
-
-        public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
-            this.executorTaskQueueCapacity = executorTaskQueueCapacity;
-            return this;
-        }
-
-        public Builder concurrency(int concurrency) {
-            this.concurrency = concurrency;
-            return this;
-        }
-    }
-
     @Override
     public void execute(Object sequenceKey, Runnable runnable) {
-        sequentialExecutors.compute(sequenceKey, (key, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(key, presentExecutor);
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+                    presentExecutor);
             computed.execute(runnable);
             return computed;
         });
@@ -96,16 +72,15 @@ public final class Conseq implements ConcurrentSequencer {
             ListenableRunningTasksCountingExecutorService presentExecutor) {
         final ListenableRunningTasksCountingExecutorService computed;
         if (presentExecutor != null) {
-            computed = presentExecutor;
-        } else {
-            try {
-                computed = this.executorPool.borrowObject();
-            } catch (Exception ex) {
-                throw new IllegalStateException("Failed to borrow executor from pool " + this.executorPool, ex);
-            }
-            computed.addListener(new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors,
-                    executorPool));
+            return presentExecutor;
         }
+        try {
+            computed = this.executorPool.borrowObject();
+        } catch (Exception ex) {
+            throw new IllegalStateException("Failed to borrow executor from pool " + this.executorPool, ex);
+        }
+        computed.addListener(new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors,
+                executorPool));
         return computed;
     }
 
@@ -143,6 +118,117 @@ public final class Conseq implements ConcurrentSequencer {
             return computedExecutor;
         });
         return futureHolder.get();
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            ListenableRunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey,
+                    presentExecutor);
+            try {
+                final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
+                futuresHolder.set(invokeAll);
+            } catch (InterruptedException ex) {
+                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                Thread.currentThread()
+                        .interrupt();
+            }
+            return computedExecutor;
+        });
+        return futuresHolder.get();
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
+            TimeUnit unit) throws InterruptedException {
+        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+                    presentExecutor);
+            try {
+                futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
+            } catch (InterruptedException ex) {
+                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                Thread.currentThread()
+                        .interrupt();
+            }
+            return computed;
+        });
+        return futuresHolder.get();
+    }
+
+    @Override
+    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException,
+            ExecutionException {
+        ResultHolder<T> resultHolder = new ResultHolder<>();
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+                    presentExecutor);
+            try {
+                resultHolder.set(computed.invokeAny(tasks));
+            } catch (InterruptedException ex) {
+                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                Thread.currentThread()
+                        .interrupt();
+            } catch (ExecutionException ex) {
+                log.log(Level.SEVERE, "Error executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                throw new IllegalStateException(ex);
+            }
+            return computed;
+        });
+        return resultHolder.get();
+    }
+
+    @Override
+    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        ResultHolder<T> resultHolder = new ResultHolder<>();
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+                    presentExecutor);
+            try {
+                resultHolder.set(computed.invokeAny(tasks, timeout, unit));
+            } catch (InterruptedException ex) {
+                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                Thread.currentThread()
+                        .interrupt();
+            } catch (ExecutionException ex) {
+                log.log(Level.SEVERE, "Error executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                throw new IllegalStateException(ex);
+            } catch (TimeoutException ex) {
+                log.log(Level.SEVERE, "Timeout executing tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                throw new IllegalStateException(ex);
+            }
+            return computed;
+        });
+        return resultHolder.get();
+    }
+
+    @ToString
+    @Log
+    public static class Builder {
+
+        private ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors =
+                new ConcurrentHashMap<>();
+        private int executorTaskQueueCapacity = Integer.MAX_VALUE;
+        private int concurrency = Integer.MAX_VALUE;
+
+        public Conseq build() {
+            log.log(Level.INFO, "Building conseq with builder {0}", this);
+            return new Conseq(this);
+        }
+
+        public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
+            this.executorTaskQueueCapacity = executorTaskQueueCapacity;
+            return this;
+        }
+
+        public Builder concurrency(int concurrency) {
+            this.concurrency = concurrency;
+            return this;
+        }
     }
 
     private static class FutureHolder<T> {
@@ -184,75 +270,6 @@ public final class Conseq implements ConcurrentSequencer {
         public void set(T result) {
             this.result = result;
         }
-    }
-
-    @Override
-    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
-        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey,
-                    presentExecutor);
-            try {
-                final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
-                futuresHolder.set(invokeAll);
-            } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Error running tasks " + tasks + " on sequence key " + sequenceKey, ex);
-            }
-            return computedExecutor;
-        });
-        return futuresHolder.get();
-    }
-
-    @Override
-    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
-            TimeUnit unit) throws InterruptedException {
-        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
-                    presentExecutor);
-            try {
-                futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
-            } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Error running tasks " + tasks + " on sequence key " + sequenceKey, ex);
-            }
-            return computed;
-        });
-        return futuresHolder.get();
-    }
-
-    @Override
-    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException,
-            ExecutionException {
-        ResultHolder<T> resultHolder = new ResultHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
-                    presentExecutor);
-            try {
-                resultHolder.set(computed.invokeAny(tasks));
-            } catch (InterruptedException | ExecutionException ex) {
-                log.log(Level.SEVERE, "Error running tasks " + tasks + " on sequence key " + sequenceKey, ex);
-            }
-            return computed;
-        });
-        return resultHolder.get();
-    }
-
-    @Override
-    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        ResultHolder<T> resultHolder = new ResultHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
-                    presentExecutor);
-            try {
-                resultHolder.set(computed.invokeAny(tasks, timeout, unit));
-            } catch (InterruptedException | ExecutionException | TimeoutException ex) {
-                log.log(Level.SEVERE, "Error running tasks " + tasks + " on sequence key " + sequenceKey, ex);
-            }
-            return computed;
-        });
-        return resultHolder.get();
     }
 
 }

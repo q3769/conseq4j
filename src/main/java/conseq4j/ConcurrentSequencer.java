@@ -23,7 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 

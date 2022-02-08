@@ -33,12 +33,13 @@ import lombok.extern.java.Log;
 @RequiredArgsConstructor
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
+    public static final Random RANDOM = new Random();
+    public static final int MAX_RUN_TIME_MILLIS = 20;
+
     final Integer scheduledSequence;
     Instant runStart;
     Instant runEnd;
     String runThreadName;
-    // final Duration runDuration;
-    public static final Random RANDOM = new Random();
 
     @Override
     public void run() {
@@ -57,8 +58,6 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
                 .toMillis() });
     }
 
-    public static final int MAX_RUN_TIME_MILLIS = 20;
-
     @Override
     public SpyingTask call() throws Exception {
         this.run();
@@ -66,6 +65,6 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
     }
 
     private int nextRandomIntInclusivelyBetween(int min, int max) {
-        return RANDOM.nextInt(max - min + 1) + min;
+        return min + RANDOM.nextInt(max + 1);
     }
 }

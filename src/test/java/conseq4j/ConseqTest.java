@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.Test;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
 @Log
 public class ConseqTest {
@@ -111,7 +111,7 @@ public class ConseqTest {
     }
 
     private void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
-        assertTrue(lowConcurrencyTime > highConcurrencyTime * 2);
+        assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
     @Test
