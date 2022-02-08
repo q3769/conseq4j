@@ -70,10 +70,10 @@ public final class Conseq implements ConcurrentSequencer {
 
     private ListenableRunningTasksCountingExecutorService computeExecutor(Object presentSequenceKey,
             ListenableRunningTasksCountingExecutorService presentExecutor) {
-        final ListenableRunningTasksCountingExecutorService computed;
         if (presentExecutor != null) {
             return presentExecutor;
         }
+        final ListenableRunningTasksCountingExecutorService computed;
         try {
             computed = this.executorPool.borrowObject();
         } catch (Exception ex) {

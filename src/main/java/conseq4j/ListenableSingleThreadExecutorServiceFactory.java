@@ -51,4 +51,11 @@ class ListenableSingleThreadExecutorServiceFactory extends BasePooledObjectFacto
         return new DefaultPooledObject<>(t);
     }
 
+    @Override
+    public void activateObject(PooledObject<ListenableRunningTasksCountingExecutorService> p) throws Exception {
+        super.activateObject(p);
+        p.getObject()
+                .clearListeners();
+    }
+
 }

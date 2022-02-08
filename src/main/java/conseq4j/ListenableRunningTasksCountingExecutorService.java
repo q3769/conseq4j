@@ -100,4 +100,8 @@ class ListenableRunningTasksCountingExecutorService extends ThreadPoolExecutor {
                         .afterEachExecute(this)));
     }
 
+    public void clearListeners() {
+        this.executorServiceListeners.clear();
+    }
+
 }
