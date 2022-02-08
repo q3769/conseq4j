@@ -42,38 +42,40 @@ public final class Conseq implements ConcurrentSequencer {
         return new Builder();
     }
 
-    private final ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors;
-    private final ObjectPool<ListenableRunningTasksCountingExecutorService> executorPool;
+    private final ConcurrentMap<Object,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
+    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
     private final Semaphore concurrencySemaphore;
 
     private Conseq(Builder builder) {
         this.sequentialExecutors = builder.sequentialExecutors;
-        final GenericObjectPoolConfig<ListenableRunningTasksCountingExecutorService> genericObjectPoolConfig =
-                new GenericObjectPoolConfig<>();
+        final GenericObjectPoolConfig<
+                GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
+                        new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMinIdle(builder.concurrency);
         genericObjectPoolConfig.setMaxIdle(builder.concurrency);
         genericObjectPoolConfig.setMaxTotal(Integer.MAX_VALUE);
         this.concurrencySemaphore = new Semaphore(builder.concurrency, true);
-        this.executorPool = new GenericObjectPool<>(new ListenableSingleThreadExecutorServiceFactory(
+        this.executorPool = new GenericObjectPool<>(new GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(
                 concurrencySemaphore, builder.executorTaskQueueCapacity), genericObjectPoolConfig);
     }
 
     @Override
     public void execute(Object sequenceKey, Runnable runnable) {
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             computed.execute(runnable);
             return computed;
         });
     }
 
-    private ListenableRunningTasksCountingExecutorService computeExecutor(Object presentSequenceKey,
-            ListenableRunningTasksCountingExecutorService presentExecutor) {
+    private GlobalConcurrencyBoundedRunningTasksCountingExecutorService computeExecutor(Object presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor) {
         if (presentExecutor != null) {
             return presentExecutor;
         }
-        final ListenableRunningTasksCountingExecutorService computed;
+        final GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed;
         try {
             computed = this.executorPool.borrowObject();
         } catch (Exception ex) {
@@ -88,7 +90,7 @@ public final class Conseq implements ConcurrentSequencer {
     public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             futureHolder.set(computed.submit(task));
             return computed;
@@ -100,7 +102,7 @@ public final class Conseq implements ConcurrentSequencer {
     public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             futureHolder.set(computed.submit(task, result));
             return computed;
@@ -112,8 +114,8 @@ public final class Conseq implements ConcurrentSequencer {
     public Future<?> submit(Object sequenceKey, Runnable task) {
         FutureHolder futureHolder = new FutureHolder();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey,
-                    presentExecutor);
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor = computeExecutor(
+                    presentSequenceKey, presentExecutor);
             futureHolder.set(computedExecutor.submit(task));
             return computedExecutor;
         });
@@ -125,8 +127,8 @@ public final class Conseq implements ConcurrentSequencer {
             throws InterruptedException {
         FuturesHolder<T> futuresHolder = new FuturesHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey,
-                    presentExecutor);
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor = computeExecutor(
+                    presentSequenceKey, presentExecutor);
             try {
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.set(invokeAll);
@@ -145,7 +147,7 @@ public final class Conseq implements ConcurrentSequencer {
             TimeUnit unit) throws InterruptedException {
         FuturesHolder<T> futuresHolder = new FuturesHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             try {
                 futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
@@ -164,7 +166,7 @@ public final class Conseq implements ConcurrentSequencer {
             ExecutionException {
         ResultHolder<T> resultHolder = new ResultHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             try {
                 resultHolder.set(computed.invokeAny(tasks));
@@ -186,7 +188,7 @@ public final class Conseq implements ConcurrentSequencer {
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T> resultHolder = new ResultHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            ListenableRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed = computeExecutor(presentSequenceKey,
                     presentExecutor);
             try {
                 resultHolder.set(computed.invokeAny(tasks, timeout, unit));
@@ -210,7 +212,7 @@ public final class Conseq implements ConcurrentSequencer {
     @Log
     public static class Builder {
 
-        private ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors =
+        private ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors =
                 new ConcurrentHashMap<>();
         private int executorTaskQueueCapacity = Integer.MAX_VALUE;
         private int concurrency = Integer.MAX_VALUE;

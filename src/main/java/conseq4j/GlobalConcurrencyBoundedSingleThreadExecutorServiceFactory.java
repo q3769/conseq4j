@@ -28,31 +28,33 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 /**
  * @author Qingitan Wang
  */
-class ListenableSingleThreadExecutorServiceFactory extends BasePooledObjectFactory<
-        ListenableRunningTasksCountingExecutorService> {
+class GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory extends BasePooledObjectFactory<
+        GlobalConcurrencyBoundedRunningTasksCountingExecutorService> {
 
     private final Semaphore globalConcurrencySemaphore;
     private final int taskQueueCapacity;
 
-    public ListenableSingleThreadExecutorServiceFactory(Semaphore concurrencySemaphore, int taskQueueCapacity) {
+    public GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(Semaphore concurrencySemaphore,
+            int taskQueueCapacity) {
         this.globalConcurrencySemaphore = concurrencySemaphore;
         this.taskQueueCapacity = taskQueueCapacity;
     }
 
     @Override
-    public ListenableRunningTasksCountingExecutorService create() throws Exception {
-        return ListenableRunningTasksCountingExecutorService.newListenableSingleThreadExecutorService(taskQueueCapacity,
-                globalConcurrencySemaphore);
+    public GlobalConcurrencyBoundedRunningTasksCountingExecutorService create() throws Exception {
+        return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newListenableSingleThreadExecutorService(
+                taskQueueCapacity, globalConcurrencySemaphore);
     }
 
     @Override
-    public PooledObject<ListenableRunningTasksCountingExecutorService> wrap(
-            ListenableRunningTasksCountingExecutorService t) {
+    public PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> wrap(
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService t) {
         return new DefaultPooledObject<>(t);
     }
 
     @Override
-    public void activateObject(PooledObject<ListenableRunningTasksCountingExecutorService> p) throws Exception {
+    public void activateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p)
+            throws Exception {
         super.activateObject(p);
         p.getObject()
                 .clearListeners();

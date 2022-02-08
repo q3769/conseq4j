@@ -28,22 +28,23 @@ import org.apache.commons.pool2.ObjectPool;
  * @author Qingitan Wang
  */
 @Log
-class SweepingExecutorServiceListener implements RunningTasksCountingExecutorServiceListener {
+class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
     private final Object sequenceKey;
-    private final ConcurrentMap<Object, ListenableRunningTasksCountingExecutorService> sequentialExecutors;
-    private final ObjectPool<ListenableRunningTasksCountingExecutorService> executorPool;
+    private final ConcurrentMap<Object,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
+    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
 
     public SweepingExecutorServiceListener(Object sequenceKey, ConcurrentMap<Object,
-            ListenableRunningTasksCountingExecutorService> sequentialExecutors, ObjectPool<
-                    ListenableRunningTasksCountingExecutorService> executorPool) {
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors, ObjectPool<
+                    GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool) {
         this.sequenceKey = sequenceKey;
         this.sequentialExecutors = sequentialExecutors;
         this.executorPool = executorPool;
     }
 
     @Override
-    public void afterEachExecute(ListenableRunningTasksCountingExecutorService listenableExecutorService) {
+    public void afterEachExecute(ListenableExecutorService listenableExecutorService) {
         sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor.getRunningTaskCount() != 0) {
                 return presentExecutor;
@@ -56,6 +57,11 @@ class SweepingExecutorServiceListener implements RunningTasksCountingExecutorSer
             }
             return null;
         });
+    }
+
+    @Override
+    public void beforeEachExecute(ListenableExecutorService listenableExecutorService) {
+        throw new UnsupportedOperationException();
     }
 
 }

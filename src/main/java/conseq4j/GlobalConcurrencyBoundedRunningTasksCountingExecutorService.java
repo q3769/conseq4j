@@ -39,26 +39,26 @@ import lombok.extern.java.Log;
  */
 @Log
 @ToString
-class ListenableRunningTasksCountingExecutorService extends ThreadPoolExecutor {
+class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
 
     private final AtomicInteger runningTaskCount = new AtomicInteger();
     private final Semaphore globalConcurrencySemaphor;
-    private final List<RunningTasksCountingExecutorServiceListener> executorServiceListeners = Collections
-            .synchronizedList(new ArrayList<>());
+    private final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
+            new ArrayList<>());
 
-    public static ListenableRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
+    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
             Semaphore concurrencySemaphore) {
         return newListenableSingleThreadExecutorService(Integer.MAX_VALUE, concurrencySemaphore);
     }
 
-    public static ListenableRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
+    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
             int taskQueueSize, Semaphore concurrencySemaphore) {
-        return new ListenableRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
+        return new GlobalConcurrencyBoundedRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
     }
 
-    public ListenableRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime,
-            TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
+    public GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
         this.globalConcurrencySemaphor = concurrencySemaphore;
     }
@@ -88,7 +88,8 @@ class ListenableRunningTasksCountingExecutorService extends ThreadPoolExecutor {
         notifyListeners();
     }
 
-    public void addListener(RunningTasksCountingExecutorServiceListener executorServiceListener) {
+    @Override
+    public void addListener(ExecutorServiceListener executorServiceListener) {
         synchronized (executorServiceListeners) {
             executorServiceListeners.add(executorServiceListener);
         }
@@ -100,6 +101,7 @@ class ListenableRunningTasksCountingExecutorService extends ThreadPoolExecutor {
                         .afterEachExecute(this)));
     }
 
+    @Override
     public void clearListeners() {
         this.executorServiceListeners.clear();
     }

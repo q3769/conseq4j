@@ -23,8 +23,10 @@ package conseq4j;
 /**
  * @author Qingitan Wang
  */
-interface RunningTasksCountingExecutorServiceListener {
+interface ExecutorServiceListener {
 
-    void afterEachExecute(ListenableRunningTasksCountingExecutorService listenableExecutorService);
+    void beforeEachExecute(ListenableExecutorService listenableExecutorService);
+
+    void afterEachExecute(ListenableExecutorService listenableExecutorService);
 
 }
