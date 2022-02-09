@@ -38,6 +38,9 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 @ToString
 public final class Conseq implements ConcurrentSequencer {
 
+    public static final int DEFAULT_MAX_EXECUTOR_POOL_SIZE = Integer.MAX_VALUE;
+    public static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
+
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -45,7 +48,6 @@ public final class Conseq implements ConcurrentSequencer {
     private final ConcurrentMap<Object,
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
-    private final Semaphore globalConcurrencySemaphore;
 
     private Conseq(Builder builder) {
         this.sequentialExecutors = builder.sequentialExecutors;
@@ -54,10 +56,10 @@ public final class Conseq implements ConcurrentSequencer {
                         new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMinIdle(builder.globalConcurrency);
         genericObjectPoolConfig.setMaxIdle(builder.globalConcurrency);
-        genericObjectPoolConfig.setMaxTotal(Integer.MAX_VALUE);
-        this.globalConcurrencySemaphore = new Semaphore(builder.globalConcurrency, true);
+        genericObjectPoolConfig.setMaxTotal(DEFAULT_MAX_EXECUTOR_POOL_SIZE);
         this.executorPool = new GenericObjectPool<>(new GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(
-                globalConcurrencySemaphore, builder.executorTaskQueueCapacity), genericObjectPoolConfig);
+                new Semaphore(builder.globalConcurrency, FIFO_ON_CONCURRENCY_CONTENTION),
+                builder.executorTaskQueueCapacity), genericObjectPoolConfig);
     }
 
     @Override
