@@ -43,11 +43,8 @@ public class ConseqTest {
 
     @Test
     public void concurrencyBoundedByTotalTaskCount() throws InterruptedException {
-        final int concurrencyGreaterThanTasks = TASK_COUNT * 2;
-        assertTrue(concurrencyGreaterThanTasks > TASK_COUNT);
-        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
-                .concurrency(concurrencyGreaterThanTasks)
-                .build();
+        final Conseq.Builder builder = Conseq.newBuilder();
+        Conseq defaultConseq = builder.build();
         List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
 
         List<Future<SpyingTask>> results = new ArrayList<>();
@@ -60,13 +57,14 @@ public class ConseqTest {
                         threadName = r.get()
                                 .getRunThreadName();
                     } catch (InterruptedException | ExecutionException ex) {
-                        log.log(Level.SEVERE, null, ex);
+                        throw new IllegalStateException(ex);
                     }
                     return threadName == null ? null : threadName;
                 })
                 .collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         log.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        assertEquals(Integer.MAX_VALUE, builder.getGlobalConcurrency());
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -74,8 +72,8 @@ public class ConseqTest {
     public void concurrencyBoundedByMaxConccurrency() throws InterruptedException {
         List<SpyingTask> sameTasks = getSpyingTasks(TASK_COUNT);
         final int lowConcurrency = TASK_COUNT / 10;
-        ConcurrentSequencer lcConseq = Conseq.newBuilder()
-                .concurrency(lowConcurrency)
+        Conseq lcConseq = Conseq.newBuilder()
+                .globalConcurrency(lowConcurrency)
                 .build();
         List<Future<SpyingTask>> lcFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
@@ -84,14 +82,14 @@ public class ConseqTest {
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException ex) {
-                log.log(Level.SEVERE, null, ex);
+                throw new IllegalStateException(ex);
             }
         });
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         final int highConcurrency = TASK_COUNT;
-        ConcurrentSequencer hcConseq = Conseq.newBuilder()
-                .concurrency(highConcurrency)
+        Conseq hcConseq = Conseq.newBuilder()
+                .globalConcurrency(highConcurrency)
                 .build();
         List<Future<SpyingTask>> hcFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
@@ -100,7 +98,7 @@ public class ConseqTest {
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException ex) {
-                log.log(Level.SEVERE, null, ex);
+                throw new IllegalStateException(ex);
             }
         });
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
@@ -146,5 +144,4 @@ public class ConseqTest {
         }
         return result;
     }
-
 }

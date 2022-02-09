@@ -41,14 +41,11 @@ import lombok.extern.java.Log;
 @ToString
 class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
 
-    private final AtomicInteger runningTaskCount = new AtomicInteger();
-    private final Semaphore globalConcurrencySemaphor;
-    private final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
-            new ArrayList<>());
+    public static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
 
     public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
-            Semaphore concurrencySemaphore) {
-        return newListenableSingleThreadExecutorService(Integer.MAX_VALUE, concurrencySemaphore);
+            Semaphore globalConcurrencySemaphore) {
+        return newListenableSingleThreadExecutorService(DEFAULT_TASK_QUEUE_SIZE, globalConcurrencySemaphore);
     }
 
     public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
@@ -56,6 +53,11 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends Thread
         return new GlobalConcurrencyBoundedRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
     }
+
+    private final AtomicInteger runningTaskCount = new AtomicInteger();
+    private final Semaphore globalConcurrencySemaphor;
+    private final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
+            new ArrayList<>());
 
     public GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {

@@ -45,19 +45,19 @@ public final class Conseq implements ConcurrentSequencer {
     private final ConcurrentMap<Object,
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
-    private final Semaphore concurrencySemaphore;
+    private final Semaphore globalConcurrencySemaphore;
 
     private Conseq(Builder builder) {
         this.sequentialExecutors = builder.sequentialExecutors;
         final GenericObjectPoolConfig<
                 GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
                         new GenericObjectPoolConfig<>();
-        genericObjectPoolConfig.setMinIdle(builder.concurrency);
-        genericObjectPoolConfig.setMaxIdle(builder.concurrency);
+        genericObjectPoolConfig.setMinIdle(builder.globalConcurrency);
+        genericObjectPoolConfig.setMaxIdle(builder.globalConcurrency);
         genericObjectPoolConfig.setMaxTotal(Integer.MAX_VALUE);
-        this.concurrencySemaphore = new Semaphore(builder.concurrency, true);
+        this.globalConcurrencySemaphore = new Semaphore(builder.globalConcurrency, true);
         this.executorPool = new GenericObjectPool<>(new GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(
-                concurrencySemaphore, builder.executorTaskQueueCapacity), genericObjectPoolConfig);
+                globalConcurrencySemaphore, builder.executorTaskQueueCapacity), genericObjectPoolConfig);
     }
 
     @Override
@@ -212,10 +212,21 @@ public final class Conseq implements ConcurrentSequencer {
     @Log
     public static class Builder {
 
+        public static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+        public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
+
         private ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors =
                 new ConcurrentHashMap<>();
-        private int executorTaskQueueCapacity = Integer.MAX_VALUE;
-        private int concurrency = Integer.MAX_VALUE;
+        private int executorTaskQueueCapacity = DEFAULT_TASK_QUEUE_CAPACITY;
+        private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
+
+        public int getExecutorTaskQueueCapacity() {
+            return executorTaskQueueCapacity;
+        }
+
+        public int getGlobalConcurrency() {
+            return globalConcurrency;
+        }
 
         public Conseq build() {
             log.log(Level.INFO, "Building conseq with builder {0}", this);
@@ -227,8 +238,8 @@ public final class Conseq implements ConcurrentSequencer {
             return this;
         }
 
-        public Builder concurrency(int concurrency) {
-            this.concurrency = concurrency;
+        public Builder globalConcurrency(int globalConcurrency) {
+            this.globalConcurrency = globalConcurrency;
             return this;
         }
     }

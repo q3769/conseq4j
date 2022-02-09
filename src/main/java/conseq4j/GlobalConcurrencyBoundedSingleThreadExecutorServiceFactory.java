@@ -34,9 +34,9 @@ class GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory extends BasePoo
     private final Semaphore globalConcurrencySemaphore;
     private final int taskQueueCapacity;
 
-    public GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(Semaphore concurrencySemaphore,
+    public GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(Semaphore globalConcurrencySemaphore,
             int taskQueueCapacity) {
-        this.globalConcurrencySemaphore = concurrencySemaphore;
+        this.globalConcurrencySemaphore = globalConcurrencySemaphore;
         this.taskQueueCapacity = taskQueueCapacity;
     }
 
