@@ -17,8 +17,8 @@ package conseq4j;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -27,6 +27,7 @@ import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toSet;
 import lombok.extern.java.Log;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -108,7 +109,7 @@ public class ConseqTest {
         assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
     }
 
-    private void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
+    void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -122,12 +123,26 @@ public class ConseqTest {
         tasks.forEach(task -> {
             defaultConseq.execute(sameSequenceKey, task);
         });
-        TimeUnit.MILLISECONDS.sleep(TASK_COUNT * SpyingTask.MAX_RUN_TIME_MILLIS);
+        final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
+        TimeUnit.MILLISECONDS.sleep((TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS);
 
-        Set<String> uniqueThreadNames = new HashSet<>();
-        tasks.forEach(task -> uniqueThreadNames.add(task.getRunThreadName()));
+        assertSingleThread(tasks);
+        assertSequence(tasks);
+    }
+
+    void assertSingleThread(List<SpyingTask> tasks) {
+        Set<String> uniqueThreadNames = tasks.stream()
+                .map(SpyingTask::getRunThreadName)
+                .filter(Objects::nonNull)
+                .collect(toSet());
         assertEquals(1, uniqueThreadNames.size());
+        log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(), uniqueThreadNames
+                .stream()
+                .findFirst()
+                .orElseThrow() });
+    }
 
+    void assertSequence(List<SpyingTask> tasks) {
         for (int i = 0; i < tasks.size() - 1; i++) {
             final Instant currentEnd = tasks.get(i)
                     .getRunEnd();
@@ -135,6 +150,7 @@ public class ConseqTest {
                     .getRunStart();
             assertFalse(currentEnd.isAfter(nextStart));
         }
+        log.log(Level.INFO, "{0} tasks executed sequentially in chronical order", tasks.size());
     }
 
     private static List<SpyingTask> getSpyingTasks(int total) {

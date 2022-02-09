@@ -20,14 +20,9 @@
 
 package conseq4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.Semaphore;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.logging.Level;
@@ -39,7 +34,7 @@ import lombok.extern.java.Log;
  */
 @Log
 @ToString
-class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
+class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncNotifyingExecutorService {
 
     public static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
 
@@ -56,8 +51,6 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends Thread
 
     private final AtomicInteger runningTaskCount = new AtomicInteger();
     private final Semaphore globalConcurrencySemaphor;
-    private final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
-            new ArrayList<>());
 
     public GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
@@ -70,7 +63,7 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends Thread
     }
 
     @Override
-    protected void beforeExecute(Thread t, Runnable r) {
+    void doBeforeExecute(Thread t, Runnable r) {
         try {
             globalConcurrencySemaphor.acquire();
         } catch (InterruptedException ex) {
@@ -79,31 +72,11 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends Thread
                     .interrupt();
         }
         runningTaskCount.incrementAndGet();
-        super.beforeExecute(t, r);
     }
 
     @Override
-    protected void afterExecute(Runnable r, Throwable t) {
-        super.afterExecute(r, t);
+    void doAfterExecute(Runnable r, Throwable t) {
         globalConcurrencySemaphor.release();
         runningTaskCount.decrementAndGet();
-        ForkJoinPool.commonPool()
-                .execute(() -> {
-                    synchronized (executorServiceListeners) {
-                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                                .afterEachExecute(this));
-                    }
-                });
     }
-
-    @Override
-    public void addListener(ExecutorServiceListener executorServiceListener) {
-        executorServiceListeners.add(executorServiceListener);
-    }
-
-    @Override
-    public void clearListeners() {
-        this.executorServiceListeners.clear();
-    }
-
 }

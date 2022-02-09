@@ -47,14 +47,14 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         this.setRunThreadName(Thread.currentThread()
                 .getName());
         try {
-            // Thread.sleep(this.getRunDuration()
-            // .toMillis());
-            TimeUnit.MILLISECONDS.sleep(nextRandomIntInclusivelyBetween(1, MAX_RUN_TIME_MILLIS));
+            TimeUnit.MILLISECONDS.sleep(inclusiveRandomIntBetween(1, MAX_RUN_TIME_MILLIS));
         } catch (InterruptedException ex) {
             log.log(Level.SEVERE, null, ex);
+            Thread.currentThread()
+                    .interrupt();
         }
         this.setRunEnd(Instant.now());
-        log.log(Level.INFO, "End running: {0}, took {1} millis", new Object[] { this, Duration.between(runStart, runEnd)
+        log.log(Level.FINE, "End running: {0}, took {1} millis", new Object[] { this, Duration.between(runStart, runEnd)
                 .toMillis() });
     }
 
@@ -64,7 +64,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         return this;
     }
 
-    private int nextRandomIntInclusivelyBetween(int min, int max) {
+    private int inclusiveRandomIntBetween(int min, int max) {
         return min + RANDOM.nextInt(max + 1);
     }
 }

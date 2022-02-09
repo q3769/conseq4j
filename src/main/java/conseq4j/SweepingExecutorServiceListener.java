@@ -62,7 +62,7 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
     @Override
     public void beforeEachExecute(ListenableExecutorService listenableExecutorService) {
-        throw new UnsupportedOperationException();
+        // no-op
     }
 
 }
