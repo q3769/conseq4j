@@ -40,11 +40,11 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncN
 
     public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
             Semaphore globalConcurrencySemaphore) {
-        return newListenableSingleThreadExecutorService(DEFAULT_TASK_QUEUE_SIZE, globalConcurrencySemaphore);
+        return newListenableSingleThreadExecutorService(globalConcurrencySemaphore, DEFAULT_TASK_QUEUE_SIZE);
     }
 
     public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
-            int taskQueueSize, Semaphore concurrencySemaphore) {
+            Semaphore concurrencySemaphore, int taskQueueSize) {
         return new GlobalConcurrencyBoundedRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
     }

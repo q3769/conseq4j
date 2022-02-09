@@ -56,7 +56,7 @@ abstract class AsyncNotifyingExecutorService extends ThreadPoolExecutor implemen
                 .execute(() -> {
                     synchronized (executorServiceListeners) {
                         executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                                .beforeEachExecute(this));
+                                .beforeEachExecute(t, r));
                     }
                 });
     }
@@ -72,7 +72,7 @@ abstract class AsyncNotifyingExecutorService extends ThreadPoolExecutor implemen
                 .execute(() -> {
                     synchronized (executorServiceListeners) {
                         executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                                .afterEachExecute(this));
+                                .afterEachExecute(r, t));
                     }
                 });
     }

@@ -43,7 +43,7 @@ class GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory extends BasePoo
     @Override
     public GlobalConcurrencyBoundedRunningTasksCountingExecutorService create() throws Exception {
         return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newListenableSingleThreadExecutorService(
-                taskQueueCapacity, globalConcurrencySemaphore);
+                globalConcurrencySemaphore, taskQueueCapacity);
     }
 
     @Override

@@ -45,7 +45,12 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
     }
 
     @Override
-    public void afterEachExecute(ListenableExecutorService listenableExecutorService) {
+    public void beforeEachExecute(Thread t, Runnable r) {
+        // no-op
+    }
+
+    @Override
+    public void afterEachExecute(Runnable r, Throwable t) {
         sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor.getRunningTaskCount() != 0) {
                 return presentExecutor;
@@ -59,10 +64,4 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
             }
         });
     }
-
-    @Override
-    public void beforeEachExecute(ListenableExecutorService listenableExecutorService) {
-        // no-op
-    }
-
 }
