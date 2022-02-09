@@ -76,7 +76,7 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncN
 
     @Override
     void doAfterExecute(Runnable r, Throwable t) {
-        globalConcurrencySemaphor.release();
         runningTaskCount.decrementAndGet();
+        globalConcurrencySemaphor.release();
     }
 }
