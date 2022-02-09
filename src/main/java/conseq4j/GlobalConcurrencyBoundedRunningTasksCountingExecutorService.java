@@ -38,12 +38,12 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncN
 
     public static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
 
-    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
+    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSequentialInstance(
             Semaphore globalConcurrencySemaphore) {
-        return newListenableSingleThreadExecutorService(globalConcurrencySemaphore, DEFAULT_TASK_QUEUE_SIZE);
+        return newSequentialInstance(globalConcurrencySemaphore, DEFAULT_TASK_QUEUE_SIZE);
     }
 
-    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newListenableSingleThreadExecutorService(
+    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSequentialInstance(
             Semaphore concurrencySemaphore, int taskQueueSize) {
         return new GlobalConcurrencyBoundedRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
