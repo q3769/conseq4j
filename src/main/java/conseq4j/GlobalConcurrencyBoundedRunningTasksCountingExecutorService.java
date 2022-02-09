@@ -87,20 +87,18 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends Thread
         super.afterExecute(r, t);
         globalConcurrencySemaphor.release();
         runningTaskCount.decrementAndGet();
-        notifyListeners();
+        ForkJoinPool.commonPool()
+                .execute(() -> {
+                    synchronized (executorServiceListeners) {
+                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
+                                .afterEachExecute(this));
+                    }
+                });
     }
 
     @Override
     public void addListener(ExecutorServiceListener executorServiceListener) {
-        synchronized (executorServiceListeners) {
-            executorServiceListeners.add(executorServiceListener);
-        }
-    }
-
-    private void notifyListeners() {
-        ForkJoinPool.commonPool()
-                .execute(() -> executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                        .afterEachExecute(this)));
+        executorServiceListeners.add(executorServiceListener);
     }
 
     @Override
