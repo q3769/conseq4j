@@ -20,71 +20,29 @@
 
 package conseq4j;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ForkJoinPool;
-import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Qingitan Wang
  */
-abstract class AsyncListenableExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
-
-    protected final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
-            new ArrayList<>());
+abstract class AsyncListenableExecutorService extends SyncListenableExecutorService {
 
     protected AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    abstract void doBeforeExecute(Thread t, Runnable r);
-
-    abstract void doAfterExecute(Runnable r, Throwable t);
-
     @Override
-    protected void beforeExecute(Thread t, Runnable r) {
-        doBeforeExecute(t, r);
-        super.beforeExecute(t, r);
-        if (executorServiceListeners.isEmpty()) {
-            return;
-        }
+    protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
         ForkJoinPool.commonPool()
-                .execute(() -> {
-                    synchronized (executorServiceListeners) {
-                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                                .beforeEachExecute(t, r));
-                    }
-                });
+                .execute(() -> super.notifyListenersBeforeExecute(t, r));
     }
 
     @Override
-    protected void afterExecute(Runnable r, Throwable t) {
-        super.afterExecute(r, t);
-        doAfterExecute(r, t);
-        if (executorServiceListeners.isEmpty()) {
-            return;
-        }
+    protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
         ForkJoinPool.commonPool()
-                .execute(() -> {
-                    synchronized (executorServiceListeners) {
-                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
-                                .afterEachExecute(r, t));
-                    }
-                });
+                .execute(() -> super.notifyListenersAfterExecute(r, t));
     }
-
-    @Override
-    public void addListener(ExecutorServiceListener executorServiceListener) {
-        executorServiceListeners.add(executorServiceListener);
-    }
-
-    @Override
-    public void clearListeners() {
-        this.executorServiceListeners.clear();
-    }
-
 }
