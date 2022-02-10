@@ -21,6 +21,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.RunnableFuture;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -113,12 +114,12 @@ public final class Conseq implements ConcurrentSequencer {
     }
 
     @Override
-    public Future<?> submit(Object sequenceKey, Runnable task) {
-        FutureHolder futureHolder = new FutureHolder();
+    public Future<Void> submit(Object sequenceKey, Runnable task) {
+        FutureHolder<Void> futureHolder = new FutureHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor = computeExecutor(
                     presentSequenceKey, presentExecutor);
-            futureHolder.set(computedExecutor.submit(task));
+            futureHolder.set((RunnableFuture<Void>) computedExecutor.submit(task));
             return computedExecutor;
         });
         return futureHolder.get();
@@ -135,13 +136,20 @@ public final class Conseq implements ConcurrentSequencer {
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.set(invokeAll);
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             }
             return computedExecutor;
         });
         return futuresHolder.get();
+    }
+
+    private static String asyncSubmissionErrorMessage(Object sequenceKey, Collection<? extends Object> tasks,
+            Exception ex) {
+        return ex.getClass()
+                .getSimpleName() + " running tasks " + tasks + " on sequence key " + sequenceKey + ": " + ex
+                        .getMessage();
     }
 
     @Override
@@ -154,7 +162,7 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             }
@@ -173,12 +181,11 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException ex) {
-                throw new IllegalStateException("Error executing tasks " + tasks + " on sequence key " + sequenceKey,
-                        ex);
+                throw new IllegalStateException(asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
             }
             return computed;
         });
@@ -195,15 +202,11 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, "Interrupted running tasks " + tasks + " on sequence key " + sequenceKey, ex);
+                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
-            } catch (ExecutionException ex) {
-                throw new IllegalStateException("Error executing tasks " + tasks + " on sequence key " + sequenceKey,
-                        ex);
-            } catch (TimeoutException ex) {
-                throw new IllegalStateException("Timeout executing tasks " + tasks + " on sequence key " + sequenceKey,
-                        ex);
+            } catch (ExecutionException | TimeoutException ex) {
+                throw new IllegalStateException(asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
             }
             return computed;
         });
@@ -248,7 +251,7 @@ public final class Conseq implements ConcurrentSequencer {
 
     private static class FutureHolder<T> {
 
-        private Future<T> future;
+        private Future<T> future = null;
 
         public void set(Future<T> future) {
             this.future = future;
@@ -257,10 +260,11 @@ public final class Conseq implements ConcurrentSequencer {
         public Future<T> get() {
             return this.future;
         }
-
     }
 
     private static class FuturesHolder<T> {
+
+        private List<Future<T>> futures = null;
 
         public List<Future<T>> get() {
             return futures;
@@ -269,9 +273,6 @@ public final class Conseq implements ConcurrentSequencer {
         public void set(List<Future<T>> futures) {
             this.futures = futures;
         }
-
-        private List<Future<T>> futures;
-
     }
 
     private static class ResultHolder<T> {
@@ -286,5 +287,4 @@ public final class Conseq implements ConcurrentSequencer {
             this.result = result;
         }
     }
-
 }

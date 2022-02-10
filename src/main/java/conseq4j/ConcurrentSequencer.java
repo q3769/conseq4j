@@ -33,7 +33,7 @@ public interface ConcurrentSequencer {
 
     <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
 
-    Future<?> submit(Object sequenceKey, Runnable task);
+    Future<Void> submit(Object sequenceKey, Runnable task);
 
     <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException;
