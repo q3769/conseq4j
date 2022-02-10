@@ -34,7 +34,7 @@ import lombok.extern.java.Log;
  */
 @Log
 @ToString
-class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncNotifyingExecutorService {
+class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncListenableExecutorService {
 
     public static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
 

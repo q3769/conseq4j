@@ -31,12 +31,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingitan Wang
  */
-abstract class AsyncNotifyingExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
+abstract class AsyncListenableExecutorService extends ThreadPoolExecutor implements ListenableExecutorService {
 
     protected final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
             new ArrayList<>());
 
-    protected AsyncNotifyingExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    protected AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
