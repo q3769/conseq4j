@@ -39,7 +39,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 @ToString
 public final class Conseq implements ConcurrentSequencer {
 
-    public static final int DEFAULT_MAX_EXECUTOR_POOL_SIZE = Integer.MAX_VALUE;
+    public static final int UNBOUNDED = Integer.MAX_VALUE;
     public static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
 
     public static Builder newBuilder() {
@@ -55,9 +55,7 @@ public final class Conseq implements ConcurrentSequencer {
         final GenericObjectPoolConfig<
                 GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
                         new GenericObjectPoolConfig<>();
-        genericObjectPoolConfig.setMinIdle(builder.globalConcurrency);
-        genericObjectPoolConfig.setMaxIdle(builder.globalConcurrency);
-        genericObjectPoolConfig.setMaxTotal(DEFAULT_MAX_EXECUTOR_POOL_SIZE);
+        genericObjectPoolConfig.setMaxTotal(UNBOUNDED);
         this.executorPool = new GenericObjectPool<>(new GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(
                 new Semaphore(builder.globalConcurrency, FIFO_ON_CONCURRENCY_CONTENTION),
                 builder.executorTaskQueueCapacity), genericObjectPoolConfig);
