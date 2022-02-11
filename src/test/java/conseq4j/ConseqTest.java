@@ -157,8 +157,7 @@ public class ConseqTest {
         assertEquals(1, uniqueThreadNames.size());
         log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(), uniqueThreadNames
                 .stream()
-                .findFirst()
-                .orElseThrow() });
+                .findFirst() });
     }
 
     void assertSequence(List<SpyingTask> tasks) {
