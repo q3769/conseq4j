@@ -41,7 +41,7 @@ class PooledSingleThreadExecutorFactory extends BasePooledObjectFactory<
 
     @Override
     public GlobalConcurrencyBoundedRunningTasksCountingExecutorService create() throws Exception {
-        return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newSequentialInstance(
+        return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newSingleThreadInstance(
                 globalConcurrencySemaphore, taskQueueCapacity);
     }
 
