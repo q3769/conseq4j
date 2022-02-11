@@ -28,14 +28,13 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 /**
  * @author Qingitan Wang
  */
-class GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory extends BasePooledObjectFactory<
+class PooledSingleThreadExecutorFactory extends BasePooledObjectFactory<
         GlobalConcurrencyBoundedRunningTasksCountingExecutorService> {
 
     private final Semaphore globalConcurrencySemaphore;
     private final int taskQueueCapacity;
 
-    public GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(Semaphore globalConcurrencySemaphore,
-            int taskQueueCapacity) {
+    public PooledSingleThreadExecutorFactory(Semaphore globalConcurrencySemaphore, int taskQueueCapacity) {
         this.globalConcurrencySemaphore = globalConcurrencySemaphore;
         this.taskQueueCapacity = taskQueueCapacity;
     }

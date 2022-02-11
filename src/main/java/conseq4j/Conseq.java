@@ -16,6 +16,7 @@ package conseq4j;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
@@ -51,14 +52,22 @@ public final class Conseq implements ConcurrentSequencer {
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
 
     private Conseq(Builder builder) {
-        this.sequentialExecutors = builder.sequentialExecutors;
+        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
+        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig());
+    }
+
+    private static PooledSingleThreadExecutorFactory pooledExecutorFactory(Builder builder) {
+        return new PooledSingleThreadExecutorFactory(new Semaphore(builder.globalConcurrency,
+                FIFO_ON_CONCURRENCY_CONTENTION), builder.executorTaskQueueCapacity);
+    }
+
+    private static GenericObjectPoolConfig<
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPoolConfig() {
         final GenericObjectPoolConfig<
                 GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
                         new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(UNBOUNDED);
-        this.executorPool = new GenericObjectPool<>(new GlobalConcurrencyBoundedSingleThreadExecutorServiceFactory(
-                new Semaphore(builder.globalConcurrency, FIFO_ON_CONCURRENCY_CONTENTION),
-                builder.executorTaskQueueCapacity), genericObjectPoolConfig);
+        return genericObjectPoolConfig;
     }
 
     @Override
@@ -80,7 +89,8 @@ public final class Conseq implements ConcurrentSequencer {
         try {
             computed = this.executorPool.borrowObject();
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to borrow executor from pool " + this.executorPool, ex);
+            throw new IllegalStateException("Failed to borrow executor from pool " + this.executorPool
+                    + " who is agnostic to sequence key " + presentSequenceKey, ex);
         }
         computed.addListener(new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors,
                 executorPool));
