@@ -25,13 +25,17 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toSet;
 import lombok.extern.java.Log;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 /**
@@ -41,6 +45,21 @@ import org.junit.jupiter.api.Test;
 public class ConseqTest {
 
     private static final int TASK_COUNT = 100;
+
+    private static final Level TEST_LOG_LEVEL = Level.INFO;
+
+    @BeforeAll
+    public static void setLoggingLevel() {
+        Logger root = Logger.getLogger("");
+        // .level= ALL
+        root.setLevel(TEST_LOG_LEVEL);
+        for (Handler handler : root.getHandlers()) {
+            if (handler instanceof ConsoleHandler) {
+                // java.util.logging.ConsoleHandler.level = ALL
+                handler.setLevel(TEST_LOG_LEVEL);
+            }
+        }
+    }
 
     @Test
     public void concurrencyBoundedByTotalTaskCount() throws InterruptedException {
