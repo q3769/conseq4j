@@ -27,22 +27,32 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingitan Wang
  */
-abstract class AsyncListenableExecutorService extends SyncListenableExecutorService {
+abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
 
-    protected AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
     @Override
-    protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
+    void notifyListenersBeforeExecute(Thread t, Runnable r) {
         ForkJoinPool.commonPool()
-                .execute(() -> super.notifyListenersBeforeExecute(t, r));
+                .execute(() -> {
+                    synchronized (executorServiceListeners) {
+                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
+                                .beforeEachExecute(t, r));
+                    }
+                });
     }
 
     @Override
-    protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
+    void notifyListenersAfterExecute(Runnable r, Throwable t) {
         ForkJoinPool.commonPool()
-                .execute(() -> super.notifyListenersAfterExecute(r, t));
+                .execute(() -> {
+                    synchronized (executorServiceListeners) {
+                        executorServiceListeners.forEach(executorServiceListener -> executorServiceListener
+                                .afterEachExecute(r, t));
+                    }
+                });
     }
 }
