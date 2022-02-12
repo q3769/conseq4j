@@ -21,7 +21,7 @@
 package conseq4j;
 
 import java.util.concurrent.ConcurrentMap;
-import static java.util.logging.Level.FINE;
+import java.util.logging.Level;
 import static java.util.logging.Level.WARNING;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
@@ -56,8 +56,9 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
             if (presentExecutor.getRunningTaskCount() != 0) {
                 return presentExecutor;
             }
-            log.log(FINE, () -> "Sweeping off executor " + presentExecutor
-                    + " now that it has no running task after servicing sequence key " + presentSequenceKey);
+            log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor
+                    + " now that it has no running task, this sweeping check was submitted after servicing Runnable "
+                    + r + " under sequence key " + presentSequenceKey);
             try {
                 executorPool.returnObject(presentExecutor);
                 return null;

@@ -54,7 +54,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
                     .interrupt();
         }
         this.setRunEnd(Instant.now());
-        log.log(Level.FINE, () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd)
+        log.log(Level.FINEST, () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd)
                 .toMillis() + " millis");
     }
 
