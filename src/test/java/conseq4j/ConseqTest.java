@@ -47,7 +47,7 @@ public class ConseqTest {
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_LOG_LEVEL = Level.INFO;
+    private static final Level TEST_LOG_LEVEL = Level.FINE;
 
     @BeforeAll
     public static void setLoggingLevel() {
@@ -144,6 +144,20 @@ public class ConseqTest {
         final List<SpyingTask> futureResults = toAllResults(futures);
         assertSingleThread(futureResults);
         assertSequence(futureResults);
+    }
+
+    @Test
+    public void bulkAnySubmitChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+                .build();
+        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        UUID sameSequenceKey = UUID.randomUUID();
+
+        SpyingTask doneTask = defaultConseq.invokeAny(sameSequenceKey, tasks);
+
+        final Integer scheduledSequence = doneTask.getScheduledSequence();
+        log.log(Level.INFO, "Chosen task sequence : {0}", scheduledSequence);
+        assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
     }
 
     @Test
