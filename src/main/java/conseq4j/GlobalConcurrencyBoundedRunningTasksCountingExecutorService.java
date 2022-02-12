@@ -36,14 +36,14 @@ import lombok.extern.java.Log;
 @ToString
 class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncListenableExecutorService {
 
-    public static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
+    static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
 
-    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
+    static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
             Semaphore globalConcurrencySemaphore) {
         return newSingleThreadInstance(globalConcurrencySemaphore, DEFAULT_TASK_QUEUE_SIZE);
     }
 
-    public static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
+    static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
             Semaphore concurrencySemaphore, int taskQueueSize) {
         return new GlobalConcurrencyBoundedRunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
@@ -52,7 +52,7 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncL
     private final AtomicInteger runningTaskCount = new AtomicInteger();
     private final Semaphore globalConcurrencySemaphor;
 
-    public GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
+    GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
         this.globalConcurrencySemaphor = concurrencySemaphore;

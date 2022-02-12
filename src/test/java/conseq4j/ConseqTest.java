@@ -84,7 +84,6 @@ public class ConseqTest {
                 .collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         log.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertEquals(Integer.MAX_VALUE, builder.getGlobalConcurrency());
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 

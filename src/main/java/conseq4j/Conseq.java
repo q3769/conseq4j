@@ -47,15 +47,6 @@ public final class Conseq implements ConcurrentSequencer {
         return new Builder();
     }
 
-    private final ConcurrentMap<Object,
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
-    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
-
-    private Conseq(Builder builder) {
-        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
-        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig());
-    }
-
     private static PooledSingleThreadExecutorFactory pooledExecutorFactory(Builder builder) {
         return new PooledSingleThreadExecutorFactory(new Semaphore(builder.globalConcurrency,
                 FIFO_ON_CONCURRENCY_CONTENTION), builder.executorTaskQueueCapacity);
@@ -68,6 +59,22 @@ public final class Conseq implements ConcurrentSequencer {
                         new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(UNBOUNDED);
         return genericObjectPoolConfig;
+    }
+
+    private static String taskSubmissionErrorMessage(Object sequenceKey, Collection<? extends Object> tasks,
+            Exception ex) {
+        return ex.getClass()
+                .getSimpleName() + " running tasks " + tasks + " on sequence key " + sequenceKey + ": " + ex
+                        .getMessage();
+    }
+
+    private final ConcurrentMap<Object,
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
+    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
+
+    private Conseq(Builder builder) {
+        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
+        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig());
     }
 
     @Override
@@ -87,10 +94,10 @@ public final class Conseq implements ConcurrentSequencer {
         }
         final GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed;
         try {
-            computed = this.executorPool.borrowObject();
+            computed = executorPool.borrowObject();
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to borrow executor from pool " + this.executorPool
-                    + " who is agnostic to sequence key " + presentSequenceKey, ex);
+            throw new IllegalStateException("Failed to borrow executor from pool " + executorPool + " in conseq "
+                    + this, ex);
         }
         computed.addListener(new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors,
                 executorPool));
@@ -144,20 +151,13 @@ public final class Conseq implements ConcurrentSequencer {
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.set(invokeAll);
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             }
             return computedExecutor;
         });
         return futuresHolder.get();
-    }
-
-    private static String asyncSubmissionErrorMessage(Object sequenceKey, Collection<? extends Object> tasks,
-            Exception ex) {
-        return ex.getClass()
-                .getSimpleName() + " running tasks " + tasks + " on sequence key " + sequenceKey + ": " + ex
-                        .getMessage();
     }
 
     @Override
@@ -170,7 +170,7 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             }
@@ -189,11 +189,11 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException ex) {
-                throw new IllegalStateException(asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                throw new IllegalStateException(taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
             }
             return computed;
         });
@@ -210,11 +210,11 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException | TimeoutException ex) {
-                throw new IllegalStateException(asyncSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                throw new IllegalStateException(taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
             }
             return computed;
         });
@@ -232,14 +232,6 @@ public final class Conseq implements ConcurrentSequencer {
                 new ConcurrentHashMap<>();
         private int executorTaskQueueCapacity = DEFAULT_TASK_QUEUE_CAPACITY;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
-
-        public int getExecutorTaskQueueCapacity() {
-            return executorTaskQueueCapacity;
-        }
-
-        public int getGlobalConcurrency() {
-            return globalConcurrency;
-        }
 
         public Conseq build() {
             log.log(Level.INFO, "Building conseq with builder {0}", this);
