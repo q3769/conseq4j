@@ -50,12 +50,12 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncL
     }
 
     private final AtomicInteger runningTaskCount = new AtomicInteger();
-    private final Semaphore globalConcurrencySemaphor;
+    private final Semaphore globalConcurrencySemaphore;
 
     GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-        this.globalConcurrencySemaphor = concurrencySemaphore;
+        this.globalConcurrencySemaphore = concurrencySemaphore;
     }
 
     public int getRunningTaskCount() {
@@ -65,9 +65,10 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncL
     @Override
     void doBeforeExecute(Thread t, Runnable r) {
         try {
-            globalConcurrencySemaphor.acquire();
+            globalConcurrencySemaphore.acquire();
         } catch (InterruptedException ex) {
-            log.log(Level.SEVERE, "Interupted while aquiring concurrency semaphor", ex);
+            log.log(Level.SEVERE, "Interupted while aquiring concurrency semaphore in Thread " + t + " for Runnable "
+                    + r, ex);
             Thread.currentThread()
                     .interrupt();
         }
@@ -77,6 +78,6 @@ class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncL
     @Override
     void doAfterExecute(Runnable r, Throwable t) {
         runningTaskCount.decrementAndGet();
-        globalConcurrencySemaphor.release();
+        globalConcurrencySemaphore.release();
     }
 }
