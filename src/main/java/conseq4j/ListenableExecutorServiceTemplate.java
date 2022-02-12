@@ -46,6 +46,9 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
 
     protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
         synchronized (executorServiceListeners) {
+            if (executorServiceListeners.isEmpty()) {
+                return;
+            }
             executorServiceListeners.forEach(executorServiceListener -> executorServiceListener.beforeEachExecute(t,
                     r));
         }
@@ -53,6 +56,9 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
 
     protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
         synchronized (executorServiceListeners) {
+            if (executorServiceListeners.isEmpty()) {
+                return;
+            }
             executorServiceListeners.forEach(executorServiceListener -> executorServiceListener.afterEachExecute(r, t));
         }
     }
@@ -61,9 +67,6 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
     protected void beforeExecute(Thread t, Runnable r) {
         doBeforeExecute(t, r);
         super.beforeExecute(t, r);
-        if (executorServiceListeners.isEmpty()) {
-            return;
-        }
         notifyListenersBeforeExecute(t, r);
     }
 
@@ -71,9 +74,6 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         doAfterExecute(r, t);
-        if (executorServiceListeners.isEmpty()) {
-            return;
-        }
         notifyListenersAfterExecute(r, t);
     }
 

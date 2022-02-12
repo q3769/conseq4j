@@ -30,6 +30,7 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
+import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import lombok.extern.java.Log;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -132,7 +133,21 @@ public class ConseqTest {
     }
 
     @Test
-    public void defaultConcurrencyRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    public void bulkSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+                .build();
+        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        UUID sameSequenceKey = UUID.randomUUID();
+
+        final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(sameSequenceKey, tasks);
+
+        final List<SpyingTask> futureResults = toAllResults(futures);
+        assertSingleThread(futureResults);
+        assertSequence(futureResults);
+    }
+
+    @Test
+    public void singleSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
@@ -158,6 +173,18 @@ public class ConseqTest {
                 .stream()
                 .findFirst()
                 .get() });
+    }
+
+    List<SpyingTask> toAllResults(List<Future<SpyingTask>> futures) {
+        return futures.stream()
+                .map(f -> {
+                    try {
+                        return f.get();
+                    } catch (InterruptedException | ExecutionException ex) {
+                        throw new IllegalStateException(ex);
+                    }
+                })
+                .collect(toList());
     }
 
     void assertSequence(List<SpyingTask> tasks) {

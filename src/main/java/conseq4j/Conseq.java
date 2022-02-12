@@ -235,7 +235,7 @@ public final class Conseq implements ConcurrentSequencer {
         public Conseq build() {
             log.log(Level.INFO, "Building conseq with builder {0}", this);
             final Conseq conseq = new Conseq(this);
-            log.log(Level.FINE, "Built {0}", conseq);
+            log.log(Level.FINE, () -> "Built " + conseq);
             return conseq;
         }
 

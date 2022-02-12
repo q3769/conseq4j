@@ -37,16 +37,12 @@ abstract class AsyncListenableExecutorService extends ListenableExecutorServiceT
     @Override
     protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
         ForkJoinPool.commonPool()
-                .execute(() -> {
-                    super.notifyListenersBeforeExecute(t, r);
-                });
+                .execute(() -> super.notifyListenersBeforeExecute(t, r));
     }
 
     @Override
     protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
         ForkJoinPool.commonPool()
-                .execute(() -> {
-                    super.notifyListenersAfterExecute(r, t);
-                });
+                .execute(() -> super.notifyListenersAfterExecute(r, t));
     }
 }
