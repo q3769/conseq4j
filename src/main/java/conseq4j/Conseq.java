@@ -96,8 +96,7 @@ public final class Conseq implements ConcurrentSequencer {
         try {
             computed = executorPool.borrowObject();
         } catch (Exception ex) {
-            throw new IllegalStateException("Failed to borrow executor from pool " + executorPool + " in conseq "
-                    + this, ex);
+            throw new IllegalStateException("Failed to borrow executor from pool " + executorPool, ex);
         }
         computed.addListener(new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors,
                 executorPool));
@@ -235,7 +234,9 @@ public final class Conseq implements ConcurrentSequencer {
 
         public Conseq build() {
             log.log(Level.INFO, "Building conseq with builder {0}", this);
-            return new Conseq(this);
+            final Conseq conseq = new Conseq(this);
+            log.log(Level.FINE, "Built {0}", conseq);
+            return conseq;
         }
 
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {

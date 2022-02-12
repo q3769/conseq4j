@@ -42,11 +42,20 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
 
     abstract void doBeforeExecute(Thread t, Runnable r);
 
-    abstract void notifyListenersBeforeExecute(Thread t, Runnable r);
-
     abstract void doAfterExecute(Runnable r, Throwable t);
 
-    abstract void notifyListenersAfterExecute(Runnable r, Throwable t);
+    protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
+        synchronized (executorServiceListeners) {
+            executorServiceListeners.forEach(executorServiceListener -> executorServiceListener.beforeEachExecute(t,
+                    r));
+        }
+    }
+
+    protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
+        synchronized (executorServiceListeners) {
+            executorServiceListeners.forEach(executorServiceListener -> executorServiceListener.afterEachExecute(r, t));
+        }
+    }
 
     @Override
     protected void beforeExecute(Thread t, Runnable r) {
