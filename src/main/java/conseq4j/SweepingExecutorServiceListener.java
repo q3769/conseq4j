@@ -52,11 +52,15 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
     @Override
     public void afterEachExecute(Runnable r, Throwable t) {
         sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            if (presentExecutor.getRunningTaskCount() != 0) {
+            final int runningTaskCount = presentExecutor.getRunningTaskCount();
+            if (runningTaskCount != 0) {
+                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
+                        + " pending tasks running, this sweeping check was submitted after servicing Runnable " + r
+                        + " under sequence key " + presentSequenceKey);
                 return presentExecutor;
             }
             log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor
-                    + " now that it has no running task, this sweeping check was submitted after servicing Runnable "
+                    + " now that it has no task running, this sweeping check was submitted after servicing Runnable "
                     + r + " under sequence key " + presentSequenceKey);
             try {
                 executorPool.returnObject(presentExecutor);
