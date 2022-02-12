@@ -47,7 +47,7 @@ public class ConseqTest {
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_LOG_LEVEL = Level.FINE;
+    private static final Level TEST_LOG_LEVEL = Level.INFO;
 
     @BeforeAll
     public static void setLoggingLevel() {
