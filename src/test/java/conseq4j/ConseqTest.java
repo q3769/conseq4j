@@ -29,7 +29,6 @@ import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import lombok.extern.java.Log;
@@ -64,33 +63,24 @@ public class ConseqTest {
 
     @Test
     public void concurrencyBoundedByTotalTaskCount() throws InterruptedException {
-        final Conseq.Builder builder = Conseq.newBuilder();
-        Conseq defaultConseq = builder.build();
-        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        Conseq defaultConseq = Conseq.newBuilder()
+                .build();
 
-        List<Future<SpyingTask>> results = new ArrayList<>();
-        tasks.forEach(task -> results.add(defaultConseq.submit(UUID.randomUUID(), (Callable) task)));
+        List<Future<SpyingTask>> futures = new ArrayList<>();
+        createSpyingTasks(TASK_COUNT).forEach(task -> futures.add(defaultConseq.submit(UUID.randomUUID(),
+                (Callable) task)));
 
-        Set<String> runThreadNames = results.stream()
-                .map(r -> {
-                    String threadName = null;
-                    try {
-                        threadName = r.get()
-                                .getRunThreadName();
-                    } catch (InterruptedException | ExecutionException ex) {
-                        throw new IllegalStateException(ex);
-                    }
-                    return threadName == null ? null : threadName;
-                })
-                .collect(Collectors.toSet());
-        final int totalRunThreads = runThreadNames.size();
+        final long totalRunThreads = toDoneTasks(futures).stream()
+                .map(SpyingTask::getRunThreadName)
+                .distinct()
+                .count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
     @Test
     public void concurrencyBoundedByMaxConccurrency() throws InterruptedException {
-        List<SpyingTask> sameTasks = getSpyingTasks(TASK_COUNT);
+        List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
         final int lowConcurrency = TASK_COUNT / 10;
         Conseq lcConseq = Conseq.newBuilder()
                 .globalConcurrency(lowConcurrency)
@@ -98,13 +88,7 @@ public class ConseqTest {
         List<Future<SpyingTask>> lcFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lcFutures.add(lcConseq.submit(UUID.randomUUID(), (Callable) task)));
-        lcFutures.forEach(f -> {
-            try {
-                f.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new IllegalStateException(ex);
-            }
-        });
+        waitForAllComplete(lcFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         final int highConcurrency = TASK_COUNT;
@@ -114,18 +98,22 @@ public class ConseqTest {
         List<Future<SpyingTask>> hcFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> hcFutures.add(hcConseq.submit(UUID.randomUUID(), (Callable) task)));
-        hcFutures.forEach(f -> {
+        waitForAllComplete(hcFutures);
+        long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
+
+        log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}", new Object[] { Duration
+                .ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
+        assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
+    }
+
+    private static void waitForAllComplete(List<Future<SpyingTask>> futures) {
+        futures.forEach(f -> {
             try {
                 f.get();
             } catch (InterruptedException | ExecutionException ex) {
                 throw new IllegalStateException(ex);
             }
         });
-        long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
-
-        log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}", new Object[] { Duration
-                .ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
-        assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
     }
 
     void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
@@ -136,21 +124,21 @@ public class ConseqTest {
     public void bulkSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
-        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(sameSequenceKey, tasks);
 
-        final List<SpyingTask> futureResults = toAllResults(futures);
-        assertSingleThread(futureResults);
-        assertSequence(futureResults);
+        final List<SpyingTask> doneTasks = toDoneTasks(futures);
+        assertSingleThread(doneTasks);
+        assertSequence(doneTasks);
     }
 
     @Test
     public void bulkAnySubmitChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
-        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         SpyingTask doneTask = defaultConseq.invokeAny(sameSequenceKey, tasks);
@@ -164,7 +152,7 @@ public class ConseqTest {
     public void singleSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
-        List<SpyingTask> tasks = getSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         tasks.forEach(task -> {
@@ -189,7 +177,7 @@ public class ConseqTest {
                 .get() });
     }
 
-    List<SpyingTask> toAllResults(List<Future<SpyingTask>> futures) {
+    List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
         return futures.stream()
                 .map(f -> {
                     try {
@@ -212,7 +200,7 @@ public class ConseqTest {
         log.log(Level.INFO, "{0} tasks executed sequentially in chronical order", tasks.size());
     }
 
-    private static List<SpyingTask> getSpyingTasks(int total) {
+    private static List<SpyingTask> createSpyingTasks(int total) {
         List<SpyingTask> result = new ArrayList<>();
         for (int i = 0; i < total; i++) {
             result.add(new SpyingTask(i));
