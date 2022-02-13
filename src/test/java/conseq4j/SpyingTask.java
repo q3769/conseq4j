@@ -21,33 +21,54 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import lombok.Data;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
 /**
  * @author Qingtian Wang
  */
-@Data
 @Log
-@RequiredArgsConstructor
 @ToString
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
-    public static final int MAX_RUN_TIME_MILLIS = 20;
+    public static final int MAX_RUN_TIME_MILLIS = 40;
+
+    private static int inclusiveRandomInt(int min, int max) {
+        return min + RANDOM.nextInt(max - min + 1);
+    }
 
     final Integer scheduledSequence;
+
     Instant runStart;
     Instant runEnd;
     String runThreadName;
 
+    public SpyingTask(Integer scheduledSequence) {
+        this.scheduledSequence = scheduledSequence;
+    }
+
+    public Integer getScheduledSequence() {
+        return scheduledSequence;
+    }
+
+    public Instant getRunStart() {
+        return runStart;
+    }
+
+    public Instant getRunEnd() {
+        return runEnd;
+    }
+
+    public String getRunThreadName() {
+        return runThreadName;
+    }
+
     @Override
     public void run() {
-        this.setRunStart(Instant.now());
-        this.setRunThreadName(Thread.currentThread()
-                .getName());
+        this.runStart = Instant.now();
+        this.runThreadName = Thread.currentThread()
+                .getName();
         final int randomMillis = inclusiveRandomInt(1, MAX_RUN_TIME_MILLIS);
         try {
             TimeUnit.MILLISECONDS.sleep(randomMillis);
@@ -57,7 +78,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
             Thread.currentThread()
                     .interrupt();
         }
-        this.setRunEnd(Instant.now());
+        this.runEnd = Instant.now();
         log.log(Level.FINEST, () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd)
                 .toMillis() + " millis");
     }
@@ -66,9 +87,5 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
     public SpyingTask call() throws Exception {
         this.run();
         return this;
-    }
-
-    private static int inclusiveRandomInt(int min, int max) {
-        return min + RANDOM.nextInt(max - min + 1);
     }
 }

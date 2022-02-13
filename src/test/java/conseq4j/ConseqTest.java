@@ -32,11 +32,14 @@ import java.util.logging.Logger;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import lombok.extern.java.Log;
+import org.junit.jupiter.api.AfterEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.TestInfo;
 
 /**
  * @author Qingtian Wang
@@ -59,6 +62,16 @@ public class ConseqTest {
                 handler.setLevel(TEST_RUN_LOG_LEVEL);
             }
         }
+    }
+
+    @BeforeEach
+    void setUp(TestInfo testInfo) {
+        log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
+    }
+
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
+        log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
     }
 
     @Test
@@ -121,13 +134,17 @@ public class ConseqTest {
     }
 
     @Test
-    public void bulkSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    public void syncInvokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
+        log.log(Level.INFO, () -> "Start single sync invoke all " + tasks + " under same sequence key "
+                + sameSequenceKey);
         final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(sameSequenceKey, tasks);
+        log.log(Level.INFO, () -> "Done single sync invoke all " + tasks + " under same sequence key "
+                + sameSequenceKey);
 
         final List<SpyingTask> doneTasks = toDoneTasks(futures);
         assertSingleThread(doneTasks);
@@ -135,13 +152,17 @@ public class ConseqTest {
     }
 
     @Test
-    public void bulkAnySubmitChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
+    public void syncInvokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
+        log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks + " under same sequence key "
+                + sameSequenceKey);
         SpyingTask doneTask = defaultConseq.invokeAny(sameSequenceKey, tasks);
+        log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks + " under same sequence key "
+                + sameSequenceKey);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
         log.log(Level.INFO, "Chosen task sequence : {0}", scheduledSequence);
@@ -149,17 +170,24 @@ public class ConseqTest {
     }
 
     @Test
-    public void singleSubmitRunsAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    public void asyncSubmitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
+        log.log(Level.INFO, () -> "Start async submitting each " + tasks + " under same sequence key "
+                + sameSequenceKey);
         tasks.forEach(task -> {
             defaultConseq.execute(sameSequenceKey, task);
         });
+        log.log(Level.INFO, () -> "Done async submitting each " + tasks + " under same sequence key "
+                + sameSequenceKey);
         final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
-        TimeUnit.MILLISECONDS.sleep((TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS);
+        final int timeToAllowAllComplete = (TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS;
+        log.log(Level.INFO, () -> "Sleeping for " + Duration.ofMillis(timeToAllowAllComplete)
+                + " to allow all to complete...");
+        TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
 
         assertSingleThread(tasks);
         assertSequence(tasks);
@@ -178,7 +206,8 @@ public class ConseqTest {
     }
 
     List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
-        return futures.stream()
+        log.log(Level.FINE, () -> "Wait and get all results on futures " + futures);
+        final List<SpyingTask> doneTasks = futures.stream()
                 .map(f -> {
                     try {
                         return f.get();
@@ -187,6 +216,8 @@ public class ConseqTest {
                     }
                 })
                 .collect(toList());
+        log.log(Level.FINE, () -> "All futures done, results: " + doneTasks);
+        return doneTasks;
     }
 
     void assertSequence(List<SpyingTask> tasks) {
