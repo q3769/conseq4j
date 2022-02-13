@@ -23,6 +23,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import lombok.ToString;
 import lombok.extern.java.Log;
 
 /**
@@ -31,6 +32,7 @@ import lombok.extern.java.Log;
 @Data
 @Log
 @RequiredArgsConstructor
+@ToString
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
@@ -46,10 +48,12 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         this.setRunStart(Instant.now());
         this.setRunThreadName(Thread.currentThread()
                 .getName());
+        final int randomMillis = inclusiveRandomInt(1, MAX_RUN_TIME_MILLIS);
         try {
-            TimeUnit.MILLISECONDS.sleep(inclusiveRandomIntBetween(1, MAX_RUN_TIME_MILLIS));
+            TimeUnit.MILLISECONDS.sleep(randomMillis);
         } catch (InterruptedException ex) {
-            log.log(Level.SEVERE, null, ex);
+            log.log(Level.WARNING, "Interrupted while " + this + " was trying to sleep for " + Duration.ofMillis(
+                    randomMillis), ex);
             Thread.currentThread()
                     .interrupt();
         }
@@ -64,7 +68,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         return this;
     }
 
-    private int inclusiveRandomIntBetween(int min, int max) {
-        return min + RANDOM.nextInt(max + 1);
+    private static int inclusiveRandomInt(int min, int max) {
+        return min + RANDOM.nextInt(max - min + 1);
     }
 }

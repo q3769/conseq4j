@@ -47,17 +47,17 @@ public class ConseqTest {
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_LOG_LEVEL = Level.FINE;
+    private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
 
     @BeforeAll
     public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
         // .level= ALL
-        root.setLevel(TEST_LOG_LEVEL);
+        root.setLevel(TEST_RUN_LOG_LEVEL);
         for (Handler handler : root.getHandlers()) {
             if (handler instanceof ConsoleHandler) {
                 // java.util.logging.ConsoleHandler.level = ALL
-                handler.setLevel(TEST_LOG_LEVEL);
+                handler.setLevel(TEST_RUN_LOG_LEVEL);
             }
         }
     }
@@ -84,7 +84,7 @@ public class ConseqTest {
                 })
                 .collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
-        log.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 

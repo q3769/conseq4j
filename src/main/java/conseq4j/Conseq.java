@@ -188,7 +188,7 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.WARNING, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException ex) {
@@ -209,7 +209,7 @@ public final class Conseq implements ConcurrentSequencer {
             try {
                 resultHolder.set(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.WARNING, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 Thread.currentThread()
                         .interrupt();
             } catch (ExecutionException | TimeoutException ex) {

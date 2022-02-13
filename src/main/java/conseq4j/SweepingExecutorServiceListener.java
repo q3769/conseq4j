@@ -55,13 +55,11 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
             if (runningTaskCount != 0) {
                 log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
-                        + " pending tasks running, this sweeping check was submitted after servicing Runnable " + r
-                        + " under sequence key " + presentSequenceKey);
+                        + " pending tasks running." + sweepingCheckOriginMessage(r, presentSequenceKey));
                 return presentExecutor;
             }
-            log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor
-                    + " now that it has no task running, this sweeping check was submitted after servicing Runnable "
-                    + r + " under sequence key " + presentSequenceKey);
+            log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor + " now that it has no task running."
+                    + sweepingCheckOriginMessage(r, presentSequenceKey));
             try {
                 executorPool.returnObject(presentExecutor);
                 return null;
@@ -71,5 +69,11 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
                 return null;
             }
         });
+        log.log(Level.FINE, () -> "Executor already swept off by another check." + sweepingCheckOriginMessage(r,
+                sequenceKey));
+    }
+
+    private static String sweepingCheckOriginMessage(Runnable r, Object seqKey) {
+        return " This sweeping check was submitted after servicing Runnable " + r + " under sequence key " + seqKey;
     }
 }
