@@ -34,11 +34,12 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 40;
 
-    private static int inclusiveRandomInt(int min, int max) {
+    private static int randomIntInclusive(int min, int max) {
         return min + RANDOM.nextInt(max - min + 1);
     }
 
     final Integer scheduledSequence;
+    final int targetRunTimeMillis;
 
     Instant runStart;
     Instant runEnd;
@@ -46,6 +47,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
+        this.targetRunTimeMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
     }
 
     public Integer getScheduledSequence() {
@@ -69,12 +71,11 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         this.runStart = Instant.now();
         this.runThreadName = Thread.currentThread()
                 .getName();
-        final int randomMillis = inclusiveRandomInt(1, MAX_RUN_TIME_MILLIS);
         try {
-            TimeUnit.MILLISECONDS.sleep(randomMillis);
+            TimeUnit.MILLISECONDS.sleep(targetRunTimeMillis);
         } catch (InterruptedException ex) {
             log.log(Level.WARNING, "Interrupted while " + this + " was trying to sleep for " + Duration.ofMillis(
-                    randomMillis), ex);
+                    targetRunTimeMillis), ex);
             Thread.currentThread()
                     .interrupt();
         }
