@@ -49,7 +49,7 @@ public class ConseqTest {
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
+    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
 
     @BeforeAll
     public static void setLoggingLevel() {
@@ -140,10 +140,10 @@ public class ConseqTest {
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start single sync invoke all " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(sameSequenceKey, tasks);
-        log.log(Level.INFO, () -> "Done single sync invoke all " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Done single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
         final List<SpyingTask> doneTasks = toDoneTasks(futures);
@@ -158,10 +158,10 @@ public class ConseqTest {
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         SpyingTask doneTask = defaultConseq.invokeAny(sameSequenceKey, tasks);
-        log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
@@ -176,12 +176,12 @@ public class ConseqTest {
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start async submitting each " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         tasks.forEach(task -> {
             defaultConseq.execute(sameSequenceKey, task);
         });
-        log.log(Level.INFO, () -> "Done async submitting each " + tasks + " under same sequence key "
+        log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
         final int timeToAllowAllComplete = (TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS;

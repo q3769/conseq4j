@@ -21,6 +21,7 @@ import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+import lombok.Getter;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
@@ -29,6 +30,7 @@ import lombok.extern.java.Log;
  */
 @Log
 @ToString
+@Getter
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
@@ -48,22 +50,6 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
         this.targetRunTimeMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
-    }
-
-    public Integer getScheduledSequence() {
-        return scheduledSequence;
-    }
-
-    public Instant getRunStart() {
-        return runStart;
-    }
-
-    public Instant getRunEnd() {
-        return runEnd;
-    }
-
-    public String getRunThreadName() {
-        return runThreadName;
     }
 
     @Override
