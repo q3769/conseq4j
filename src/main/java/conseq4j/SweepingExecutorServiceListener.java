@@ -51,15 +51,16 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
     @Override
     public void afterEachExecute(Runnable r, Throwable t) {
+        log.log(Level.FINE, this::startOfSweepingCheckMessage);
         sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
             if (runningTaskCount != 0) {
                 log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
-                        + " pending tasks running." + messageOfCurrentCheckOrigin(r, presentSequenceKey));
+                        + " pending tasks running." + endOfSweepingCheckMessage(r, presentSequenceKey));
                 return presentExecutor;
             }
             log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor + " now that it has no task running."
-                    + messageOfCurrentCheckOrigin(r, presentSequenceKey));
+                    + endOfSweepingCheckMessage(r, presentSequenceKey));
             try {
                 executorPool.returnObject(presentExecutor);
                 return null;
@@ -69,11 +70,17 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
                 return null;
             }
         });
-        log.log(Level.FINE, () -> "Executor already swept off by another check." + messageOfCurrentCheckOrigin(r,
+        log.log(Level.FINE, () -> "Executor already swept off by another check." + endOfSweepingCheckMessage(r,
                 sequenceKey));
     }
 
-    private static String messageOfCurrentCheckOrigin(Runnable r, Object seqKey) {
-        return " This sweeping check was submitted after servicing Runnable " + r + " under sequence key " + seqKey;
+    private String startOfSweepingCheckMessage() {
+        return "Sweep checking executor under sequence key " + sequenceKey + " in " + sequentialExecutors.size()
+                + " active sequential executors...";
+    }
+
+    private String endOfSweepingCheckMessage(Runnable r, Object seqKey) {
+        return " This sweeping check was submitted after servicing Runnable " + r + " under sequence key " + seqKey
+                + ", " + sequentialExecutors.size() + " active sequential executors left";
     }
 }
