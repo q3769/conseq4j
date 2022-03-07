@@ -18,7 +18,7 @@
  * THE SOFTWARE.
  */
 
-package conseq4j;
+package conseq4j.service;
 
 import java.util.ArrayList;
 import java.util.Collections;

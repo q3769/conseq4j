@@ -12,7 +12,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-package conseq4j;
+package conseq4j.service;
 
 import java.util.Collection;
 import java.util.List;
@@ -25,7 +25,7 @@ import java.util.concurrent.TimeoutException;
 /**
  * @author Qingtian Wang
  */
-public interface ConcurrentSequencer {
+public interface ConcurrentSequencerService {
 
     void execute(Object sequenceKey, Runnable runnable);
 
@@ -33,7 +33,7 @@ public interface ConcurrentSequencer {
 
     <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
 
-    Future<Void> submit(Object sequenceKey, Runnable task);
+    Future<?> submit(Object sequenceKey, Runnable task);
 
     <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException;

@@ -17,9 +17,9 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package conseq4j.service;
 
-package conseq4j;
-
+import java.util.Objects;
 import java.util.concurrent.Semaphore;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
@@ -55,8 +55,14 @@ class PooledSingleThreadExecutorFactory extends BasePooledObjectFactory<
     public void activateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p)
             throws Exception {
         super.activateObject(p);
-        p.getObject()
+        Objects.requireNonNull(p.getObject())
                 .clearListeners();
     }
 
+    @Override
+    public boolean validateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p) {
+        final GlobalConcurrencyBoundedRunningTasksCountingExecutorService executorService = Objects.requireNonNull(p
+                .getObject());
+        return !executorService.isShutdown();
+    }
 }

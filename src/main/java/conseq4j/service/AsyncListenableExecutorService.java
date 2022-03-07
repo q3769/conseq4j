@@ -18,7 +18,7 @@
  * THE SOFTWARE.
  */
 
-package conseq4j;
+package conseq4j.service;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.ForkJoinPool;

@@ -12,7 +12,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-package conseq4j;
+package conseq4j.service;
 
 import java.util.Collection;
 import java.util.List;
@@ -38,10 +38,11 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
  */
 @Log
 @ToString
-public final class Conseq implements ConcurrentSequencer {
+public final class ConseqService implements ConcurrentSequencerService {
 
     public static final int UNBOUNDED = Integer.MAX_VALUE;
     public static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
+    private static final boolean VALIDATE_ON_RETURN_TO_POOL = true;
 
     public static Builder newBuilder() {
         return new Builder();
@@ -58,6 +59,7 @@ public final class Conseq implements ConcurrentSequencer {
                 GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
                         new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(UNBOUNDED);
+        genericObjectPoolConfig.setTestOnReturn(VALIDATE_ON_RETURN_TO_POOL);
         return genericObjectPoolConfig;
     }
 
@@ -72,7 +74,7 @@ public final class Conseq implements ConcurrentSequencer {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
 
-    private Conseq(Builder builder) {
+    private ConseqService(Builder builder) {
         this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
         this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig());
     }
@@ -128,7 +130,7 @@ public final class Conseq implements ConcurrentSequencer {
     }
 
     @Override
-    public Future<Void> submit(Object sequenceKey, Runnable task) {
+    public Future<?> submit(Object sequenceKey, Runnable task) {
         FutureHolder<Void> futureHolder = new FutureHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor = computeExecutor(
@@ -232,9 +234,9 @@ public final class Conseq implements ConcurrentSequencer {
         private int executorTaskQueueCapacity = DEFAULT_TASK_QUEUE_CAPACITY;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
 
-        public Conseq build() {
+        public ConseqService build() {
             log.log(Level.INFO, "Building conseq with builder {0}", this);
-            final Conseq conseq = new Conseq(this);
+            final ConseqService conseq = new ConseqService(this);
             log.log(Level.FINEST, () -> "Built " + conseq);
             return conseq;
         }

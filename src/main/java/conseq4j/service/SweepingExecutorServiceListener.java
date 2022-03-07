@@ -17,8 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
-package conseq4j;
+package conseq4j.service;
 
 import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
@@ -51,24 +50,39 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
     @Override
     public void afterEachExecute(Runnable r, Throwable t) {
+        maySweepExecutor(r, t);
+    }
+
+    private void maySweepExecutor(Runnable r, Throwable t) {
         log.log(Level.FINE, this::startOfSweepingCheckMessage);
         sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            if (t != null) {
+                log.log(Level.WARNING,
+                        "Error occurred while executing {0}: {1}. Invalidating and sweeping executor under seqence key {2}",
+                        new Object[] { r, t.getMessage(), sequenceKey });
+                try {
+                    executorPool.invalidateObject(presentExecutor);
+                } catch (Exception ex) {
+                    log.log(Level.SEVERE, "Error invalidating " + presentExecutor + " from pool " + executorPool, ex);
+                }
+                return null;
+            }
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
-            if (runningTaskCount != 0) {
-                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
-                        + " pending tasks running." + endOfSweepingCheckMessage(r, presentSequenceKey));
-                return presentExecutor;
+            if (runningTaskCount == 0) {
+                log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + " now that it has no task running."
+                        + endOfSweepingCheckMessage(r, presentSequenceKey));
+                try {
+                    executorPool.returnObject(presentExecutor);
+                    return null;
+                } catch (Exception ex) {
+                    log.log(Level.WARNING, "Error returning executor " + presentExecutor + " back to pool "
+                            + executorPool, ex);
+                    return null;
+                }
             }
-            log.log(Level.FINE, () -> "Sweeping off executor " + presentExecutor + " now that it has no task running."
-                    + endOfSweepingCheckMessage(r, presentSequenceKey));
-            try {
-                executorPool.returnObject(presentExecutor);
-                return null;
-            } catch (Exception ex) {
-                log.log(Level.WARNING, "Error returning executor " + presentExecutor + " back to pool " + executorPool,
-                        ex);
-                return null;
-            }
+            log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
+                    + " pending tasks running." + endOfSweepingCheckMessage(r, presentSequenceKey));
+            return presentExecutor;
         });
         log.log(Level.FINE, () -> "Executor already swept off by another check." + endOfSweepingCheckMessage(r,
                 sequenceKey));

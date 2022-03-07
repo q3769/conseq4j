@@ -12,7 +12,7 @@
  * OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS
  * IN THE SOFTWARE.
  */
-package conseq4j;
+package conseq4j.service;
 
 import java.time.Duration;
 import java.time.Instant;
@@ -45,7 +45,7 @@ import org.junit.jupiter.api.TestInfo;
  * @author Qingtian Wang
  */
 @Log
-public class ConseqTest {
+public class ConseqServiceTest {
 
     private static final int TASK_COUNT = 100;
 
@@ -76,7 +76,7 @@ public class ConseqTest {
 
     @Test
     public void concurrencyBoundedByTotalTaskCount() throws InterruptedException {
-        Conseq defaultConseq = Conseq.newBuilder()
+        ConseqService defaultConseq = ConseqService.newBuilder()
                 .build();
 
         List<Future<SpyingTask>> futures = new ArrayList<>();
@@ -95,7 +95,7 @@ public class ConseqTest {
     public void concurrencyBoundedByMaxConccurrency() throws InterruptedException {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
         final int lowConcurrency = TASK_COUNT / 10;
-        Conseq lcConseq = Conseq.newBuilder()
+        ConseqService lcConseq = ConseqService.newBuilder()
                 .globalConcurrency(lowConcurrency)
                 .build();
         List<Future<SpyingTask>> lcFutures = new ArrayList<>();
@@ -105,7 +105,7 @@ public class ConseqTest {
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         final int highConcurrency = TASK_COUNT;
-        Conseq hcConseq = Conseq.newBuilder()
+        ConseqService hcConseq = ConseqService.newBuilder()
                 .globalConcurrency(highConcurrency)
                 .build();
         List<Future<SpyingTask>> hcFutures = new ArrayList<>();
@@ -135,7 +135,7 @@ public class ConseqTest {
 
     @Test
     public void syncInvokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -153,7 +153,7 @@ public class ConseqTest {
 
     @Test
     public void syncInvokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
-        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -171,7 +171,7 @@ public class ConseqTest {
 
     @Test
     public void asyncSubmitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        ConcurrentSequencer defaultConseq = Conseq.newBuilder()
+        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder()
                 .build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();

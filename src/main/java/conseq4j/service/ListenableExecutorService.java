@@ -18,15 +18,15 @@
  * THE SOFTWARE.
  */
 
-package conseq4j;
+package conseq4j.service;
 
 /**
  * @author Qingitan Wang
  */
-interface ExecutorServiceListener {
+interface ListenableExecutorService {
 
-    void beforeEachExecute(Thread t, Runnable r);
+    void addListener(ExecutorServiceListener executorServiceListener);
 
-    void afterEachExecute(Runnable r, Throwable t);
+    void clearListeners();
 
 }
