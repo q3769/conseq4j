@@ -61,8 +61,7 @@ class PooledSingleThreadExecutorFactory extends BasePooledObjectFactory<
 
     @Override
     public boolean validateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p) {
-        final GlobalConcurrencyBoundedRunningTasksCountingExecutorService executorService = Objects.requireNonNull(p
-                .getObject());
-        return !executorService.isShutdown();
+        return !Objects.requireNonNull(p.getObject())
+                .isShutdown();
     }
 }
