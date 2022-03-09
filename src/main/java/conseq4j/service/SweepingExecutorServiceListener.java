@@ -54,22 +54,23 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
     }
 
     private void maySweepExecutor(Runnable r, Throwable t) {
-        log.log(Level.FINE, this::startOfSweepingCheckMessage);
+        log.log(Level.FINE, () -> "Start check-sweeping executor under sequence key " + sequenceKey + " in "
+                + sequentialExecutors.size() + " active sequential executors, after servicing Runnable: " + r
+                + ", with Throwable: " + t);
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor == null) {
-                log.log(Level.FINE, () -> "Executor already swept off by another check." + endOfSweepingCheckMessage(r,
-                        sequenceKey));
+                log.log(Level.FINE, () -> "Executor already swept off by another check");
                 return null;
             }
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
             final boolean isShutDown = presentExecutor.isShutdown();
+            log.log(Level.FINE, () -> "Checking executor " + presentExecutor + " with running task count: "
+                    + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution Throwable: " + t);
             if (runningTaskCount != 0 && !isShutDown && t == null) {
-                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
-                        + " pending tasks running" + endOfSweepingCheckMessage(r, presentSequenceKey));
+                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor);
                 return presentExecutor;
             }
-            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + " with shutdown initiated: " + isShutDown
-                    + ", execution throwable: " + t + endOfSweepingCheckMessage(r, presentSequenceKey));
+            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor);
             try {
                 executorPool.returnObject(presentExecutor);
                 return null;
@@ -79,15 +80,7 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
                 return null;
             }
         });
-    }
-
-    private String startOfSweepingCheckMessage() {
-        return "Sweep checking executor under sequence key " + sequenceKey + " in " + sequentialExecutors.size()
-                + " active sequential executors...";
-    }
-
-    private String endOfSweepingCheckMessage(Runnable r, Object seqKey) {
-        return ". This sweeping check was submitted after servicing Runnable " + r + " under sequence key " + seqKey
-                + ", " + sequentialExecutors.size() + " active sequential executors left";
+        log.log(Level.FINE, () -> "Done check-sweeping executor under sequence key " + sequenceKey + ", "
+                + sequentialExecutors.size() + " active sequential executors left");
     }
 }
