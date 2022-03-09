@@ -55,28 +55,30 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
     private void maySweepExecutor(Runnable r, Throwable t) {
         log.log(Level.FINE, this::startOfSweepingCheckMessage);
-        sequentialExecutors.computeIfPresent(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            if (presentExecutor == null) {
+                log.log(Level.FINE, () -> "Executor already swept off by another check." + endOfSweepingCheckMessage(r,
+                        sequenceKey));
+                return null;
+            }
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
             final boolean isShutDown = presentExecutor.isShutdown();
-            if (runningTaskCount == 0 || isShutDown || t != null) {
-                log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + " with shutdown initiated: "
-                        + isShutDown + ", execution throwable: " + t + endOfSweepingCheckMessage(r,
-                                presentSequenceKey));
-                try {
-                    executorPool.returnObject(presentExecutor);
-                    return null;
-                } catch (Exception ex) {
-                    log.log(Level.WARNING, "Error returning executor " + presentExecutor + " back to pool "
-                            + executorPool, ex);
-                    return null;
-                }
+            if (runningTaskCount != 0 && !isShutDown && t == null) {
+                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
+                        + " pending tasks running" + endOfSweepingCheckMessage(r, presentSequenceKey));
+                return presentExecutor;
             }
-            log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + " as it has " + runningTaskCount
-                    + " pending tasks running" + endOfSweepingCheckMessage(r, presentSequenceKey));
-            return presentExecutor;
+            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + " with shutdown initiated: " + isShutDown
+                    + ", execution throwable: " + t + endOfSweepingCheckMessage(r, presentSequenceKey));
+            try {
+                executorPool.returnObject(presentExecutor);
+                return null;
+            } catch (Exception ex) {
+                log.log(Level.WARNING, "Error returning executor " + presentExecutor + " back to pool " + executorPool,
+                        ex);
+                return null;
+            }
         });
-        log.log(Level.FINE, () -> "Executor already swept off by another check." + endOfSweepingCheckMessage(r,
-                sequenceKey));
     }
 
     private String startOfSweepingCheckMessage() {
