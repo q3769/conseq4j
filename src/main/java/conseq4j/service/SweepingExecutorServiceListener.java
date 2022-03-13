@@ -30,6 +30,8 @@ import org.apache.commons.pool2.ObjectPool;
 @Log
 class SweepingExecutorServiceListener implements ExecutorServiceListener {
 
+    private static final String FOR_SEQUENCE_KEY = " for sequence key ";
+
     private final Object sequenceKey;
     private final ConcurrentMap<Object,
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors;
@@ -54,33 +56,38 @@ class SweepingExecutorServiceListener implements ExecutorServiceListener {
     }
 
     private void maySweepExecutor(Runnable r, Throwable t) {
-        log.log(Level.FINE, () -> "Start check-sweeping executor under sequence key " + sequenceKey + " in "
-                + sequentialExecutors.size() + " active sequential executors, after servicing Runnable: " + r
-                + ", with Throwable: " + t);
+        log.log(Level.FINE, () -> "Start check-sweeping executor" + sequenceKeyLog() + ", after servicing Runnable: "
+                + r + " with Throwable: " + t + ", in " + sequentialExecutors.size() + " active sequential executors");
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor == null) {
-                log.log(Level.FINE, () -> "Executor already swept off by another check");
+                log.log(Level.FINE, () -> "Executor" + sequenceKeyLog() + " already swept off by another check");
                 return null;
             }
             final int runningTaskCount = presentExecutor.getRunningTaskCount();
             final boolean isShutDown = presentExecutor.isShutdown();
-            log.log(Level.FINE, () -> "Checking executor " + presentExecutor + " with running task count: "
-                    + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution Throwable: " + t);
+            log.log(Level.FINE, () -> "Checking executor " + presentExecutor + sequenceKeyLog()
+                    + " with running task count: " + runningTaskCount + ", shutdown initiated: " + isShutDown
+                    + ", execution Throwable: " + t);
             if (runningTaskCount != 0 && !isShutDown && t == null) {
-                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor);
+                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + sequenceKeyLog());
                 return presentExecutor;
             }
-            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor);
+            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + sequenceKeyLog());
             try {
                 executorPool.returnObject(presentExecutor);
                 return null;
             } catch (Exception ex) {
-                log.log(Level.WARNING, "Error returning executor " + presentExecutor + " back to pool " + executorPool,
-                        ex);
+                log.log(Level.WARNING, "Error returning executor " + presentExecutor + sequenceKeyLog()
+                        + " back to pool " + executorPool, ex);
                 return null;
             }
         });
-        log.log(Level.FINE, () -> "Done check-sweeping executor under sequence key " + sequenceKey + ", "
-                + sequentialExecutors.size() + " active sequential executors left");
+        log.log(Level.FINE, () -> "Done check-sweeping executor" + sequenceKeyLog() + ", " + sequentialExecutors.size()
+                + " active sequential executors left");
     }
+
+    private String sequenceKeyLog() {
+        return FOR_SEQUENCE_KEY + sequenceKey;
+    }
+
 }
