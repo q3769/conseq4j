@@ -40,7 +40,7 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 @ToString
 public final class ConseqService implements ConcurrentSequencerService {
 
-    public static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
+    private static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
     private static final boolean VALIDATE_ON_RETURN_TO_POOL = true;
 
     public static Builder newBuilder() {
