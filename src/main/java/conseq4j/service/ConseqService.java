@@ -40,7 +40,6 @@ import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 @ToString
 public final class ConseqService implements ConcurrentSequencerService {
 
-    public static final int UNBOUNDED = Integer.MAX_VALUE;
     public static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
     private static final boolean VALIDATE_ON_RETURN_TO_POOL = true;
 
@@ -54,11 +53,11 @@ public final class ConseqService implements ConcurrentSequencerService {
     }
 
     private static GenericObjectPoolConfig<
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPoolConfig() {
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPoolConfig(Builder builder) {
         final GenericObjectPoolConfig<
                 GlobalConcurrencyBoundedRunningTasksCountingExecutorService> genericObjectPoolConfig =
                         new GenericObjectPoolConfig<>();
-        genericObjectPoolConfig.setMaxTotal(UNBOUNDED);
+        genericObjectPoolConfig.setMaxTotal(builder.globalConcurrency);
         genericObjectPoolConfig.setTestOnReturn(VALIDATE_ON_RETURN_TO_POOL);
         return genericObjectPoolConfig;
     }
@@ -76,7 +75,7 @@ public final class ConseqService implements ConcurrentSequencerService {
 
     private ConseqService(Builder builder) {
         this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
-        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig());
+        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
     }
 
     @Override
