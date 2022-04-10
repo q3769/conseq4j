@@ -42,8 +42,8 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
     final Integer scheduledSequence;
     final int targetRunTimeMillis;
 
-    Instant runStart;
-    Instant runEnd;
+    Instant runStart = Instant.EPOCH;
+    Instant runEnd = Instant.EPOCH;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {

@@ -21,13 +21,16 @@
 package conseq4j.service;
 
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
  * @author Qingitan Wang
  */
 abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
+
+    private final Executor listeningThreads = Executors.newCachedThreadPool();
 
     AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
@@ -36,13 +39,11 @@ abstract class AsyncListenableExecutorService extends ListenableExecutorServiceT
 
     @Override
     protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
-        ForkJoinPool.commonPool()
-                .execute(() -> super.notifyListenersBeforeExecute(t, r));
+        listeningThreads.execute(() -> super.notifyListenersBeforeExecute(t, r));
     }
 
     @Override
     protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
-        ForkJoinPool.commonPool()
-                .execute(() -> super.notifyListenersAfterExecute(r, t));
+        listeningThreads.execute(() -> super.notifyListenersAfterExecute(r, t));
     }
 }
