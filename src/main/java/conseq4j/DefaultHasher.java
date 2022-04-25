@@ -21,18 +21,17 @@ package conseq4j;
 
 import com.google.common.hash.HashFunction;
 import com.google.common.hash.Hashing;
+import lombok.ToString;
+import lombok.extern.java.Log;
+
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.logging.Level;
-import lombok.ToString;
-import lombok.extern.java.Log;
 
 /**
  * @author q3769
  */
-@ToString
-@Log
-final class DefaultHasher implements ConsistentHasher {
+@ToString @Log final class DefaultHasher implements ConsistentHasher {
 
     private static final HashFunction HASH_FUNCTION = Hashing.murmur3_128();
     private static final int UNBOUNDED_BUCKET_COUNT = Integer.MAX_VALUE;
@@ -63,38 +62,31 @@ final class DefaultHasher implements ConsistentHasher {
         this.totalBuckets = totalBuckets;
     }
 
-    @Override
-    public int getTotalBuckets() {
+    @Override public int getTotalBuckets() {
         return this.totalBuckets;
     }
 
-    @Override
-    public int hashToBucket(CharSequence sequenceKey) {
+    @Override public int hashToBucket(CharSequence sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashUnencodedChars(sequenceKey), this.totalBuckets);
     }
 
-    @Override
-    public int hashToBucket(Integer sequenceKey) {
+    @Override public int hashToBucket(Integer sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashInt(sequenceKey), this.totalBuckets);
     }
 
-    @Override
-    public int hashToBucket(Long sequenceKey) {
+    @Override public int hashToBucket(Long sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashLong(sequenceKey), this.totalBuckets);
     }
 
-    @Override
-    public int hashToBucket(UUID sequenceKey) {
+    @Override public int hashToBucket(UUID sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashBytes(toBytes(sequenceKey)), this.totalBuckets);
     }
 
-    @Override
-    public int hashToBucket(byte[] sequenceKey) {
+    @Override public int hashToBucket(byte[] sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
     }
 
-    @Override
-    public int hashToBucket(ByteBuffer sequenceKey) {
+    @Override public int hashToBucket(ByteBuffer sequenceKey) {
         return Hashing.consistentHash(HASH_FUNCTION.hashBytes(sequenceKey), this.totalBuckets);
     }
 
