@@ -45,19 +45,15 @@ import java.util.logging.Level;
     private final ConsistentHasher consistentHasher;
 
     private Conseq(Builder builder) {
-        if (builder.maxConcurrentExecutors > 0 && builder.consistentHasher != null) {
-            throw new IllegalArgumentException(
-                    "Cannot set hasher and max executors at the same time because hasher's total bucket count already implies max executors, and vice versa");
+        if ((builder.maxConcurrentExecutors > 0) == (builder.consistentHasher != null)) {
+            throw new IllegalArgumentException("Either hasher or max executor count has to be set, but not both");
         }
-        if (builder.consistentHasher == null) {
-            this.consistentHasher = DefaultHasher.ofTotalBuckets(builder.maxConcurrentExecutors);
-        } else {
-            this.consistentHasher = builder.consistentHasher;
-        }
+        this.consistentHasher =
+                builder.consistentHasher == null ? DefaultHasher.ofTotalBuckets(builder.maxConcurrentExecutors) :
+                        builder.consistentHasher;
         this.executorCache = Caffeine.newBuilder()
-                .maximumSize(consistentHasher.getTotalBuckets())
+                .maximumSize(this.consistentHasher.getTotalBuckets())
                 .build(SequentialExecutorServiceCacheLoader.withExecutorQueueSize(builder.singleExecutorTaskQueueSize));
-
     }
 
     /**
