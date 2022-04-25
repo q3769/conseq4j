@@ -24,25 +24,18 @@ import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import com.google.common.util.concurrent.MoreExecutors;
-import java.nio.ByteBuffer;
-import java.util.UUID;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.SynchronousQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
 import lombok.ToString;
 import lombok.extern.java.Log;
+
+import java.nio.ByteBuffer;
+import java.util.UUID;
+import java.util.concurrent.*;
+import java.util.logging.Level;
 
 /**
  * @author q3769
  */
-@ToString
-@Log
-public final class Conseq implements ConcurrentSequencer {
+@ToString @Log public final class Conseq implements ConcurrentSequencer {
 
     public static Builder newBuilder() {
         return new Builder();
@@ -74,39 +67,32 @@ public final class Conseq implements ConcurrentSequencer {
         return this.consistentHasher.getTotalBuckets();
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(Integer sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(Integer sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(Long sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(Long sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(UUID sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(UUID sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(byte[] sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(byte[] sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @Override
-    public ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey) {
+    @Override public ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey) {
         return this.executorCache.get(this.consistentHasher.hashToBucket(sequenceKey));
     }
 
-    @ToString
-    private static class SequentialExecutorServiceCacheLoader implements CacheLoader<Integer,
-            ListeningExecutorService> {
+    @ToString private static class SequentialExecutorServiceCacheLoader
+            implements CacheLoader<Integer, ListeningExecutorService> {
 
         private static final int SINGLE_THREAD_COUNT = 1;
         private static final long KEEP_ALIVE_SAME_THREAD = 0L;
@@ -129,12 +115,7 @@ public final class Conseq implements ConcurrentSequencer {
             this.executorQueueSize = executorQueueSize;
         }
 
-        public int getExecutorQueueSize() {
-            return executorQueueSize;
-        }
-
-        @Override
-        public ListeningExecutorService load(Integer sequentialExecutorCacheKey) throws Exception {
+        @Override public ListeningExecutorService load(Integer sequentialExecutorCacheKey) {
             log.log(Level.INFO, "Loading new sequential executor with cache key : {0}", sequentialExecutorCacheKey);
             final ExecutorService executorService;
             if (this.executorQueueSize < 0) {
@@ -143,16 +124,14 @@ public final class Conseq implements ConcurrentSequencer {
             } else {
                 log.log(Level.INFO, "Building new single thread executor with task queue size : {0}",
                         this.executorQueueSize);
-                executorService = this.executorQueueSize == 0 ? newSingleThreadExecutor(new SynchronousQueue<>(true))
-                        : newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorQueueSize));
+                executorService = this.executorQueueSize == 0 ? newSingleThreadExecutor(new SynchronousQueue<>(true)) :
+                        newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorQueueSize));
             }
             return MoreExecutors.listeningDecorator(new IrrevocableExecutorService(executorService));
         }
     }
 
-    @ToString
-    @Log
-    public static class Builder {
+    @ToString @Log public static class Builder {
 
         private static final int UNBOUNDED = Integer.MAX_VALUE;
 
