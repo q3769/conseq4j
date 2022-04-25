@@ -14,6 +14,7 @@
  */
 package conseq4j.service;
 
+import lombok.Data;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
@@ -97,10 +98,10 @@ import java.util.logging.Level;
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.set(computed.submit(task));
+            futureHolder.setFuture(computed.submit(task));
             return computed;
         });
-        return futureHolder.get();
+        return futureHolder.getFuture();
     }
 
     @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
@@ -108,10 +109,10 @@ import java.util.logging.Level;
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.set(computed.submit(task, result));
+            futureHolder.setFuture(computed.submit(task, result));
             return computed;
         });
-        return futureHolder.get();
+        return futureHolder.getFuture();
     }
 
     @Override public Future<?> submit(Object sequenceKey, Runnable task) {
@@ -119,22 +120,24 @@ import java.util.logging.Level;
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.set((RunnableFuture<Void>) computedExecutor.submit(task));
+            futureHolder.setFuture((RunnableFuture<Void>) computedExecutor.submit(task));
             return computedExecutor;
         });
-        return futureHolder.get();
+        return futureHolder.getFuture();
     }
 
-    @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks) {
-        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
+    @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+        FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
-                futuresHolder.set(invokeAll);
+                futuresHolder.setFutures(invokeAll);
             } catch (InterruptedException ex) {
                 log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
             return computedExecutor;
@@ -144,15 +147,16 @@ import java.util.logging.Level;
 
     @Override
     public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
-            TimeUnit unit) {
-        FuturesHolder<T> futuresHolder = new FuturesHolder<>();
+            TimeUnit unit) throws InterruptedException {
+        FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                futuresHolder.set(computed.invokeAll(tasks, timeout, unit));
+                futuresHolder.setFutures(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
                 log.log(Level.SEVERE, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
             return computed;
@@ -160,41 +164,57 @@ import java.util.logging.Level;
         return futuresHolder.get();
     }
 
-    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) {
-        ResultHolder<T> resultHolder = new ResultHolder<>();
+    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
+        ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                resultHolder.set(computed.invokeAny(tasks));
+                resultHolder.setResult(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
                 log.log(Level.WARNING, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
-                throw new IllegalStateException(taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                resultHolder.setExecutionError(ex);
             }
             return computed;
         });
-        return resultHolder.get();
+        try {
+            return resultHolder.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException("unexpected execution error: " + e.getMessage(), e);
+        }
     }
 
     @Override
-    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) {
-        ResultHolder<T> resultHolder = new ResultHolder<>();
+    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                resultHolder.set(computed.invokeAny(tasks, timeout, unit));
+                resultHolder.setResult(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
                 log.log(Level.WARNING, taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException ex) {
-                throw new IllegalStateException(taskSubmissionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                resultHolder.setExecutionError(ex);
             }
             return computed;
         });
-        return resultHolder.get();
+        try {
+            return resultHolder.get();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException("unexpected execution error: " + e.getMessage(), e);
+        }
     }
 
     @ToString @Log public static class Builder {
@@ -225,42 +245,34 @@ import java.util.logging.Level;
         }
     }
 
-    private static class FutureHolder<T> {
+    @Data private static class FutureHolder<T> {
 
-        private Future<T> future = null;
-
-        public void set(Future<T> future) {
-            this.future = future;
-        }
-
-        public Future<T> get() {
-            return this.future;
-        }
+        Future<T> future;
     }
 
-    private static class FuturesHolder<T> {
+    @Data private static class FuturesHolder<T, E extends Throwable> {
 
-        private List<Future<T>> futures = null;
+        List<Future<T>> futures;
 
-        public List<Future<T>> get() {
+        E executionError;
+
+        List<Future<T>> get() throws E {
+            if (executionError != null)
+                throw executionError;
             return futures;
         }
-
-        public void set(List<Future<T>> futures) {
-            this.futures = futures;
-        }
     }
 
-    private static class ResultHolder<T> {
+    @Data private static class ResultHolder<T, E extends Throwable> {
 
         T result;
 
-        public T get() {
-            return result;
-        }
+        E executionError;
 
-        public void set(T result) {
-            this.result = result;
+        public T get() throws E {
+            if (executionError != null)
+                throw executionError;
+            return result;
         }
     }
 }
