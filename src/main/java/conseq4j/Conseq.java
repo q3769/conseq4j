@@ -46,7 +46,7 @@ import java.util.logging.Level;
 
     private Conseq(Builder builder) {
         if ((builder.maxConcurrentExecutors > 0) == (builder.consistentHasher != null)) {
-            throw new IllegalArgumentException("Either hasher or max executor count has to be set, but not both");
+            throw new IllegalArgumentException("either hasher or max executor count has to be set, but not both");
         }
         this.consistentHasher =
                 builder.consistentHasher == null ? DefaultHasher.ofTotalBuckets(builder.maxConcurrentExecutors) :

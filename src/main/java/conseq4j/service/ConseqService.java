@@ -228,10 +228,10 @@ import java.util.logging.Level;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
 
         public ConseqService build() {
-            log.log(Level.INFO, "Building conseq with builder {0}", this);
-            final ConseqService conseq = new ConseqService(this);
-            log.log(Level.FINEST, () -> "Built " + conseq);
-            return conseq;
+            log.log(Level.INFO, "building conseq service using {0}", this);
+            final ConseqService conseqService = new ConseqService(this);
+            log.log(Level.FINEST, () -> "built " + conseqService);
+            return conseqService;
         }
 
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
