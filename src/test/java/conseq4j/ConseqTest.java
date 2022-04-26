@@ -20,83 +20,73 @@
 package conseq4j;
 
 import com.google.common.util.concurrent.ListeningExecutorService;
+import org.junit.jupiter.api.Test;
+
 import java.nio.ByteBuffer;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Test;
 
 /**
  * @author q3769
  */
-public class ConseqTest {
+class ConseqTest {
 
     private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
 
     private static ConsistentHasher stubHasher() {
         return new ConsistentHasher() {
 
-            @Override
-            public int getTotalBuckets() {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int getTotalBuckets() {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(CharSequence sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(CharSequence sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(Integer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(Integer sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(Long sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(Long sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(UUID sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(UUID sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(byte[] sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(byte[] sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
 
-            @Override
-            public int hashToBucket(ByteBuffer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet."); // To change body of generated methods,
-                                                                               // choose Tools | Templates.
+            @Override public int hashToBucket(ByteBuffer sequenceKey) {
+                throw new UnsupportedOperationException("Not supported yet.");
+
             }
         };
     }
 
-    @Test
-    public void shouldHonorMaxExecutors() {
+    @Test void shouldHonorMaxExecutors() {
         int stubConcurrency = 5;
-        Conseq target = Conseq.newBuilder()
-                .maxConcurrentExecutors(stubConcurrency)
-                .build();
+        Conseq target = Conseq.newBuilder().maxConcurrentExecutors(stubConcurrency).build();
         assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
     }
 
-    @Test
-    public void shouldReturnSameExcecutorOnSameName() {
+    @Test void shouldReturnSameExcecutorOnSameName() {
         UUID sequenceKey = UUID.randomUUID();
-        Conseq target = Conseq.newBuilder()
-                .build();
+        Conseq target = Conseq.newBuilder().build();
 
         Executor e1 = target.getSequentialExecutor(sequenceKey);
         Executor e2 = target.getSequentialExecutor(sequenceKey);
@@ -104,14 +94,10 @@ public class ConseqTest {
         assertSame(e1, e2);
     }
 
-    @Test
-    public void cannotSetBothCustomizedHasherAndMaxExecutors() {
+    @Test void cannotSetBothCustomizedHasherAndMaxExecutors() {
         final int stubConcurrency = 999;
         try {
-            Conseq.newBuilder()
-                    .maxConcurrentExecutors(stubConcurrency)
-                    .consistentHasher(stubHasher())
-                    .build();
+            Conseq.newBuilder().maxConcurrentExecutors(stubConcurrency).consistentHasher(stubHasher()).build();
         } catch (IllegalArgumentException ex) {
             LOG.info("expected");
             return;
@@ -119,17 +105,14 @@ public class ConseqTest {
         fail();
     }
 
-    @Test
-    public void irrevocable() {
-        Conseq target = Conseq.newBuilder()
-                .build();
+    @Test void irrevocable() {
+        Conseq target = Conseq.newBuilder().build();
         final ListeningExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
         sequentialExecutor.execute(() -> {
             try {
                 TimeUnit.SECONDS.sleep(1L);
             } catch (InterruptedException ex) {
-                Logger.getLogger(ConseqTest.class.getName())
-                        .log(Level.SEVERE, null, ex);
+                Logger.getLogger(ConseqTest.class.getName()).log(Level.SEVERE, null, ex);
             }
         });
 

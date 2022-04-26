@@ -186,7 +186,7 @@ import java.util.logging.Level;
         } catch (InterruptedException | ExecutionException e) {
             throw e;
         } catch (Exception e) {
-            throw new ExecutionException("unexpected execution error: " + e.getMessage(), e);
+            throw new ExecutionException("unexpected error: " + e.getMessage(), e);
         }
     }
 
@@ -213,7 +213,7 @@ import java.util.logging.Level;
         } catch (InterruptedException | ExecutionException | TimeoutException e) {
             throw e;
         } catch (Exception e) {
-            throw new ExecutionException("unexpected execution error: " + e.getMessage(), e);
+            throw new ExecutionException("unexpected error: " + e.getMessage(), e);
         }
     }
 

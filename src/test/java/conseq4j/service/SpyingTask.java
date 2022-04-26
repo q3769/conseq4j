@@ -28,10 +28,7 @@ import java.util.logging.Level;
 /**
  * @author Qingtian Wang
  */
-@Log
-@ToString
-@Getter
-public class SpyingTask implements Runnable, Callable<SpyingTask> {
+@Log @ToString @Getter public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 40;
@@ -52,26 +49,23 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         this.targetRunTimeMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         this.runStart = Instant.now();
-        this.runThreadName = Thread.currentThread()
-                .getName();
+        this.runThreadName = Thread.currentThread().getName();
         try {
             TimeUnit.MILLISECONDS.sleep(targetRunTimeMillis);
         } catch (InterruptedException ex) {
-            log.log(Level.WARNING, "Interrupted while " + this + " was trying to sleep for " + Duration.ofMillis(
-                    targetRunTimeMillis), ex);
-            Thread.currentThread()
-                    .interrupt();
+            log.log(Level.WARNING,
+                    "Interrupted while " + this + " was trying to sleep for " + Duration.ofMillis(targetRunTimeMillis),
+                    ex);
+            Thread.currentThread().interrupt();
         }
         this.runEnd = Instant.now();
-        log.log(Level.FINEST, () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd)
-                .toMillis() + " millis");
+        log.log(Level.FINEST,
+                () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd).toMillis() + " millis");
     }
 
-    @Override
-    public SpyingTask call() {
+    @Override public SpyingTask call() {
         this.run();
         return this;
     }

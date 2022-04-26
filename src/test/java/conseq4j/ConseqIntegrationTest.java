@@ -19,13 +19,10 @@
  */
 package conseq4j;
 
+import org.junit.jupiter.api.Test;
+
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Random;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -37,12 +34,10 @@ import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.Test;
-
 /**
  * @author q3769
  */
-public class ConseqIntegrationTest {
+class ConseqIntegrationTest {
 
     private static final Logger LOG = Logger.getLogger(ConseqIntegrationTest.class.getName());
     private static final Duration TASK_DURATION = Duration.ofMillis(42);
@@ -51,41 +46,13 @@ public class ConseqIntegrationTest {
     private static final int TASK_COUNT = 10;
     private static final Random RANDOM = new Random();
 
-    @Test public void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
+    @Test void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder().build();
-        List<SpyingTaskPayload> taskPayloads =
-                getStubInputItemWithRandomCorrelationKeys(TASK_COUNT); // SpyingTaskPayload
-        // is an example,
-        // your input data
-        // can be of any
-        // type
-
+        List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         taskPayloads.forEach(payload -> {
-            final Long sequenceKey = payload.getCorrelationKey(); // Sequence key can come from anywhere but most
-            // likely from the input data payload. Note that the
-            // same sequence key means sqeuential execution of
-            // the tasks behind the same (physically or
-            // logically) single thread.
-            final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Here you get
-            // an instance
-            // of good old
-            // JDK
-            // ExecutorService
-            // by way of
-            // Executors.newSingleThreadExecutor();
-            // of course,
-            // the same
-            // instance is
-            // reused when
-            // summoned by
-            // the same
-            // seqence key.
-            sequentialExecutor.execute(new SpyingRunnableTask(payload, TASK_DURATION)); // Your task can be a Runnable,
-            // a Callable, or whatever
-            // ExecutorService supports. Up
-            // to you how to convert an
-            // input data item into a
-            // runnable command.
+            final Long sequenceKey = payload.getCorrelationKey();
+            final ExecutorService sequentialExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
+            sequentialExecutor.execute(new SpyingRunnableTask(payload, TASK_DURATION));
         });
         await().atLeast(DURATION_UNTIL_ALL_TASKS_DONE);
 
@@ -93,11 +60,10 @@ public class ConseqIntegrationTest {
                 taskPayloads.stream().map(SpyingTaskPayload::getRunThreadName).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertTrue(totalRunThreads <= TASK_COUNT); // Even though "unbound" by default, concurrency won't be greater
-        // than total tasks.
+        assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
-    @Test public void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
+    @Test void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq = Conseq.newBuilder()
                 .maxConcurrentExecutors(maxConcurrency)
@@ -116,14 +82,10 @@ public class ConseqIntegrationTest {
         }
         final int totalRunThreads = runThreadNames.size();
         LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertTrue(totalRunThreads <= maxConcurrency); // If, as in most cases, the max concurrency (think "max thread
-        // pool getMaxConcurrentExecutors") is set to be smaller than
-        // your potential tasks,
-        // then the total number of concurrent threads to have run your
-        // tasks will be bound by the max concurrency you set.
+        assertTrue(totalRunThreads <= maxConcurrency);
     }
 
-    @Test public void conseqShouldRunRelatedTasksInOrder() throws InterruptedException, ExecutionException {
+    @Test void conseqShouldRunRelatedTasksInOrder() throws InterruptedException, ExecutionException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder().build();
         List<SpyingTaskPayload> regularPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<SpyingTaskPayload> smallPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
@@ -131,17 +93,13 @@ public class ConseqIntegrationTest {
         List<Future<SpyingTaskPayload>> quickFutures = new ArrayList<>();
         UUID sequenceKey = UUID.randomUUID();
         final ExecutorService regularTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
-        final ExecutorService quickTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey); // Same sequence key
-        // for regular and
-        // quick tasks
+        final ExecutorService quickTaskExecutor = defaultConseq.getSequentialExecutor(sequenceKey);
 
         regularPayloads.forEach(regularPayload -> regularFutures.add(regularTaskExecutor.submit(
                 new SpyingCallableTask(regularPayload, TASK_DURATION)))); // Slower tasks first
-        smallPayloads.forEach(smallPayload -> quickFutures.add(quickTaskExecutor.submit(
-                new SpyingCallableTask(smallPayload,
-                        SMALL_TASK_DURATION)))); // Faster tasks later so none of the faster ones should be executed until all slower ones are done
-
-        assertSame(regularTaskExecutor, quickTaskExecutor); // Same sequence key, therefore, same executor thread.
+        smallPayloads.forEach(smallPayload -> quickFutures.add(
+                quickTaskExecutor.submit(new SpyingCallableTask(smallPayload, SMALL_TASK_DURATION))));
+        assertSame(regularTaskExecutor, quickTaskExecutor);
         List<Long> regularCompleteTimes = new ArrayList<>();
         for (Future<SpyingTaskPayload> rf : regularFutures) {
             regularCompleteTimes.add(rf.get().getRunEndTimeNanos());
@@ -152,9 +110,7 @@ public class ConseqIntegrationTest {
         }
         long latestCompleteTimeOfRegularTasks = regularCompleteTimes.stream().mapToLong(ct -> ct).max().getAsLong();
         long earliestStartTimeOfQuickTasks = quickStartTimes.stream().mapToLong(st -> st).min().getAsLong();
-        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks); // OK ma, this is not enough to
-        // logically prove the global
-        // order but you get the idea...
+        assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks);
     }
 
     private List<SpyingTaskPayload> getStubInputItemWithRandomCorrelationKeys(int collectionSize) {

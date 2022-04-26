@@ -19,12 +19,14 @@
  */
 package conseq4j;
 
+import lombok.Data;
+
 import java.util.UUID;
 
 /**
  * @author q3769
  */
-public class SpyingTaskPayload {
+@Data public class SpyingTaskPayload {
 
     protected final UUID id = UUID.randomUUID();
     private final Long correlationKey;
@@ -34,44 +36,6 @@ public class SpyingTaskPayload {
 
     public SpyingTaskPayload(Long correlationKey) {
         this.correlationKey = correlationKey;
-    }
-
-    @Override
-    public String toString() {
-        return "SpyingTaskData{" + "id=" + id + ", correlationKey=" + correlationKey + ", runThreadName="
-                + runThreadName + '}';
-    }
-
-    public void setRunStartTimeNanos(Long runStartTimeNanos) {
-        this.runStartTimeNanos = runStartTimeNanos;
-    }
-
-    public void setRunEndTimeNanos(Long runEndTimeNanos) {
-        this.runEndTimeNanos = runEndTimeNanos;
-    }
-
-    public void setRunThreadName(String runThreadName) {
-        this.runThreadName = runThreadName;
-    }
-
-    public UUID getId() {
-        return id;
-    }
-
-    public Long getCorrelationKey() {
-        return correlationKey;
-    }
-
-    public Long getRunStartTimeNanos() {
-        return runStartTimeNanos;
-    }
-
-    public Long getRunEndTimeNanos() {
-        return runEndTimeNanos;
-    }
-
-    public String getRunThreadName() {
-        return runThreadName;
     }
 
 }
