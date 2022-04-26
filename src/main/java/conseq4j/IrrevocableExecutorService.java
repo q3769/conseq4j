@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2022 QingtianWang.
+ * Copyright 2022 Qingtian Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -32,7 +32,7 @@ import java.util.concurrent.*;
 @ToString final class IrrevocableExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
-            "Shutdown not supported. Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to protect against undesired task cancalation on other owners.";
+            "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
 
     private final ExecutorService executorService;
 

@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2022 Qingitan Wang.
+ * Copyright 2022 Qingtian Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -37,13 +37,11 @@ abstract class AsyncListenableExecutorService extends ListenableExecutorServiceT
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    @Override
-    protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
+    @Override protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
         listeningThreads.execute(() -> super.notifyListenersBeforeExecute(t, r));
     }
 
-    @Override
-    protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
+    @Override protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
         listeningThreads.execute(() -> super.notifyListenersAfterExecute(r, t));
     }
 }
