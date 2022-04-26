@@ -23,7 +23,7 @@ package conseq4j.service;
 /**
  * @author Qingitan Wang
  */
-interface ExecutorServiceListener {
+interface ExecutionListener {
 
     void beforeEachExecute(Thread t, Runnable r);
 

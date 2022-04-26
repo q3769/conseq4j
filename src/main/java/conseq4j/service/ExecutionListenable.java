@@ -25,7 +25,7 @@ package conseq4j.service;
  */
 interface ExecutionListenable {
 
-    void addListener(ExecutorServiceListener executorServiceListener);
+    void addListener(ExecutionListener executionListener);
 
     void clearListeners();
 

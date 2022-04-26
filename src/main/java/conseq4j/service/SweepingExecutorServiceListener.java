@@ -28,7 +28,7 @@ import java.util.logging.Level;
 /**
  * @author Qingitan Wang
  */
-@Log class SweepingExecutorServiceListener implements ExecutorServiceListener {
+@Log class SweepingExecutorServiceListener implements ExecutionListener {
 
     private final Object sequenceKey;
     private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
