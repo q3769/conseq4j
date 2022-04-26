@@ -25,7 +25,7 @@ import java.util.concurrent.Callable;
 /**
  * @author q3769
  */
-class SpyingCallableTask extends AbstractSpyingConseqable implements Callable<SpyingTaskPayload> {
+class SpyingCallableTask extends SpyingTaskTemplate implements Callable<SpyingTaskPayload> {
 
     public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
         super(taskData, taskRunDuration);

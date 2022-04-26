@@ -33,7 +33,7 @@ import java.util.logging.Level;
 @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
-    private static final boolean VALIDATE_ON_RETURN_TO_POOL = true;
+    private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
 
     public static Builder newBuilder() {
         return new Builder();
@@ -50,12 +50,12 @@ import java.util.logging.Level;
         final GenericObjectPoolConfig<GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
                 genericObjectPoolConfig = new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(builder.globalConcurrency);
-        genericObjectPoolConfig.setTestOnReturn(VALIDATE_ON_RETURN_TO_POOL);
+        genericObjectPoolConfig.setTestOnReturn(VALIDATE_EXECUTOR_ON_RETURN_TO_POOL);
         return genericObjectPoolConfig;
     }
 
-    private static String interruptedMessage(Object sequenceKey, Collection<?> tasks, InterruptedException ex) {
-        return "thread interrupted while running tasks " + tasks + " of sequence key " + sequenceKey + " - "
+    private static String executorInterruptedMessage(Object sequenceKey, Collection<?> tasks, InterruptedException ex) {
+        return "executor thread interrupted while running tasks " + tasks + " of sequence key " + sequenceKey + " - "
                 + ex.getMessage();
     }
 
@@ -136,7 +136,7 @@ import java.util.logging.Level;
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.setFutures(invokeAll);
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, interruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -155,7 +155,7 @@ import java.util.logging.Level;
             try {
                 futuresHolder.setFutures(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, interruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -173,7 +173,7 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, interruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
@@ -200,7 +200,7 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, interruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException ex) {

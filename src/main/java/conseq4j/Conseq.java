@@ -56,10 +56,7 @@ import java.util.logging.Level;
                 .build(SequentialExecutorServiceCacheLoader.withExecutorQueueSize(builder.singleExecutorTaskQueueSize));
     }
 
-    /**
-     * @return Max count of concurrent executors
-     */
-    public int getMaxConcurrentExecutors() {
+    int getMaxConcurrentExecutors() {
         return this.consistentHasher.getTotalBuckets();
     }
 

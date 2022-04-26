@@ -26,7 +26,7 @@ import java.util.logging.Logger;
 /**
  * @author q3769
  */
-class SpyingRunnableTask extends AbstractSpyingConseqable implements Runnable {
+class SpyingRunnableTask extends SpyingTaskTemplate implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(SpyingRunnableTask.class.getName());
 

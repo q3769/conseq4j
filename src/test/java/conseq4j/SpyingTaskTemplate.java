@@ -27,15 +27,15 @@ import java.util.logging.Logger;
 /**
  * @author QingtianWang
  */
-public abstract class AbstractSpyingConseqable {
+public abstract class SpyingTaskTemplate {
 
-    private static final Logger LOG = Logger.getLogger(AbstractSpyingConseqable.class.getName());
+    private static final Logger LOG = Logger.getLogger(SpyingTaskTemplate.class.getName());
 
     protected final UUID id = UUID.randomUUID();
     protected final Duration taskRunDuration;
     protected final SpyingTaskPayload taskData;
 
-    public AbstractSpyingConseqable(SpyingTaskPayload taskData, Duration taskRunDuration) {
+    public SpyingTaskTemplate(SpyingTaskPayload taskData, Duration taskRunDuration) {
         this.taskRunDuration = taskRunDuration;
         this.taskData = taskData;
     }
@@ -58,8 +58,7 @@ public abstract class AbstractSpyingConseqable {
 
     protected void doRun() throws InterruptedException {
         this.taskData.setRunStartTimeNanos(System.nanoTime());
-        this.taskData.setRunThreadName(Thread.currentThread()
-                .getName());
+        this.taskData.setRunThreadName(Thread.currentThread().getName());
         Thread.sleep(threadRunDurationMillis());
         this.taskData.setRunEndTimeNanos(System.nanoTime());
         LOG.log(Level.INFO, "Task : {0} completed with data : {1}", new Object[] { this.getId(), this.getTaskData() });
