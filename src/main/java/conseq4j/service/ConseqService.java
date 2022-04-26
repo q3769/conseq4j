@@ -120,7 +120,7 @@ import java.util.logging.Level;
         sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.setFuture((RunnableFuture<Void>) computedExecutor.submit(task));
+            futureHolder.setFuture((Future<Void>) computedExecutor.submit(task));
             return computedExecutor;
         });
         return futureHolder.getFuture();

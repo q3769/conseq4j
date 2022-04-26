@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingitan Wang
  */
-abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor implements ListenableExecutorService {
+abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor implements ExecutionListenable {
 
-    protected final List<ExecutorServiceListener> executorServiceListeners = Collections.synchronizedList(
-            new ArrayList<>());
+    protected final List<ExecutorServiceListener> executorServiceListeners =
+            Collections.synchronizedList(new ArrayList<>());
 
     protected ListenableExecutorServiceTemplate(int corePoolSize, int maximumPoolSize, long keepAliveTime,
             TimeUnit unit, BlockingQueue<Runnable> workQueue) {
@@ -49,8 +49,8 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
             if (executorServiceListeners.isEmpty()) {
                 return;
             }
-            executorServiceListeners.forEach(executorServiceListener -> executorServiceListener.beforeEachExecute(t,
-                    r));
+            executorServiceListeners.forEach(
+                    executorServiceListener -> executorServiceListener.beforeEachExecute(t, r));
         }
     }
 
@@ -63,27 +63,23 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
         }
     }
 
-    @Override
-    protected void beforeExecute(Thread t, Runnable r) {
+    @Override protected void beforeExecute(Thread t, Runnable r) {
         doBeforeExecute(t, r);
         super.beforeExecute(t, r);
         notifyListenersBeforeExecute(t, r);
     }
 
-    @Override
-    protected void afterExecute(Runnable r, Throwable t) {
+    @Override protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         doAfterExecute(r, t);
         notifyListenersAfterExecute(r, t);
     }
 
-    @Override
-    public void addListener(ExecutorServiceListener executorServiceListener) {
+    @Override public void addListener(ExecutorServiceListener executorServiceListener) {
         executorServiceListeners.add(executorServiceListener);
     }
 
-    @Override
-    public void clearListeners() {
+    @Override public void clearListeners() {
         this.executorServiceListeners.clear();
     }
 
