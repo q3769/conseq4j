@@ -19,6 +19,7 @@
  */
 package conseq4j.service;
 
+import lombok.extern.java.Log;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
@@ -29,7 +30,7 @@ import java.util.concurrent.Semaphore;
 /**
  * @author Qingitan Wang
  */
-class PooledSingleThreadExecutorFactory
+@Log class PooledSingleThreadExecutorFactory
         extends BasePooledObjectFactory<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> {
 
     private final Semaphore globalConcurrencySemaphore;
@@ -58,6 +59,12 @@ class PooledSingleThreadExecutorFactory
 
     @Override
     public boolean validateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p) {
-        return !Objects.requireNonNull(p.getObject()).isShutdown();
+        GlobalConcurrencyBoundedRunningTasksCountingExecutorService executorService =
+                Objects.requireNonNull(p.getObject(), "unexpected NULL executor being returned to pool");
+        if (executorService.isShutdown()) {
+            log.warning("executor " + executorService + " already shut down, thus being dropped from pool");
+            return false;
+        }
+        return true;
     }
 }
