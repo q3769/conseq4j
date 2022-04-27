@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220306.1.0'
 
 ## Use it...
 
-**Flavor 1:** Summon an executor by a sequence key, and use the executor as with any JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+**Flavor 1:** Summon an executor by a sequence key, and use the sequential executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
 The API
 
