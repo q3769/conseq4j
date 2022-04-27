@@ -170,7 +170,7 @@ order in globally concurrent execution. This implies:
 received.
 
 (3) The message consumer ensures that related messages are processed in the same order, e.g., by using a
-sequence/correlation key as with this API in Setup 3.
+sequence/correlation key as with this API.
 
 ### 2. Reactive/Responsive
 
