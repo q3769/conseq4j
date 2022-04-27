@@ -145,7 +145,7 @@ public class MessageConsumer {
      * Use a message sender to publish future results. Yes, we are single-threading here to preserve the processing order.
      */
     private void publishAll(List<Future<MySelectionResult>> sequencedResults) {
-        myResults.forEach(futureResult -> messageSender.send(futureResult.get());         
+        sequencedResults.forEach(futureResult -> messageSender.send(futureResult.get());         
     }
     ...
 ```
