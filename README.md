@@ -69,7 +69,7 @@ public class MessageConsumer {
      */
     public void onMessage(Message shoppingEvent) {
     
-        // conseq4j API to summon sequential executor: Events with the same shopping cart Id is processed sequentially by the same executor. Events with different sequence keys will be attempted to process concurrently by different executors.
+        // conseq4j API to summon sequential executor: Events with the same shopping cart Id are processed sequentially by the same executor. Events with different sequence keys will be attempted to process concurrently by different executors.
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); 
     }
     
