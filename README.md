@@ -171,7 +171,7 @@ received.
 (3) The message consumer ensures that related messages are processed in the same order, e.g., by using a
 sequence/correlation key as with this API.
 
-### 2. Reactive/Responsive
+### 2. Reactive/Curative
 
 This is more on the business rule level. Sometimes preventative measures of message order preservation are either not
 possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order
