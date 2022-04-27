@@ -70,7 +70,7 @@ public class MessageConsumer {
     public void onMessage(Message shoppingEvent) {
     
         // Events with the same shopping cart Id is processed sequentially.
-        // Events with different Ids will be attempted to process concurrently.
+        // Events with different sequence keys will be attempted to process concurrently.
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); 
     }
     
