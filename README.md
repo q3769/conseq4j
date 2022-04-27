@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220204.1.1'
 
 ## Use it...
 
-### Flavor 1: Summon an executor by a sequence key, and use the executor as with any JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+**Flavor 1:** Summon an executor by a sequence key, and use the executor as with any JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
 The API
 
@@ -83,7 +83,7 @@ public class MessageConsumer {
     ...
 ```
 
-### Flavor 2: Directly submit Runnable/Callable task(s) together with a sequence key, using the API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+**Flavor 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The API
 
