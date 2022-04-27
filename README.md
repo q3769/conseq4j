@@ -126,10 +126,10 @@ public class MessageConsumer {
         try {
         
             // Concurrent process, preserving the order/sequence of the tasks
-            List<Future<MySelectionResult>> mySequencedSelections = conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedSelectionCallables(shoppingEvent));
+            List<Future<MySelectionResult>> sequencedResults = conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedSelectionCallables(shoppingEvent));
              
             // Single-threaded send, same order/sequence as processed
-            publishAll(mySequencedSelections);
+            publishAll(sequencedResults);
         } catch(InterruptedException e) {
             ...
         }
