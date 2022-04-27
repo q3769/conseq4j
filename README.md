@@ -2,14 +2,24 @@
 
 # conseq4j
 
-Conseq4J is a Java concurrent API to sequence related tasks while concurring unrelated ones, where "conseq" is short for **con**current **seq**uencer.
+Conseq4J is a Java concurrent API to sequence related tasks while concurring unrelated ones, where "conseq" is short
+for **con**current **seq**uencer.
 
-## User story
-As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different sequence keys can be executed concurrently by different executors.
+## User stories
 
-Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local execution order at the same time (see the full disclosure at the end).
+1. As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related
+   tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
+   sequence keys can be executed concurrently by different executors.
+
+2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key to
+   the API, so that all related tasks with the same sequence key are executed sequentially while unrelated tasks with
+   different sequence keys are executed concurrently.
+
+Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
+execution order at the same time.
 
 ## Prerequisite
+
 Java 8 or better
 
 ## Get it...
@@ -32,84 +42,9 @@ implementation 'io.github.q3769:conseq4j:20220204.1.1'
 
 ## Use it...
 
-For those who are in a hurry, skip directly to [Setup 3](https://github.com/q3769/conseq4j#setup-3-globally-concurrent-locally-sequential) and then maybe Option 3.
+### Flavor 1: Summon an executor by a sequence key, and use the executor as with any JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
-While being a generic Java concurrent API, conseq4j has a typical use case with an asynchronous message consumer that can benefit from concurrent processing.
-
-First off, you can do Setup 1 in a message consumer. The messaging provider (an EMS queue, a Kafka topic partition, etc.) will usually make sure that messages are delivered to the provider-managed `onMessage` method in the same order as they are received and won't deliver the next message until the previous call to the method has returned. Thus logically, all messages are consumed in a single-threaded fashion in the same order as they are delivered through the messaging provider. 
-
-### Setup 1: globally sequential
-
-```
-public class MessageConsumer {
-
-    /**
-     * Suppose run-time invocation of this method is managed by the messaging provider
-     */
-    public void onMessage(Message shoppingEvent) {
-        process(shoppingEvent); // delegate to business method
-    }
-
-    /**
-     * Business processing method
-     */
-    private void process(Message shoppingEvent) {
-        ...
-    }
-    ...
-```
-
-- That is all well and good, but processing all messages in sequential order globally is a bit slow, isn't it? It's overly conservative, to say the least, especially for multiprocessing systems and/or IO bound processes.
-
-To speed up the process, you really want to do Setup 2 if you can - just "shot-gun" a bunch of concurrent threads - except sometimes you can't, not when the order of message consumption matters:
-
-Imagine while online shopping for a T-Shirt, the shopper changed the size of the shirt between Medium and Large, back and forth for like 10 times, and eventually settled on... Ok, Medium! The 10 size changing events got delivered to the messaging provider in the same order as the shopper placed them. At the time of delivery, though, your consumer application had been brought down for maintenance, so the 10 events were held and piled up inside the messaging provider... Now your consumer application came back online, and all the 10 events were delivered to you in the correct order, albeit within a very short period of time. 
-
-### Setup 2: globally concurrent
-
-```
-public class MessageConsumer {
-
-    private ExecutorService shotgunConcurrencer = Executors.newFixedThreadPool(10);
-    
-    /**
-     * Suppose run-time invocation of this method is managed by the messaging provider
-     */
-    public void onMessage(Message shoppingEvent) {
-        shotgunConcurrencer.execute(() -> process(shoppingEvent)); // Look ma, I got 10 concurrent threads working on this. That's gotta be faster, right?
-    }    
-    ...
-```
-
-As it turned out, with Setup 2, the shopper actually received a T-Shirt of size Large, instead of the Medium that s/he so painstakingly settled upon (got real mad, called you a bunch of names and knocked over your beer!). And you wonder how such thing could have ever happened... Oh, got it: 
-
-- The shot-gun threads processed the events out of order!
-
-Ok what then, go back to Setup 1? Yes, indeed you can do that, at the expense of limiting performance. Or, you may be able to achieve decent concurrency (and save your beer!) by using a "conseq" as in Setup 3:
-
-### Setup 3: globally concurrent, locally sequential 
-
-```
-public class MessageConsumer {
-
-    private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
-    
-    /**
-     * Suppose run-time invocation of this method is managed by the messaging provider
-     */
-    public void onMessage(Message shoppingEvent) {
-        conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); // You still got up to 10 threads working for you, but all shopping events of the same shopping cart will be done by a single thread
-    }
-    ...
-```
-
-That is, to use a conseq (concurrent sequencer) in the asynchronous consumer, such that:
-
-- Related events are sequentially processed; unrelated events are concurrently processed (see detail below).
-
-Some more details...
-
-On the API level, you get a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) instance from one of the Conseq's `getSequentialExecutor` methods:
+The API
 
 ```
 public interface ConcurrentSequencer {
@@ -122,80 +57,128 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The executor returned is logically single-threaded. Within the sequential execution context, it bears the same syntactic richness and semantic robustness that the [JDK implementation](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html) of `ExecutorService` has to offer. Repeated calls on the same (equal) sequence key get back the same (created/[cached](https://github.com/ben-manes/caffeine)) executor instance. Thus, starting from the single-thread consumer, as long as you summon the conseq's executors by the right sequence keys, you can rest assured that related events with the same sequence key are never executed out of order, while unrelated events enjoy concurrent executions of up to the maximum number of executors.
-
-For simplicity, the conseq4j API only supports limited JDK types of sequence keys. Internally, [consistent hashing](https://en.wikipedia.org/wiki/Consistent_hashing) is used to determine the target executor for a sequence key.  **Good sequence key choices are the likes of consistent business domain identifiers** that, after hashing, can group related events into the same hash code and unrelated events into different hash codes. An exemplary sequence key can be a user id, shipment id, travel reservation id, session id, etc...., or a combination of such. Most often, such sequence keys tend to be of the supported JDK types organically; otherwise, you may have to convert your desired sequence key type into one of the supported types such as a `String` or a `long`.
-
-At run-time, the global concurrency of a conseq is decided not only by the preset maximum number of concurrent executors - largely so, naturally - but also by how evenly the tasks are distributed among those executors: the more evenly, the better. The task distribution is mainly driven by:
-
-1. How evenly spread-out the sequence keys' values are (e.g., if all tasks carry the same sequence key, then only one/same executor will be running the tasks no matter how many executors are configured to be potentially available.)
-2. How evenly the consistent hashing algorithm can spread different sequence keys into different hash buckets
-
-The default hash algorithm of this API is from the [Guava](https://github.com/google/guava) library, namely [MurmurHash3](https://en.wikipedia.org/wiki/MurmurHash#MurmurHash3)-128. That should be good enough in most cases. But for those who have PhDs in hashing, you can provide your own [`ConsistentHasher`](https://github.com/q3769/conseq4j/blob/2154c01f9cb35b1a8aa75622807608e9ce3a82e1/src/main/java/qlib/conseq4j/ConsistentHasher.java), as in Option -1, when building a Conseq instance:
-
-#### Option -1: custom hasher
+The usage example
 
 ```
-ConcurrentSequencer conseq = Conseq.newBuilder().consistentHasher(myConsistentHasher).build();
+public class MessageConsumer {
+
+    private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
+    
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider
+     */
+    public void onMessage(Message shoppingEvent) {
+    
+        // Events with the same shopping cart Id is processed sequentially.
+        // Events with different Ids will be attempted to process concurrently.
+        conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); 
+    }
+    
+    /**
+     * Business method, most likely translating message to domain objects for further processing by using other collaborators 
+     */
+    private void process(Message shoppingEvent) {
+        ...
+    }
+    ...
 ```
 
-By default, a conseq has unbounded (`Integer.MAX_VALUE`) capacities. The capacities refer to
+### Flavor 2: Directly submit Runnable/Callable task(s) together with a sequence key, using the API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
-1. the conseq's maximum count of concurrent executors
-2. each executor's task queue size (See JDK [Javadoc](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/LinkedBlockingQueue.html#LinkedBlockingQueue-int-) on capacity of a bounded `BlockingQueue`) 
-
-As always, even with unbounded capacities as in Option 0, related tasks with the same sequence key are still processed sequentially by the same executor, while unrelated tasks can be processed concurrently by a potentially unbounded number of executors:
-
-#### Option 0: all default, unbounded capacities
+The API
 
 ```
-ConcurrentSequencer conseq = Conseq.newBuilder().build();
+public interface ConcurrentSequencerService {
+
+    void execute(Object sequenceKey, Runnable runnable);
+    
+    <T> Future<T> submit(Object sequenceKey, Callable<T> task);
+    
+    <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
+    
+    Future<?> submit(Object sequenceKey, Runnable task);
+    
+    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException;
+            
+    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
+            TimeUnit unit) throws InterruptedException;
+            
+    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException,
+            ExecutionException;
+            
+    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+            throws InterruptedException, ExecutionException, TimeoutException;
+}
 ```
 
-The conseq in Option 1 has a max of 10 concurrent executors, each executor has an unbounded task queue size:
-
-#### Option 1: partially bounded capacity on max concurrent executors
+The usage example
 
 ```
-ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
+public class MessageConsumer {
+
+    private ConcurrentSequencerService conseqService = ConseqService.newBuilder().globalConcurrency(10).build();
+    
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider
+     */
+    public void onMessage(Message shoppingEvent) {
+        try {
+        
+            // Concurrent process, preserving the order/sequence of the tasks
+            List<Future<MySelectionResult>> mySequencedSelections = conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedSelectionCallables(shoppingEvent));
+             
+            // Single-threaded send, same order/sequence as processed
+            publishAll(mySequencedSelections);
+        } catch(InterruptedException e) {
+            ...
+        }
+    }
+    
+    /**
+     * Convert to Callable tasks, in the proper order/sequence, which are submitted to the conseq4j API.
+     */
+    private List<Callable<MySelectionResult>> toSequencedSelectionCallables(Message shoppingEvent) {
+        ...
+    }
+    
+    /**
+     * Use a message sender to publish future results. Yes, we are single-threading here to preserve the processing order.
+     */
+    private void publishAll(List<Future<MySelectionResult>> sequencedResults) {
+        myResults.forEach(futureResult -> messageSender.send(futureResult.get());         
+    }
+    ...
 ```
-
-The conseq in Option 2 has an unbounded max number of concurrent executors, each executor has a task queue size of 20:
-
-#### Option 2: partially bounded capacity on task queue size
-
-```
-ConcurrentSequencer conseq = Conseq.newBuilder().singleExecutorTaskQueueSize(20).build();
-```
-
-The conseq in Option 3 has a max of 10 concurrent executors, each executor has a task queue size of 20. Note that, in this case, the total task queue size of the entire conseq is 200 (i.e., 20 x 10):
-
-#### Option 3: fully bounded capacities on both max concurrent executors and task queue size
-
-```
-ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).singleExecutorTaskQueueSize(20).build();
-```
-
-#### Considerations on capacities
-
-In a Cloud environment, you might want to consider leaving at least one of the conseq's capacities as default/unbounded, especially the task queue size of the individual executor. When an executor's capacity is exceeded, the [default/JDK policy](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.AbortPolicy.html) is to reject further tasks by throwing exceptions. If you fully bound a conseq's capacities as in Option 3, you may be able to prevent the running node/JVM from crashing, but tasks beyond the preset capacities will be rejected, which is also undesirable. By having some unbounded capacity as in Option 0/1/2, the idea is to leverage the Cloud's autoscaling mechanism to properly scale out the system and prevent both undesired outcomes - task rejection and node crash. In other words, the conseq's capacities should be large enough to ensure that the autoscaling kicks in before either one of those undesired outcomes does.
 
 ## Full disclosure - Asynchronous Conundrum
 
-The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of execution do not come together naturally: In asynchronous systems, certain limits and impedance mismatch exist between maintaining meaningful local order and maximizing global concurrency. 
+The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
+execution do not come together naturally: In asynchronous systems, certain limits and impedance mismatch exist between
+maintaining meaningful local order and maximizing global concurrency.
 
 In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
 
 ### 1. Proactive/Preventive
 
-This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of order in globally concurrent execution. This implies:
+This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of
+order in globally concurrent execution. This implies:
 
 (1) The message producer ensures that messages are posted to the messaging provider in correct order.
 
-(2) The messaging provider ensures that messages are delivered to the message consumer in the same order they are received.
+(2) The messaging provider ensures that messages are delivered to the message consumer in the same order they are
+received.
 
-(3) The message consumer ensures that related messages are processed in the same order, e.g., by using a sequence/correlation key as with this API in Setup 3. 
+(3) The message consumer ensures that related messages are processed in the same order, e.g., by using a
+sequence/correlation key as with this API in Setup 3.
 
 ### 2. Reactive/Responsive
-    
-This is more on the business rule level. Sometimes preventative measures of message order preservation are either not possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's job is to detect and make amends when things do go out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session could help put things back in order. Another example of the responsive measures is using State Machines.
+
+This is more on the business rule level. Sometimes preventative measures of message order preservation are either not
+possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order
+already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
+of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's
+job is to detect and make amends when things do go out of order, by using business rules. This corrective measure can be
+much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a
+history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session
+could help put things back in order. Another example of the responsive measures is using State Machines.
