@@ -11,9 +11,9 @@ for **con**current **seq**uencer.
    tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
    sequence keys can be executed concurrently by different executors.
 
-2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key to
-   the API, so that all related tasks with the same sequence key are executed sequentially while unrelated tasks with
-   different sequence keys are executed concurrently.
+2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key, 
+   so that all related tasks with the same sequence key are executed sequentially while unrelated tasks with different
+   sequence keys are executed concurrently.
 
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
 execution order at the same time.
