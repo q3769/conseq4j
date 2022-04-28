@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220306.1.1'
 
 ## Use it...
 
-**Flavor 1:** Summon an executor by a sequence key, and use the sequential executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+**Style 1:** Summon a sequential executor by a sequence key, and use the executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
 The API
 
@@ -82,7 +82,7 @@ public class MessageConsumer {
     ...
 ```
 
-**Flavor 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+**Style 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The API
 
@@ -90,24 +90,21 @@ The API
 public interface ConcurrentSequencerService {
 
     void execute(Object sequenceKey, Runnable runnable);
-    
+
     <T> Future<T> submit(Object sequenceKey, Callable<T> task);
-    
+
     <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
-    
+
     Future<?> submit(Object sequenceKey, Runnable task);
-    
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
-            throws InterruptedException;
-            
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
-            TimeUnit unit) throws InterruptedException;
-            
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException,
-            ExecutionException;
-            
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException;
+
+    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException;
+
+    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException;
+
+    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException;
+
+    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit) throws InterruptedException, ExecutionException, TimeoutException;
+
 }
 ```
 
