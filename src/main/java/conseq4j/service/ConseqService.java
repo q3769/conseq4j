@@ -62,15 +62,10 @@ import java.util.logging.Level;
         return genericObjectPoolConfig;
     }
 
-    private static String executionInterruptedMessage(Object sequenceKey, Collection<?> tasks,
-            InterruptedException ex) {
-        return "executor thread interrupted while running tasks " + tasks + " of sequence key " + sequenceKey + " - "
-                + ex.getMessage();
-    }
-
-    private static String executionErrorMessage(Object sequenceKey, Collection<? extends Callable<?>> tasks,
-            Exception ex) {
-        return "error occurred executing tasks " + tasks + " of sequence key " + sequenceKey + " - " + ex.getMessage();
+    private static void logExecutionError(Object sequenceKey, Collection<?> tasks, Exception ex) {
+        log.log(Level.SEVERE,
+                "error executing tasks " + tasks + " of sequence key " + sequenceKey + " - " + ex.getClass()
+                        .getCanonicalName(), ex);
     }
 
     @Override public void execute(Object sequenceKey, Runnable runnable) {
@@ -141,7 +136,7 @@ import java.util.logging.Level;
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.setFutures(invokeAll);
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                logExecutionError(presentSequenceKey, tasks, ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -160,7 +155,7 @@ import java.util.logging.Level;
             try {
                 futuresHolder.setFutures(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                logExecutionError(presentSequenceKey, tasks, ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -178,11 +173,11 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                logExecutionError(presentSequenceKey, tasks, ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
-                log.log(Level.SEVERE, executionErrorMessage(presentSequenceKey, tasks, ex), ex);
+                logExecutionError(presentSequenceKey, tasks, ex);
                 resultHolder.setExecutionError(ex);
             }
             return computed;
@@ -206,11 +201,11 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                logExecutionError(presentSequenceKey, tasks, ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException ex) {
-                log.log(Level.SEVERE, executionErrorMessage(presentSequenceKey, tasks, ex));
+                logExecutionError(presentSequenceKey, tasks, ex);
                 resultHolder.setExecutionError(ex);
             }
             return computed;
