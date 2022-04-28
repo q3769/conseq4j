@@ -1,5 +1,5 @@
 /*
- * The MIT License Copyright 2021 Qingtian Wang. Permission is hereby granted, free of charge, to
+ * The MIT License Copyright 2022 Qingtian Wang. Permission is hereby granted, free of charge, to
  * any person obtaining a copy of this software and associated documentation files (the "Software"),
  * to deal in the Software without restriction, including without limitation the rights to use,
  * copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
@@ -34,6 +34,14 @@ import java.util.logging.Level;
 
     private static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
     private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
+    private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
+            sequentialExecutors;
+    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
+
+    private ConseqService(Builder builder) {
+        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
+        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
+    }
 
     public static Builder newBuilder() {
         return new Builder();
@@ -54,18 +62,15 @@ import java.util.logging.Level;
         return genericObjectPoolConfig;
     }
 
-    private static String executorInterruptedMessage(Object sequenceKey, Collection<?> tasks, InterruptedException ex) {
+    private static String executionInterruptedMessage(Object sequenceKey, Collection<?> tasks,
+            InterruptedException ex) {
         return "executor thread interrupted while running tasks " + tasks + " of sequence key " + sequenceKey + " - "
                 + ex.getMessage();
     }
 
-    private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
-            sequentialExecutors;
-    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
-
-    private ConseqService(Builder builder) {
-        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
-        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
+    private static String executionErrorMessage(Object sequenceKey, Collection<? extends Callable<?>> tasks,
+            Exception ex) {
+        return "error occurred executing tasks " + tasks + " of sequence key " + sequenceKey + " - " + ex.getMessage();
     }
 
     @Override public void execute(Object sequenceKey, Runnable runnable) {
@@ -136,7 +141,7 @@ import java.util.logging.Level;
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.setFutures(invokeAll);
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -155,7 +160,7 @@ import java.util.logging.Level;
             try {
                 futuresHolder.setFutures(computed.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -173,10 +178,11 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
+                log.log(Level.SEVERE, executionErrorMessage(presentSequenceKey, tasks, ex), ex);
                 resultHolder.setExecutionError(ex);
             }
             return computed;
@@ -200,10 +206,11 @@ import java.util.logging.Level;
             try {
                 resultHolder.setResult(computed.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                log.log(Level.SEVERE, executorInterruptedMessage(presentSequenceKey, tasks, ex), ex);
+                log.log(Level.SEVERE, executionInterruptedMessage(presentSequenceKey, tasks, ex), ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException ex) {
+                log.log(Level.SEVERE, executionErrorMessage(presentSequenceKey, tasks, ex));
                 resultHolder.setExecutionError(ex);
             }
             return computed;
