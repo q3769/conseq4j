@@ -48,24 +48,24 @@ import java.util.logging.Level;
     }
 
     @Override public void afterEachExecute(Runnable r, Throwable t) {
-        maySweepExecutor(r, t);
+        sweepOrKeepExecutorInServiceMap(r, t);
     }
 
-    private void maySweepExecutor(Runnable r, Throwable t) {
+    private void sweepOrKeepExecutorInServiceMap(Runnable r, Throwable executionError) {
         log.log(Level.FINE,
-                () -> "Start sweeping-check executor" + forSequenceKey() + ", after servicing Runnable: " + r
-                        + " with Throwable: " + t + ", in " + servicingSequentialExecutors.size()
+                () -> "start sweeping-check executor" + forSequenceKey() + ", after servicing Runnable: " + r
+                        + " with Throwable: " + executionError + ", in " + servicingSequentialExecutors.size()
                         + " active sequential executors");
         servicingSequentialExecutors.compute(sequenceKey,
-                (presentSequenceKey, presentExecutor) -> keepingExecutorInService(presentExecutor, t) ?
+                (presentSequenceKey, presentExecutor) -> keepingExecutorInService(presentExecutor, executionError) ?
                         presentExecutor : null);
         log.log(Level.FINE,
-                () -> "Done sweeping-check executor" + forSequenceKey() + ", " + servicingSequentialExecutors.size()
+                () -> "done sweeping-check executor" + forSequenceKey() + ", " + servicingSequentialExecutors.size()
                         + " active sequential executors left");
     }
 
     private boolean keepingExecutorInService(
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor, Throwable t) {
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
         if (presentExecutor == null) {
             log.log(Level.FINE,
                     () -> "executor" + forSequenceKey() + " already swept off of servicing map by another check");
@@ -75,8 +75,9 @@ import java.util.logging.Level;
         final boolean isShutDown = presentExecutor.isShutdown();
         log.log(Level.FINE,
                 () -> "checking executor " + presentExecutor + forSequenceKey() + " with running task count: "
-                        + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution error: " + t);
-        if (t == null && runningTaskCount != 0 && !isShutDown) {
+                        + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution error: "
+                        + executionError);
+        if (runningTaskCount != 0 && !isShutDown && executionError == null) {
             log.log(Level.FINE, () -> "keeping executor " + presentExecutor + forSequenceKey() + " in servicing map");
             return true;
         }
