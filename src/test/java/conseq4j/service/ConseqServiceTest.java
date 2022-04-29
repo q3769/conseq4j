@@ -74,22 +74,21 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
-    @Test void concurrencyBoundedByMaxConccurrency() {
+    @Test void concurrencyBoundedByMaxConcurrency() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        final int lowConcurrency = TASK_COUNT / 10;
-        ConseqService lcConseq = ConseqService.newBuilder().globalConcurrency(lowConcurrency).build();
+        ConseqService lowConcurrency = ConseqService.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
         List<Future<SpyingTask>> lcFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(task -> lcFutures.add(lcConseq.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
-        waitForAllComplete(lcFutures);
+        sameTasks.forEach(task -> lcFutures.add(lowConcurrency.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+        blockingWaitForAllComplete(lcFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        final int highConcurrency = TASK_COUNT;
-        ConseqService hcConseq = ConseqService.newBuilder().globalConcurrency(highConcurrency).build();
+        ConseqService highConcurrency = ConseqService.newBuilder().globalConcurrency(TASK_COUNT).build();
         List<Future<SpyingTask>> hcFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(task -> hcFutures.add(hcConseq.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
-        waitForAllComplete(hcFutures);
+        sameTasks.forEach(
+                task -> hcFutures.add(highConcurrency.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+        blockingWaitForAllComplete(hcFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
         log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}",
@@ -97,7 +96,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
     }
 
-    private static void waitForAllComplete(List<Future<SpyingTask>> futures) {
+    private static void blockingWaitForAllComplete(List<Future<SpyingTask>> futures) {
         futures.forEach(f -> {
             try {
                 f.get();
