@@ -177,8 +177,8 @@ sequence/correlation key as with this API.
 This is more on the business rule level. Sometimes preventative measures of message order preservation are either not
 possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order
 already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
-of correct ordering in the first place, despite the messaging provider's ordering mechanism. Now the message consumer's
-job is to detect and make amends when things do go out of order, by using business rules. This corrective measure can be
-much more complicated both in terms of coding and runtime performance. E.g., in Setup 2, a business rule to conduct a
-history (persistent store) look-up on the user activity time stamps of all the events for the same shopping session
-could help put things back in order. Another example of the responsive measures is using State Machines.
+of correct ordering in the first place. Now the message consumer's job is to detect and make amends when things do go
+out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and
+runtime performance. E.g. it may help to do a stateful/historical look-up and review of all data related to the incoming
+event trying to determine if the event is out of order, and take corrective actions per business rules as needed.
+Sometimes such responsive measures can be achieved by using State Machines.
