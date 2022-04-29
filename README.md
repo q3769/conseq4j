@@ -11,7 +11,7 @@ for **con**current **seq**uencer.
    tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
    sequence keys can be executed concurrently by different executors.
 
-2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key, 
+2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key,
    so that all related tasks with the same sequence key are executed sequentially while unrelated tasks with different
    sequence keys are executed concurrently.
 
@@ -30,19 +30,21 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220306.1.2</version>
+    <version>20220306.1.3</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220306.1.2'
+implementation 'io.github.q3769:conseq4j:20220306.1.3'
 ```
 
 ## Use it...
 
-**STYLE 1:** Summon a sequential executor by a sequence key, and use the executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+**STYLE 1:** Summon a sequential executor by a sequence key, and use the executor as a service as with a
+JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
 The API:
 
@@ -82,7 +84,9 @@ public class MessageConsumer {
     ...
 ```
 
-**STYLE 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+**STYLE 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a
+service similar to
+JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The API:
 

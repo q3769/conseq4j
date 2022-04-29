@@ -35,11 +35,11 @@ import java.util.logging.Level;
     private static final boolean FIFO_ON_CONCURRENCY_CONTENTION = true;
     private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
     private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
-            sequentialExecutors;
+            servicingSequentialExecutors;
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
 
     private ConseqService(Builder builder) {
-        this.sequentialExecutors = Objects.requireNonNull(builder.sequentialExecutors);
+        this.servicingSequentialExecutors = Objects.requireNonNull(builder.servicingSequentialExecutors);
         this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
     }
 
@@ -69,7 +69,7 @@ import java.util.logging.Level;
     }
 
     @Override public void execute(Object sequenceKey, Runnable runnable) {
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             computed.execute(runnable);
@@ -78,24 +78,24 @@ import java.util.logging.Level;
     }
 
     private GlobalConcurrencyBoundedRunningTasksCountingExecutorService computeExecutor(Object presentSequenceKey,
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor) {
-        if (presentExecutor != null) {
-            return presentExecutor;
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService servicingExecutor) {
+        if (servicingExecutor != null) {
+            return servicingExecutor;
         }
-        final GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed;
+        final GlobalConcurrencyBoundedRunningTasksCountingExecutorService pooledExecutor;
         try {
-            computed = executorPool.borrowObject();
+            pooledExecutor = executorPool.borrowObject();
         } catch (Exception ex) {
             throw new IllegalStateException("Failed to borrow executor from pool " + executorPool, ex);
         }
-        computed.addListener(
-                new SweepingExecutorServiceListener(presentSequenceKey, sequentialExecutors, executorPool));
-        return computed;
+        pooledExecutor.addListener(
+                new SweepingExecutorServiceListener(presentSequenceKey, servicingSequentialExecutors, executorPool));
+        return pooledExecutor;
     }
 
     @Override public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFuture(computed.submit(task));
@@ -106,7 +106,7 @@ import java.util.logging.Level;
 
     @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFuture(computed.submit(task, result));
@@ -117,7 +117,7 @@ import java.util.logging.Level;
 
     @Override public Future<?> submit(Object sequenceKey, Runnable task) {
         FutureHolder<Void> futureHolder = new FutureHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFuture((Future<Void>) computedExecutor.submit(task));
@@ -129,7 +129,7 @@ import java.util.logging.Level;
     @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
@@ -149,7 +149,7 @@ import java.util.logging.Level;
     public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
             TimeUnit unit) throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
@@ -167,7 +167,7 @@ import java.util.logging.Level;
     @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
@@ -195,7 +195,7 @@ import java.util.logging.Level;
     public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
@@ -225,7 +225,7 @@ import java.util.logging.Level;
         public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
 
         private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
-                sequentialExecutors = new ConcurrentHashMap<>();
+                servicingSequentialExecutors = new ConcurrentHashMap<>();
         private int executorTaskQueueCapacity = DEFAULT_TASK_QUEUE_CAPACITY;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
 

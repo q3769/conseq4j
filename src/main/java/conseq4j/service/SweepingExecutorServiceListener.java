@@ -32,14 +32,14 @@ import java.util.logging.Level;
 
     private final Object sequenceKey;
     private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
-            sequentialExecutors;
+            servicingSequentialExecutors;
     private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
 
     public SweepingExecutorServiceListener(Object sequenceKey,
-            ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService> sequentialExecutors,
+            ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService> servicingSequentialExecutors,
             ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool) {
         this.sequenceKey = sequenceKey;
-        this.sequentialExecutors = sequentialExecutors;
+        this.servicingSequentialExecutors = servicingSequentialExecutors;
         this.executorPool = executorPool;
     }
 
@@ -54,35 +54,41 @@ import java.util.logging.Level;
     private void maySweepExecutor(Runnable r, Throwable t) {
         log.log(Level.FINE,
                 () -> "Start sweeping-check executor" + forSequenceKey() + ", after servicing Runnable: " + r
-                        + " with Throwable: " + t + ", in " + sequentialExecutors.size()
+                        + " with Throwable: " + t + ", in " + servicingSequentialExecutors.size()
                         + " active sequential executors");
-        sequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            if (presentExecutor == null) {
-                log.log(Level.FINE, () -> "Executor" + forSequenceKey() + " already swept off by another check");
-                return null;
-            }
-            final int runningTaskCount = presentExecutor.getRunningTaskCount();
-            final boolean isShutDown = presentExecutor.isShutdown();
+        servicingSequentialExecutors.compute(sequenceKey,
+                (presentSequenceKey, presentExecutor) -> keepingExecutorInService(presentExecutor, t) ?
+                        presentExecutor : null);
+        log.log(Level.FINE,
+                () -> "Done sweeping-check executor" + forSequenceKey() + ", " + servicingSequentialExecutors.size()
+                        + " active sequential executors left");
+    }
+
+    private boolean keepingExecutorInService(
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor, Throwable t) {
+        if (presentExecutor == null) {
             log.log(Level.FINE,
-                    () -> "Checking executor " + presentExecutor + forSequenceKey() + " with running task count: "
-                            + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution Throwable: " + t);
-            if (runningTaskCount != 0 && !isShutDown && t == null) {
-                log.log(Level.FINE, () -> "Keeping executor " + presentExecutor + forSequenceKey());
-                return presentExecutor;
-            }
-            log.log(Level.FINE, () -> "Sweeping executor " + presentExecutor + forSequenceKey());
-            try {
-                executorPool.returnObject(presentExecutor);
-                return null;
-            } catch (Exception ex) {
-                log.log(Level.WARNING,
-                        "Error returning executor " + presentExecutor + forSequenceKey() + " back to pool "
-                                + executorPool, ex);
-                return null;
-            }
-        });
-        log.log(Level.FINE, () -> "Done sweeping-check executor" + forSequenceKey() + ", " + sequentialExecutors.size()
-                + " active sequential executors left");
+                    () -> "executor" + forSequenceKey() + " already swept off of servicing map by another check");
+            return false;
+        }
+        final int runningTaskCount = presentExecutor.getRunningTaskCount();
+        final boolean isShutDown = presentExecutor.isShutdown();
+        log.log(Level.FINE,
+                () -> "checking executor " + presentExecutor + forSequenceKey() + " with running task count: "
+                        + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution error: " + t);
+        if (t == null && runningTaskCount != 0 && !isShutDown) {
+            log.log(Level.FINE, () -> "keeping executor " + presentExecutor + forSequenceKey() + " in servicing map");
+            return true;
+        }
+        log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + forSequenceKey() + " off of servicing map");
+        try {
+            executorPool.returnObject(presentExecutor);
+        } catch (Exception ex) {
+            log.log(Level.WARNING,
+                    "error returning executor " + presentExecutor + forSequenceKey() + " back to pool " + executorPool,
+                    ex);
+        }
+        return false;
     }
 
     private String forSequenceKey() {
