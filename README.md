@@ -84,7 +84,7 @@ public class MessageConsumer {
     ...
 ```
 
-**STYLE 2:** Directly submit `Runnable`/`Callable` task(s) together with a sequence key, using the conseq4j API as a
+**STYLE 2:** Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a
 service similar to
 JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
