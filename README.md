@@ -136,7 +136,7 @@ public class MessageConsumer {
     }
     
     /**
-     * Convert to Callable tasks, in the proper order/sequence, which are submitted to the conseq4j API.
+     * Convert to Callable tasks, in the proper order/sequence, which are then submitted to the conseq4j API.
      */
     private List<Callable<MySelectionResult>> toSequencedSelectionCallables(Message shoppingEvent) {
         ...
