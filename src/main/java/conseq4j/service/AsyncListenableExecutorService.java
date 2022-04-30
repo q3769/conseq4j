@@ -22,7 +22,7 @@ package conseq4j.service;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,7 +30,8 @@ import java.util.concurrent.TimeUnit;
  */
 abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
 
-    private final Executor listeningThreads = Executors.newCachedThreadPool();
+    private final Executor listeningThreads = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true);
 
     AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
