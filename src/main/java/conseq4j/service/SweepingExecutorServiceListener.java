@@ -73,9 +73,8 @@ import java.util.logging.Level;
         final int runningTaskCount = presentExecutor.getRunningTaskCount();
         final boolean shutdown = presentExecutor.isShutdown();
         log.log(Level.FINE,
-                () -> "checking executor " + presentExecutor + forSequenceKey() + " with running task count: "
-                        + runningTaskCount + ", shutdown initiated: " + shutdown + ", execution error: "
-                        + executionError);
+                () -> "checking executor " + presentExecutor + forSequenceKey() + " with shutdown initiated: "
+                        + shutdown + ", execution error: " + executionError);
         if (runningTaskCount == 0 || shutdown || executionError != null) {
             log.log(Level.FINE,
                     () -> "sweeping executor " + presentExecutor + forSequenceKey() + " off of servicing map");
