@@ -42,11 +42,9 @@ implementation 'io.github.q3769:conseq4j:20220306.1.5'
 
 ## Use it...
 
-**STYLE 1:** Summon a sequential executor by a sequence key, and use the executor as a service as with a
-JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
-/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+### Style 1 - Summon a sequential executor by a sequence key, and use the executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
-The API:
+#### The API:
 
 ```
 public interface ConcurrentSequencer {
@@ -59,7 +57,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-The usage example:
+#### The usage example:
 
 ```
 public class MessageConsumer {
@@ -84,11 +82,9 @@ public class MessageConsumer {
     ...
 ```
 
-**STYLE 2:** Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a
-service similar to
-JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
-The API:
+#### The API:
 
 ```
 public interface ConcurrentSequencerService {
@@ -112,7 +108,7 @@ public interface ConcurrentSequencerService {
 }
 ```
 
-The usage example:
+#### The usage example:
 
 ```
 public class MessageConsumer {
