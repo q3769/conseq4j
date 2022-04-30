@@ -32,14 +32,8 @@ import java.util.logging.Level;
 
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 40;
-
-    private static int randomIntInclusive(int min, int max) {
-        return min + RANDOM.nextInt(max - min + 1);
-    }
-
     final Integer scheduledSequence;
     final int targetRunTimeMillis;
-
     Instant runStart = Instant.EPOCH;
     Instant runEnd = Instant.EPOCH;
     String runThreadName;
@@ -47,6 +41,10 @@ import java.util.logging.Level;
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
         this.targetRunTimeMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
+    }
+
+    private static int randomIntInclusive(int min, int max) {
+        return min + RANDOM.nextInt(max - min + 1);
     }
 
     @Override public void run() {

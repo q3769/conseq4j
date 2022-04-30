@@ -54,6 +54,24 @@ import static org.junit.jupiter.api.Assertions.*;
         }
     }
 
+    private static void awaitAllComplete(List<Future<SpyingTask>> futures) {
+        futures.forEach(f -> {
+            try {
+                f.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                throw new IllegalStateException(ex);
+            }
+        });
+    }
+
+    private static List<SpyingTask> createSpyingTasks(int total) {
+        List<SpyingTask> result = new ArrayList<>();
+        for (int i = 0; i < total; i++) {
+            result.add(new SpyingTask(i));
+        }
+        return result;
+    }
+
     @BeforeEach void setUp(TestInfo testInfo) {
         log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
     }
@@ -76,34 +94,25 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void concurrencyBoundedByMaxConcurrency() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        ConseqService lowConcurrency = ConseqService.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
-        List<Future<SpyingTask>> lcFutures = new ArrayList<>();
+        ConseqService lowConcurrencyService = ConseqService.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
+        List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(task -> lcFutures.add(lowConcurrency.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
-        blockingWaitForAllComplete(lcFutures);
+        sameTasks.forEach(task -> lowConcurrencyFutures.add(
+                lowConcurrencyService.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+        awaitAllComplete(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        ConseqService highConcurrency = ConseqService.newBuilder().globalConcurrency(TASK_COUNT).build();
-        List<Future<SpyingTask>> hcFutures = new ArrayList<>();
+        ConseqService highConcurrencyService = ConseqService.newBuilder().globalConcurrency(TASK_COUNT).build();
+        List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(
-                task -> hcFutures.add(highConcurrency.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
-        blockingWaitForAllComplete(hcFutures);
+        sameTasks.forEach(task -> highConcurrencyFutures.add(
+                highConcurrencyService.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+        awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
         log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}",
                 new Object[] { Duration.ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
         assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
-    }
-
-    private static void blockingWaitForAllComplete(List<Future<SpyingTask>> futures) {
-        futures.forEach(f -> {
-            try {
-                f.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new IllegalStateException(ex);
-            }
-        });
     }
 
     void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
@@ -190,13 +199,5 @@ import static org.junit.jupiter.api.Assertions.*;
             assertFalse(currentEnd.isAfter(nextStart));
         }
         log.log(Level.INFO, "{0} tasks executed sequentially in chronical order", tasks.size());
-    }
-
-    private static List<SpyingTask> createSpyingTasks(int total) {
-        List<SpyingTask> result = new ArrayList<>();
-        for (int i = 0; i < total; i++) {
-            result.add(new SpyingTask(i));
-        }
-        return result;
     }
 }

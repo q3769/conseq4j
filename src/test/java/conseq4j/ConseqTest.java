@@ -84,7 +84,7 @@ class ConseqTest {
         assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
     }
 
-    @Test void shouldReturnSameExcecutorOnSameName() {
+    @Test void shouldReturnSameExecutorOnSameName() {
         UUID sequenceKey = UUID.randomUUID();
         Conseq target = Conseq.newBuilder().build();
 

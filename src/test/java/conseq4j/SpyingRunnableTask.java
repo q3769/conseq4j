@@ -34,8 +34,7 @@ class SpyingRunnableTask extends SpyingTaskTemplate implements Runnable {
         super(taskInputItem, taskRunDuration);
     }
 
-    @Override
-    public void run() {
+    @Override public void run() {
         try {
             doRun();
         } catch (InterruptedException ex) {

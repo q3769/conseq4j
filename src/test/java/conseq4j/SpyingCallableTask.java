@@ -31,8 +31,7 @@ class SpyingCallableTask extends SpyingTaskTemplate implements Callable<SpyingTa
         super(taskData, taskRunDuration);
     }
 
-    @Override
-    public SpyingTaskPayload call() throws Exception {
+    @Override public SpyingTaskPayload call() throws Exception {
         doRun();
         return this.taskData;
     }
