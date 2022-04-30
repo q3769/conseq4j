@@ -30,7 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
 
-    private final Executor listeningThreads = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+    private final Executor listeningThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
             ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true);
 
     AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
@@ -39,10 +39,10 @@ abstract class AsyncListenableExecutorService extends ListenableExecutorServiceT
     }
 
     @Override protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
-        listeningThreads.execute(() -> super.notifyListenersBeforeExecute(t, r));
+        listeningThreadPool.execute(() -> super.notifyListenersBeforeExecute(t, r));
     }
 
     @Override protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
-        listeningThreads.execute(() -> super.notifyListenersAfterExecute(r, t));
+        listeningThreadPool.execute(() -> super.notifyListenersAfterExecute(r, t));
     }
 }
