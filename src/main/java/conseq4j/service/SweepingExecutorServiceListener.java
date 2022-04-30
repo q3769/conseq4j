@@ -72,24 +72,25 @@ import java.util.logging.Level;
             return false;
         }
         final int runningTaskCount = presentExecutor.getRunningTaskCount();
-        final boolean isShutDown = presentExecutor.isShutdown();
+        final boolean shutdown = presentExecutor.isShutdown();
         log.log(Level.FINE,
                 () -> "checking executor " + presentExecutor + forSequenceKey() + " with running task count: "
-                        + runningTaskCount + ", shutdown initiated: " + isShutDown + ", execution error: "
+                        + runningTaskCount + ", shutdown initiated: " + shutdown + ", execution error: "
                         + executionError);
-        if (runningTaskCount != 0 && !isShutDown && executionError == null) {
-            log.log(Level.FINE, () -> "keeping executor " + presentExecutor + forSequenceKey() + " in servicing map");
-            return true;
+        if (runningTaskCount == 0 || shutdown || executionError != null) {
+            log.log(Level.FINE,
+                    () -> "sweeping executor " + presentExecutor + forSequenceKey() + " off of servicing map");
+            try {
+                executorPool.returnObject(presentExecutor);
+            } catch (Exception ex) {
+                log.log(Level.WARNING,
+                        "error returning executor " + presentExecutor + forSequenceKey() + " back to pool "
+                                + executorPool, ex);
+            }
+            return false;
         }
-        log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + forSequenceKey() + " off of servicing map");
-        try {
-            executorPool.returnObject(presentExecutor);
-        } catch (Exception ex) {
-            log.log(Level.WARNING,
-                    "error returning executor " + presentExecutor + forSequenceKey() + " back to pool " + executorPool,
-                    ex);
-        }
-        return false;
+        log.log(Level.FINE, () -> "keeping executor " + presentExecutor + forSequenceKey() + " in servicing map");
+        return true;
     }
 
     private String forSequenceKey() {
