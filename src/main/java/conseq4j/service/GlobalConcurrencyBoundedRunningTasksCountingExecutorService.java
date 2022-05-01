@@ -56,8 +56,8 @@ import java.util.logging.Level;
 
     @Override public String toString() {
         return "GlobalConcurrencyBoundedRunningTasksCountingExecutorService{" + "runningTaskCount=" + runningTaskCount
-                + ", globalConcurrencySemaphore=" + globalConcurrencySemaphore + ", executionListeners="
-                + executionListeners + ", taskQueueDepth=" + getQueue().size() + ", shutdown=" + isShutdown() + '}';
+                + ", globalConcurrencySemaphore=" + globalConcurrencySemaphore + ", taskQueueDepth=" + getQueue().size()
+                + ", shutdown=" + isShutdown() + ", executionListeners=" + executionListeners + '}';
     }
 
     public int getRunningTaskCount() {
