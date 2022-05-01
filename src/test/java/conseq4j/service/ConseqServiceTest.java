@@ -179,7 +179,8 @@ import static org.junit.jupiter.api.Assertions.*;
         try {
             tasks.forEach(task -> taskQueueCapacityLimited.execute(sameSequenceKey, task));
         } catch (RejectedExecutionException e) {
-            log.log(Level.WARNING, "almost never a good idea to limit task queue capacity, consider default/unbounded",
+            log.log(Level.WARNING,
+                    "almost never a good idea to limit task queue capacity, consider default/unbounded capacity instead unless you intend to reject excessive tasks that the task queue cannot hold",
                     e);
             return;
         }
