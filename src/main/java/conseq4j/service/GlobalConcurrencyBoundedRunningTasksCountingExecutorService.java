@@ -69,9 +69,8 @@ import java.util.logging.Level;
         try {
             globalConcurrencySemaphore.acquire();
         } catch (InterruptedException ex) {
-            log.log(Level.SEVERE,
-                    "interrupted while acquiring concurrency semaphore in thread " + taskExecutionThread + " for task "
-                            + task, ex);
+            log.log(Level.SEVERE, "executor " + this + " interrupted while acquiring concurrency semaphore in thread "
+                    + taskExecutionThread + " for task " + task, ex);
             Thread.currentThread().interrupt();
             throw new UncheckedExecutionException("execution interrupted while acquiring concurrency semaphore", ex);
         }
