@@ -30,8 +30,9 @@ import java.util.concurrent.TimeUnit;
  */
 abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
 
+    private static final boolean FIFO_LISTENING_TASKS = true;
     private final Executor listeningThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
-            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true);
+            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, FIFO_LISTENING_TASKS);
 
     AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
