@@ -180,7 +180,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
-        log.log(Level.FINE, () -> "Wait and get all results on futures " + futures);
+        log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
         final List<SpyingTask> doneTasks = futures.stream().map(f -> {
             try {
                 return f.get();
@@ -188,7 +188,7 @@ import static org.junit.jupiter.api.Assertions.*;
                 throw new IllegalStateException(ex);
             }
         }).collect(toList());
-        log.log(Level.FINE, () -> "All futures done, results: " + doneTasks);
+        log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
         return doneTasks;
     }
 

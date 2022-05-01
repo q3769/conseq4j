@@ -19,7 +19,6 @@
  */
 package conseq4j.service;
 
-import lombok.ToString;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.BlockingQueue;
@@ -32,10 +31,17 @@ import java.util.logging.Level;
 /**
  * @author Qingitan Wang
  */
-@Log @ToString class GlobalConcurrencyBoundedRunningTasksCountingExecutorService
-        extends AsyncListenableExecutorService {
+@Log class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncListenableExecutorService {
 
     static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
+    private final AtomicInteger runningTaskCount = new AtomicInteger();
+    private final Semaphore globalConcurrencySemaphore;
+
+    GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
+            long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
+        this.globalConcurrencySemaphore = concurrencySemaphore;
+    }
 
     static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
             Semaphore globalConcurrencySemaphore) {
@@ -48,13 +54,10 @@ import java.util.logging.Level;
                 new LinkedBlockingQueue<>(taskQueueSize), concurrencySemaphore);
     }
 
-    private final AtomicInteger runningTaskCount = new AtomicInteger();
-    private final Semaphore globalConcurrencySemaphore;
-
-    GlobalConcurrencyBoundedRunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize,
-            long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-        this.globalConcurrencySemaphore = concurrencySemaphore;
+    @Override public String toString() {
+        return "GlobalConcurrencyBoundedRunningTasksCountingExecutorService{" + "runningTaskCount=" + runningTaskCount
+                + ", globalConcurrencySemaphore=" + globalConcurrencySemaphore + ", executionListeners="
+                + executionListeners + ", taskQueueDepth=" + getQueue().size() + ", shutdown=" + isShutdown() + '}';
     }
 
     public int getRunningTaskCount() {
