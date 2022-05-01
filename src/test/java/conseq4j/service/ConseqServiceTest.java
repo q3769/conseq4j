@@ -20,10 +20,7 @@ import org.junit.jupiter.api.*;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.Callable;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -169,6 +166,24 @@ import static org.junit.jupiter.api.Assertions.*;
 
         assertSingleThread(tasks);
         assertSequence(tasks);
+    }
+
+    @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
+        int executorTaskQueueCapacity = 42;
+        assertTrue(executorTaskQueueCapacity < TASK_COUNT);
+        ConcurrentSequencerService taskQueueCapacityLimited =
+                ConseqService.newBuilder().executorTaskQueueCapacity(executorTaskQueueCapacity).build();
+        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        UUID sameSequenceKey = UUID.randomUUID();
+
+        try {
+            tasks.forEach(task -> taskQueueCapacityLimited.execute(sameSequenceKey, task));
+        } catch (RejectedExecutionException e) {
+            log.log(Level.WARNING, "almost never a good idea to limit task queue capacity, consider default/unbounded",
+                    e);
+            return;
+        }
+        fail();
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {
