@@ -39,6 +39,7 @@ class SpyingRunnableTask extends SpyingTaskTemplate implements Runnable {
             doRun();
         } catch (InterruptedException ex) {
             LOG.log(Level.SEVERE, null, ex);
+            Thread.currentThread().interrupt();
         }
     }
 
