@@ -62,18 +62,18 @@ import java.util.logging.Level;
         return genericObjectPoolConfig;
     }
 
-    private static void logExecutionError(Object sequenceKey, Collection<?> tasks, Exception ex) {
-        log.log(Level.SEVERE,
-                "error executing tasks " + tasks + " of sequence key " + sequenceKey + " - " + ex.getClass()
-                        .getCanonicalName(), ex);
+    private static void logExecutionError(GlobalConcurrencyBoundedRunningTasksCountingExecutorService executor,
+            Collection<?> tasks, Exception ex) {
+        log.log(Level.SEVERE, "error executing tasks " + tasks + " by executor " + executor + " - " + ex.getClass()
+                .getCanonicalName(), ex);
     }
 
     @Override public void execute(Object sequenceKey, Runnable runnable) {
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            computed.execute(runnable);
-            return computed;
+            computedExecutor.execute(runnable);
+            return computedExecutor;
         });
     }
 
@@ -96,10 +96,10 @@ import java.util.logging.Level;
     @Override public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.setFuture(computed.submit(task));
-            return computed;
+            futureHolder.setFuture(computedExecutor.submit(task));
+            return computedExecutor;
         });
         return futureHolder.getFuture();
     }
@@ -107,23 +107,23 @@ import java.util.logging.Level;
     @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.setFuture(computed.submit(task, result));
-            return computed;
+            futureHolder.setFuture(computedExecutor.submit(task, result));
+            return computedExecutor;
         });
         return futureHolder.getFuture();
     }
 
-    @SuppressWarnings("unchecked") @Override public Future<?> submit(Object sequenceKey, Runnable task) {
-        FutureHolder<Void> futureHolder = new FutureHolder<>();
+    @Override public Future<?> submit(Object sequenceKey, Runnable task) {
+        FutureHolder<?> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.setFuture((RunnableFuture<Void>) computedExecutor.submit(task));
+            futureHolder.setFutureUnbounded(computedExecutor.submit(task));
             return computedExecutor;
         });
-        return futureHolder.getFuture();
+        return futureHolder.getFutureUnbounded();
     }
 
     @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
@@ -136,7 +136,7 @@ import java.util.logging.Level;
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
                 futuresHolder.setFutures(invokeAll);
             } catch (InterruptedException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
@@ -150,16 +150,16 @@ import java.util.logging.Level;
             TimeUnit unit) throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                futuresHolder.setFutures(computed.invokeAll(tasks, timeout, unit));
+                futuresHolder.setFutures(computedExecutor.invokeAll(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 futuresHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             }
-            return computed;
+            return computedExecutor;
         });
         return futuresHolder.get();
     }
@@ -168,19 +168,19 @@ import java.util.logging.Level;
             throws InterruptedException, ExecutionException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                resultHolder.setResult(computed.invokeAny(tasks));
+                resultHolder.setResult(computedExecutor.invokeAny(tasks));
             } catch (InterruptedException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 resultHolder.setExecutionError(ex);
             }
-            return computed;
+            return computedExecutor;
         });
         try {
             return resultHolder.get();
@@ -196,19 +196,19 @@ import java.util.logging.Level;
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computed =
+            GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                resultHolder.setResult(computed.invokeAny(tasks, timeout, unit));
+                resultHolder.setResult(computedExecutor.invokeAny(tasks, timeout, unit));
             } catch (InterruptedException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 resultHolder.setExecutionError(ex);
                 Thread.currentThread().interrupt();
             } catch (ExecutionException | TimeoutException ex) {
-                logExecutionError(presentSequenceKey, tasks, ex);
+                logExecutionError(computedExecutor, tasks, ex);
                 resultHolder.setExecutionError(ex);
             }
-            return computed;
+            return computedExecutor;
         });
         try {
             return resultHolder.get();
@@ -221,8 +221,10 @@ import java.util.logging.Level;
 
     @ToString @Log public static class Builder {
 
-        public static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
         public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
+        public static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+        private static final String LIMITED_QUEUE_CAPACITY_WARNING =
+                "may not be a good idea to limit task queue capacity; unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead";
 
         private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
                 servicingSequentialExecutors = new ConcurrentHashMap<>();
@@ -237,6 +239,9 @@ import java.util.logging.Level;
         }
 
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
+            if (executorTaskQueueCapacity != DEFAULT_TASK_QUEUE_CAPACITY) {
+                log.log(Level.WARNING, LIMITED_QUEUE_CAPACITY_WARNING);
+            }
             this.executorTaskQueueCapacity = executorTaskQueueCapacity;
             return this;
         }
@@ -250,17 +255,18 @@ import java.util.logging.Level;
     @Data private static class FutureHolder<T> {
 
         Future<T> future;
+        Future<?> futureUnbounded;
     }
 
     @Data private static class FuturesHolder<T, E extends Throwable> {
 
         List<Future<T>> futures;
-
         E executionError;
 
         List<Future<T>> get() throws E {
-            if (executionError != null)
+            if (executionError != null) {
                 throw executionError;
+            }
             return futures;
         }
     }
@@ -268,12 +274,12 @@ import java.util.logging.Level;
     @Data private static class ResultHolder<T, E extends Throwable> {
 
         T result;
-
         E executionError;
 
         public T get() throws E {
-            if (executionError != null)
+            if (executionError != null) {
                 throw executionError;
+            }
             return result;
         }
     }

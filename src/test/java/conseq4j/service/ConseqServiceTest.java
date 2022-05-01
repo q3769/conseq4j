@@ -152,16 +152,14 @@ import static org.junit.jupiter.api.Assertions.*;
         ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
+        final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
+        final int timeToAllowAllComplete = (TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS;
 
         log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         tasks.forEach(task -> defaultConseq.execute(sameSequenceKey, task));
         log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
-        final int timeToAllowAllComplete = (TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS;
-        log.log(Level.INFO,
-                () -> "Sleeping for " + Duration.ofMillis(timeToAllowAllComplete) + " to allow all to complete...");
         TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
 
         assertSingleThread(tasks);
@@ -180,7 +178,7 @@ import static org.junit.jupiter.api.Assertions.*;
             tasks.forEach(task -> taskQueueCapacityLimited.execute(sameSequenceKey, task));
         } catch (RejectedExecutionException e) {
             log.log(Level.WARNING,
-                    "almost never a good idea to limit task queue capacity, consider default/unbounded capacity instead unless you intend to reject excessive tasks that the task queue cannot hold",
+                    "almost never a good idea to limit task queue capacity; unless you intend to reject excessive tasks that the task queue cannot hold, consider default/unbounded capacity instead",
                     e);
             return;
         }
