@@ -115,12 +115,12 @@ import java.util.logging.Level;
         return futureHolder.getFuture();
     }
 
-    @Override public Future<?> submit(Object sequenceKey, Runnable task) {
+    @SuppressWarnings("unchecked") @Override public Future<?> submit(Object sequenceKey, Runnable task) {
         FutureHolder<Void> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
-            futureHolder.setFuture((Future<Void>) computedExecutor.submit(task));
+            futureHolder.setFuture((RunnableFuture<Void>) computedExecutor.submit(task));
             return computedExecutor;
         });
         return futureHolder.getFuture();
