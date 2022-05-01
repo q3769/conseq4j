@@ -25,8 +25,8 @@ package conseq4j.service;
  */
 interface ExecutionListener {
 
-    void beforeEachExecute(Thread t, Runnable r);
+    void beforeEachExecute(Thread taskExecutionThread, Runnable task);
 
-    void afterEachExecute(Runnable r, Throwable t);
+    void afterEachExecute(Runnable task, Throwable taskExecutionError);
 
 }

@@ -39,25 +39,27 @@ abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor impl
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    abstract void doBeforeExecute(Thread t, Runnable r);
+    abstract void doBeforeExecute(Thread taskExecutionThread, Runnable task);
 
-    abstract void doAfterExecute(Runnable r, Throwable t);
+    abstract void doAfterExecute(Runnable task, Throwable taskExecutionError);
 
-    protected void notifyListenersBeforeExecute(Thread t, Runnable r) {
+    protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
         synchronized (executionListeners) {
             if (executionListeners.isEmpty()) {
                 return;
             }
-            executionListeners.forEach(executionListener -> executionListener.beforeEachExecute(t, r));
+            executionListeners.forEach(
+                    executionListener -> executionListener.beforeEachExecute(taskExecutionThread, task));
         }
     }
 
-    protected void notifyListenersAfterExecute(Runnable r, Throwable t) {
+    protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
         synchronized (executionListeners) {
             if (executionListeners.isEmpty()) {
                 return;
             }
-            executionListeners.forEach(executionListener -> executionListener.afterEachExecute(r, t));
+            executionListeners.forEach(
+                    executionListener -> executionListener.afterEachExecute(task, taskExecutionError));
         }
     }
 

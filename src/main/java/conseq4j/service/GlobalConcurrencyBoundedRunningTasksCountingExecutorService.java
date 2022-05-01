@@ -19,6 +19,7 @@
  */
 package conseq4j.service;
 
+import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.BlockingQueue;
@@ -64,18 +65,20 @@ import java.util.logging.Level;
         return runningTaskCount.get();
     }
 
-    @Override void doBeforeExecute(Thread t, Runnable r) {
+    @Override void doBeforeExecute(Thread taskExecutionThread, Runnable task) {
         try {
             globalConcurrencySemaphore.acquire();
         } catch (InterruptedException ex) {
             log.log(Level.SEVERE,
-                    "Interrupted while acquiring concurrency semaphore in Thread " + t + " for Runnable " + r, ex);
+                    "interrupted while acquiring concurrency semaphore in thread " + taskExecutionThread + " for task "
+                            + task, ex);
             Thread.currentThread().interrupt();
+            throw new UncheckedExecutionException("execution interrupted while acquiring concurrency semaphore", ex);
         }
         runningTaskCount.incrementAndGet();
     }
 
-    @Override void doAfterExecute(Runnable r, Throwable t) {
+    @Override void doAfterExecute(Runnable task, Throwable taskExecutionError) {
         runningTaskCount.decrementAndGet();
         globalConcurrencySemaphore.release();
     }

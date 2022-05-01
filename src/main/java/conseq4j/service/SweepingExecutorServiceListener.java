@@ -49,19 +49,20 @@ import java.util.logging.Level;
                 + ", pooledIdleExecutors=" + executorPool.getNumIdle() + '}';
     }
 
-    @Override public void beforeEachExecute(Thread t, Runnable r) {
+    @Override public void beforeEachExecute(Thread taskExecutionThread, Runnable task) {
         // no-op
     }
 
-    @Override public void afterEachExecute(Runnable r, Throwable t) {
-        sweepOrKeepExecutorInServiceMap(r, t);
+    @Override public void afterEachExecute(Runnable task, Throwable taskExecutionError) {
+        sweepOrKeepExecutorInServiceMap(task, taskExecutionError);
     }
 
-    private void sweepOrKeepExecutorInServiceMap(Runnable r, Throwable executionError) {
-        log.log(Level.FINER, () -> "start sweeping-check executor after servicing task " + r + " with execution error "
-                + executionError + ", using " + this);
+    private void sweepOrKeepExecutorInServiceMap(Runnable task, Throwable taskExecutionError) {
+        log.log(Level.FINER,
+                () -> "start sweeping-check executor after servicing task " + task + " with execution error "
+                        + taskExecutionError + ", using " + this);
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) ->
-                sweepingExecutorOffOfServicingMap(presentExecutor, executionError) ? null : presentExecutor);
+                sweepingExecutorOffOfServicingMap(presentExecutor, taskExecutionError) ? null : presentExecutor);
         log.log(Level.FINER, () -> "done sweeping-check executor using " + this);
     }
 
