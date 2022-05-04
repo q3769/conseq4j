@@ -34,16 +34,16 @@ import java.util.concurrent.Semaphore;
         extends BasePooledObjectFactory<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> {
 
     private final Semaphore globalConcurrencySemaphore;
-    private final int taskQueueCapacity;
+    private final int executorTaskQueueCapacity;
 
-    public PooledSingleThreadExecutorFactory(Semaphore globalConcurrencySemaphore, int taskQueueCapacity) {
+    public PooledSingleThreadExecutorFactory(Semaphore globalConcurrencySemaphore, int executorTaskQueueCapacity) {
         this.globalConcurrencySemaphore = globalConcurrencySemaphore;
-        this.taskQueueCapacity = taskQueueCapacity;
+        this.executorTaskQueueCapacity = executorTaskQueueCapacity;
     }
 
     @Override public GlobalConcurrencyBoundedRunningTasksCountingExecutorService create() {
         return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newSingleThreadInstance(
-                globalConcurrencySemaphore, taskQueueCapacity);
+                globalConcurrencySemaphore, executorTaskQueueCapacity);
     }
 
     @Override public PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> wrap(

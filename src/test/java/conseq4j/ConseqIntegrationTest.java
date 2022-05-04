@@ -59,7 +59,7 @@ class ConseqIntegrationTest {
         Set<String> runThreadNames =
                 taskPayloads.stream().map(SpyingTaskPayload::getRunThreadName).collect(Collectors.toSet());
         final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        LOG.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -81,7 +81,7 @@ class ConseqIntegrationTest {
             runThreadNames.add(f.get().getRunThreadName());
         }
         final int totalRunThreads = runThreadNames.size();
-        LOG.log(Level.INFO, "{0} tasks were run by {1} theads", new Object[] { TASK_COUNT, totalRunThreads });
+        LOG.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= maxConcurrency);
     }
 
