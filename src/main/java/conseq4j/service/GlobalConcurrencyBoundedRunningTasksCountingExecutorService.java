@@ -34,7 +34,6 @@ import java.util.logging.Level;
  */
 @Log class GlobalConcurrencyBoundedRunningTasksCountingExecutorService extends AsyncListenableExecutorService {
 
-    static final int DEFAULT_TASK_QUEUE_SIZE = Integer.MAX_VALUE;
     private final AtomicInteger runningTaskCount = new AtomicInteger();
     private final Semaphore globalConcurrencySemaphore;
 
@@ -42,11 +41,6 @@ import java.util.logging.Level;
             long keepAliveTime, TimeUnit unit, BlockingQueue<Runnable> workQueue, Semaphore concurrencySemaphore) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
         this.globalConcurrencySemaphore = concurrencySemaphore;
-    }
-
-    static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
-            Semaphore globalConcurrencySemaphore) {
-        return newSingleThreadInstance(globalConcurrencySemaphore, DEFAULT_TASK_QUEUE_SIZE);
     }
 
     static GlobalConcurrencyBoundedRunningTasksCountingExecutorService newSingleThreadInstance(
@@ -68,13 +62,13 @@ import java.util.logging.Level;
     @Override void doBeforeExecute(Thread taskExecutionThread, Runnable task) {
         try {
             globalConcurrencySemaphore.acquire();
+            runningTaskCount.incrementAndGet();
         } catch (InterruptedException ex) {
             log.log(Level.SEVERE, "executor " + this + " interrupted while acquiring concurrency semaphore in thread "
                     + taskExecutionThread + " for task " + task, ex);
             Thread.currentThread().interrupt();
             throw new UncheckedExecutionException("execution interrupted while acquiring concurrency semaphore", ex);
         }
-        runningTaskCount.incrementAndGet();
     }
 
     @Override void doAfterExecute(Runnable task, Throwable taskExecutionError) {
