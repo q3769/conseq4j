@@ -19,13 +19,15 @@
  */
 package conseq4j;
 
+import lombok.ToString;
+
 import java.time.Duration;
 import java.util.concurrent.Callable;
 
 /**
  * @author q3769
  */
-class SpyingCallableTask extends SpyingTaskTemplate implements Callable<SpyingTaskPayload> {
+@ToString(callSuper = true) class SpyingCallableTask extends SpyingTaskTemplate implements Callable<SpyingTaskPayload> {
 
     public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
         super(taskData, taskRunDuration);

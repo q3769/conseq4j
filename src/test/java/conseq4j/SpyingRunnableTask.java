@@ -19,6 +19,8 @@
  */
 package conseq4j;
 
+import lombok.ToString;
+
 import java.time.Duration;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -26,7 +28,7 @@ import java.util.logging.Logger;
 /**
  * @author q3769
  */
-class SpyingRunnableTask extends SpyingTaskTemplate implements Runnable {
+@ToString(callSuper = true) class SpyingRunnableTask extends SpyingTaskTemplate implements Runnable {
 
     private static final Logger LOG = Logger.getLogger(SpyingRunnableTask.class.getName());
 

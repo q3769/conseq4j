@@ -24,7 +24,7 @@ import lombok.Data;
 import java.util.UUID;
 
 /**
- * @author q3769
+ * @author Qingtian Wang
  */
 @Data public class SpyingTaskPayload {
 
