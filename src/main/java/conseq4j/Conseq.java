@@ -102,7 +102,7 @@ import static java.lang.Math.floorMod;
                         "executor task queue size has to be greater than zero, but given: " + executorTaskQueueSize);
             else
                 log.log(Level.WARNING,
-                        "may not be a good idea to limit the size of an executor''s task queue, unless you intend to reject and fail any excessive task any time the task queue is full at the given size {0}, consider using the default/unbounded size",
+                        "may not be a good idea to limit the size of an executor''s task queue, at runtime any excessive task beyond the given queue size {0} will be rejected unless you set up custom handler. consider using the default/unbounded size instead",
                         executorTaskQueueSize);
             this.executorTaskQueueSize = executorTaskQueueSize;
             return this;
