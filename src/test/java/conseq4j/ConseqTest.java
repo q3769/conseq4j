@@ -22,67 +22,23 @@ package conseq4j;
 import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.jupiter.api.Test;
 
-import java.nio.ByteBuffer;
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author q3769
  */
 class ConseqTest {
 
+    public static final Random RANDOM = new Random();
     private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
-
-    private static ConsistentHasher stubHasher() {
-        return new ConsistentHasher() {
-
-            @Override public int getTotalBuckets() {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(CharSequence sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(Integer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(Long sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(UUID sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(byte[] sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-
-            @Override public int hashToBucket(ByteBuffer sequenceKey) {
-                throw new UnsupportedOperationException("Not supported yet.");
-
-            }
-        };
-    }
-
-    @Test void shouldHonorMaxExecutors() {
-        int stubConcurrency = 5;
-        Conseq target = Conseq.newBuilder().maxConcurrentExecutors(stubConcurrency).build();
-        assertEquals(stubConcurrency, target.getMaxConcurrentExecutors());
-    }
 
     @Test void shouldReturnSameExecutorOnSameName() {
         UUID sequenceKey = UUID.randomUUID();
@@ -94,14 +50,37 @@ class ConseqTest {
         assertSame(e1, e2);
     }
 
-    @Test void cannotSetBothCustomizedHasherAndMaxExecutors() {
-        final int stubConcurrency = 999;
+    @Test void errorOnNonPositiveConcurrency() {
+        int errors = 0;
         try {
-            Conseq.newBuilder().maxConcurrentExecutors(stubConcurrency).consistentHasher(stubHasher()).build();
-        } catch (IllegalArgumentException ex) {
-            LOG.info("expected");
-            return;
+            Conseq.newBuilder().globalConcurrency(0);
+        } catch (IllegalArgumentException e) {
+            errors++;
         }
+        try {
+            Conseq.newBuilder().globalConcurrency(-999);
+        } catch (IllegalArgumentException e) {
+            errors++;
+        }
+        if (errors == 2)
+            return;
+        fail();
+    }
+
+    @Test void errorOnNonPositiveTaskQueueSize() {
+        int errors = 0;
+        try {
+            Conseq.newBuilder().executorTaskQueueSize(0);
+        } catch (IllegalArgumentException e) {
+            errors++;
+        }
+        try {
+            Conseq.newBuilder().executorTaskQueueSize(-999);
+        } catch (IllegalArgumentException e) {
+            errors++;
+        }
+        if (errors == 2)
+            return;
         fail();
     }
 
@@ -113,6 +92,7 @@ class ConseqTest {
                 TimeUnit.SECONDS.sleep(1L);
             } catch (InterruptedException ex) {
                 Logger.getLogger(ConseqTest.class.getName()).log(Level.SEVERE, null, ex);
+                Thread.currentThread().interrupt();
             }
         });
 

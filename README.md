@@ -48,12 +48,7 @@ implementation 'io.github.q3769:conseq4j:20220306.1.11'
 
 ```
 public interface ConcurrentSequencer {
-    ListeningExecutorService getSequentialExecutor(CharSequence sequenceKey);
-    ListeningExecutorService getSequentialExecutor(Integer sequenceKey);
-    ListeningExecutorService getSequentialExecutor(Long sequenceKey);
-    ListeningExecutorService getSequentialExecutor(UUID sequenceKey);
-    ListeningExecutorService getSequentialExecutor(byte[] sequenceKey);
-    ListeningExecutorService getSequentialExecutor(ByteBuffer sequenceKey);
+    ListeningExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
 

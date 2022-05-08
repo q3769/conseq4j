@@ -65,10 +65,8 @@ class ConseqIntegrationTest {
 
     @Test void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
-        ConcurrentSequencer maxConcurrencyBoundConseq = Conseq.newBuilder()
-                .maxConcurrentExecutors(maxConcurrency)
-                .singleExecutorTaskQueueSize(TASK_COUNT * 10)
-                .build();
+        ConcurrentSequencer maxConcurrencyBoundConseq =
+                Conseq.newBuilder().globalConcurrency(maxConcurrency).executorTaskQueueSize(TASK_COUNT * 10).build();
         List<SpyingTaskPayload> dataPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         List<Future<SpyingTaskPayload>> taskFutures = new ArrayList<>();
 

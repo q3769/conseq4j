@@ -19,15 +19,17 @@
  */
 package conseq4j;
 
+import lombok.ToString;
+
 import java.time.Duration;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- * @author QingtianWang
+ * @author Qingtian Wang
  */
-public abstract class SpyingTaskTemplate {
+@ToString public abstract class SpyingTaskTemplate {
 
     private static final Logger LOG = Logger.getLogger(SpyingTaskTemplate.class.getName());
 
