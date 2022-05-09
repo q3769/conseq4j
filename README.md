@@ -57,7 +57,7 @@ public interface ConcurrentSequencer {
 ```
 public class MessageConsumer {
 
-    private ConcurrentSequencer conseq = Conseq.newBuilder().maxConcurrentExecutors(10).build();
+    private ConcurrentSequencer conseq = Conseq.newBuilder().globalConcurrency(10).build();
     
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider
