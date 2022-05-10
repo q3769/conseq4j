@@ -76,7 +76,7 @@ import static java.lang.Math.floorMod;
     }
 
     private int bucketOf(Object sequenceKey) {
-        return floorMod(Objects.hashCode(sequenceKey), this.globalConcurrency);
+        return floorMod(Objects.hash(sequenceKey), this.globalConcurrency);
     }
 
     public static final class Builder {
