@@ -46,7 +46,7 @@ class ConseqIntegrationTest {
     private static final int TASK_COUNT = 10;
     private static final Random RANDOM = new Random();
 
-    @Test void defaultConseqRunsWithUnboundMaxConcurrencyButBoundByTotalTaskCount() {
+    @Test void defaultConseqRunsWithUnboundedMaxConcurrencyButBoundedByTotalTaskCount() {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder().build();
         List<SpyingTaskPayload> taskPayloads = getStubInputItemWithRandomCorrelationKeys(TASK_COUNT);
         taskPayloads.forEach(payload -> {
@@ -63,7 +63,7 @@ class ConseqIntegrationTest {
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
-    @Test void conseqShouldBeBoundByMaxMaxConcurrency() throws InterruptedException, ExecutionException {
+    @Test void conseqShouldBeBoundedByMaxConcurrency() throws InterruptedException, ExecutionException {
         final int maxConcurrency = TASK_COUNT / 2;
         ConcurrentSequencer maxConcurrencyBoundConseq =
                 Conseq.newBuilder().globalConcurrency(maxConcurrency).executorTaskQueueSize(TASK_COUNT * 10).build();
@@ -97,7 +97,7 @@ class ConseqIntegrationTest {
                 new SpyingCallableTask(regularPayload, TASK_DURATION)))); // Slower tasks first
         smallPayloads.forEach(smallPayload -> quickFutures.add(
                 quickTaskExecutor.submit(new SpyingCallableTask(smallPayload, SMALL_TASK_DURATION))));
-        assertSame(regularTaskExecutor, quickTaskExecutor);
+
         List<Long> regularCompleteTimes = new ArrayList<>();
         for (Future<SpyingTaskPayload> rf : regularFutures) {
             regularCompleteTimes.add(rf.get().getRunEndTimeNanos());
@@ -108,6 +108,7 @@ class ConseqIntegrationTest {
         }
         long latestCompleteTimeOfRegularTasks = regularCompleteTimes.stream().mapToLong(ct -> ct).max().getAsLong();
         long earliestStartTimeOfQuickTasks = quickStartTimes.stream().mapToLong(st -> st).min().getAsLong();
+        assertSame(regularTaskExecutor, quickTaskExecutor);
         assertTrue(latestCompleteTimeOfRegularTasks < earliestStartTimeOfQuickTasks);
     }
 

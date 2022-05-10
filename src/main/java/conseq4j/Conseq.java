@@ -60,10 +60,9 @@ import static java.lang.Math.floorMod;
     }
 
     @Override public ListeningExecutorService getSequentialExecutor(Object sequenceKey) {
-        int nonNegativeSequenceKeyHash = nonNegativeHashCodeOf(sequenceKey);
-        return this.sequentialExecutors.compute(nonNegativeSequenceKeyHash, (sequenceKeyHashCode, executorService) -> {
-            if (executorService != null) {
-                return executorService;
+        return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
+            if (executor != null) {
+                return executor;
             }
             return MoreExecutors.listeningDecorator(new IrrevocableExecutorService(newSequentialExecutorService()));
         });
@@ -76,7 +75,7 @@ import static java.lang.Math.floorMod;
         return newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorTaskQueueSize));
     }
 
-    private int nonNegativeHashCodeOf(Object sequenceKey) {
+    private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hashCode(sequenceKey), this.globalConcurrency);
     }
 
