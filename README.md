@@ -44,7 +44,12 @@ implementation 'io.github.q3769:conseq4j:20220508.0.1'
 
 ### Style 1 - Summon a sequential executor by a sequence key, and use the executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
-The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of "buckets" that are each associcated with a sequential executor. The same/equal sequence key - according to its JDK `Object.hashCode` implementation contract - gets back the same sequential executor to ensure execution  order of related tasks. As with hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly procede each other in execution order. However, with the benefit of fewer synchronization checkings, this style may suit better with work loads that are asynchronous and more sensitive on overall system throughput.
+The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of "
+buckets" that are each associated with a sequential executor. The same/equal sequence key - according to its
+JDK `Object.hashCode` implementation contract - gets back the same sequential executor to ensure execution order of
+related tasks. As with hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly
+proceed each other in execution order. However, with the benefit of fewer synchronization checkings, this style may suit
+better with work loads that are asynchronous and more sensitive on overall system throughput.
 
 #### The API:
 
@@ -81,7 +86,11 @@ public class MessageConsumer {
 
 ### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
-This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The sequence key's hash code is directly used to locate the proper (pooled) sequential executor. That eliminates the secondary hash collision, so unrelated tasks will not unfairly block each other from execution. As a trade-off, more synchronization checkings exist. This style may suit better with work loads that are more sensitive on individual response-time.    
+This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
+sequence key's hash code is directly used to locate the proper (pooled) sequential executor. That eliminates the
+secondary hash collision, so unrelated tasks will not unfairly block each other from execution. As a trade-off, more
+synchronization checkings exist. This style may suit better with work loads that are more sensitive on individual
+response-time.
 
 #### The API:
 
