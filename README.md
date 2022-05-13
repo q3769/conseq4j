@@ -88,7 +88,7 @@ public class MessageConsumer {
 
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
-secondary hash collision, so unrelated tasks will not unfairly block each other from execution. As a trade-off, more
+secondary hash collision, so unrelated tasks will not unfairly block each other from executing. As a trade-off, more
 synchronization checkings exist. This style may suit better with work loads that are more sensitive on individual
 response-time.
 
