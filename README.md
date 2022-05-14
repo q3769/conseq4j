@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220508.0.1'
 
 ## Use it...
 
-### Style 1 - Summon a sequential executor by a sequence key, and use the executor as a service as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+### Style 1 - Summon a sequential executor by its sequence key, and use the executor the same way as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of "
 buckets" that are each associated with a sequential executor. The same/equal sequence key - according to its
