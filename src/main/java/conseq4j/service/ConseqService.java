@@ -223,8 +223,6 @@ import java.util.logging.Level;
 
         public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
         public static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-        private static final String LIMITED_QUEUE_CAPACITY_WARNING =
-                "may not be a good idea to limit task queue capacity; unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead";
 
         private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
                 servicingSequentialExecutors = new ConcurrentHashMap<>();
@@ -240,7 +238,8 @@ import java.util.logging.Level;
 
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
             if (executorTaskQueueCapacity != DEFAULT_TASK_QUEUE_CAPACITY) {
-                log.log(Level.WARNING, LIMITED_QUEUE_CAPACITY_WARNING);
+                log.log(Level.WARNING,
+                        "may not be a good idea to limit task queue capacity; unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead");
             }
             this.executorTaskQueueCapacity = executorTaskQueueCapacity;
             return this;
