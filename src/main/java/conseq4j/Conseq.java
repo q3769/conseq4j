@@ -19,12 +19,9 @@
  */
 package conseq4j;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
-import com.google.common.util.concurrent.MoreExecutors;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
-import javax.annotation.Nonnull;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -40,7 +37,7 @@ import static java.lang.Math.floorMod;
     public static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
     private static final int SINGLE_THREAD_COUNT = 1;
     private static final long KEEP_ALIVE_SAME_THREAD = 0L;
-    private final ConcurrentMap<Object, ListeningExecutorService> sequentialExecutors;
+    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
     private final int globalConcurrency;
     private final int executorTaskQueueSize;
 
@@ -59,12 +56,12 @@ import static java.lang.Math.floorMod;
                 TimeUnit.MILLISECONDS, blockingTaskQueue);
     }
 
-    @Override public ListeningExecutorService getSequentialExecutor(Object sequenceKey) {
+    @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
             if (executor != null) {
                 return executor;
             }
-            return MoreExecutors.listeningDecorator(new IrrevocableExecutorService(newSequentialExecutorService()));
+            return new IrrevocableExecutorService(newSequentialExecutorService());
         });
     }
 
@@ -87,7 +84,7 @@ import static java.lang.Math.floorMod;
         private Builder() {
         }
 
-        @Nonnull public Builder globalConcurrency(int globalConcurrency) {
+        public Builder globalConcurrency(int globalConcurrency) {
             if (globalConcurrency <= 0)
                 throw new IllegalArgumentException(
                         "global concurrency has to be greater than zero, but given: " + globalConcurrency);
@@ -95,7 +92,7 @@ import static java.lang.Math.floorMod;
             return this;
         }
 
-        @Nonnull public Builder executorTaskQueueSize(int executorTaskQueueSize) {
+        public Builder executorTaskQueueSize(int executorTaskQueueSize) {
             if (executorTaskQueueSize <= 0)
                 throw new IllegalArgumentException(
                         "executor task queue size has to be greater than zero, but given: " + executorTaskQueueSize);
@@ -107,7 +104,7 @@ import static java.lang.Math.floorMod;
             return this;
         }
 
-        @Nonnull public Conseq build() {
+        public Conseq build() {
             return new Conseq(this);
         }
     }

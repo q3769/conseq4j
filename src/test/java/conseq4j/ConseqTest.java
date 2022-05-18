@@ -19,12 +19,11 @@
  */
 package conseq4j;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
 import org.junit.jupiter.api.Test;
 
-import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,9 +35,6 @@ import static org.junit.jupiter.api.Assertions.fail;
  * @author q3769
  */
 class ConseqTest {
-
-    public static final Random RANDOM = new Random();
-    private static final Logger LOG = Logger.getLogger(ConseqTest.class.getName());
 
     @Test void shouldReturnSameExecutorOnSameName() {
         UUID sequenceKey = UUID.randomUUID();
@@ -86,7 +82,7 @@ class ConseqTest {
 
     @Test void irrevocable() {
         Conseq target = Conseq.newBuilder().build();
-        final ListeningExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
+        final ExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
         sequentialExecutor.execute(() -> {
             try {
                 TimeUnit.SECONDS.sleep(1L);

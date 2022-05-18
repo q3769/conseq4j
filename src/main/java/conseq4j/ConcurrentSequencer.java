@@ -19,13 +19,13 @@
  */
 package conseq4j;
 
-import com.google.common.util.concurrent.ListeningExecutorService;
+import java.util.concurrent.ExecutorService;
 
 /**
  * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 
-    ListeningExecutorService getSequentialExecutor(Object sequenceKey);
+    ExecutorService getSequentialExecutor(Object sequenceKey);
 
 }

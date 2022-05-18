@@ -19,7 +19,6 @@
  */
 package conseq4j.service;
 
-import com.google.common.util.concurrent.UncheckedExecutionException;
 import lombok.extern.java.Log;
 
 import java.util.concurrent.BlockingQueue;
@@ -74,5 +73,12 @@ import java.util.logging.Level;
     @Override void doAfterExecute(Runnable task, Throwable taskExecutionError) {
         runningTaskCount.decrementAndGet();
         globalConcurrencySemaphore.release();
+    }
+
+    private static class UncheckedExecutionException extends RuntimeException {
+
+        public UncheckedExecutionException(String message, Throwable cause) {
+            super(message, cause);
+        }
     }
 }

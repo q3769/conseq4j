@@ -30,19 +30,19 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220508.0.1</version>
+    <version>20220518.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220508.0.1'
+implementation 'io.github.q3769:conseq4j:20220518.0.0'
 ```
 
 ## Use it...
 
-### Style 1 - Summon a sequential executor by its sequence key, and use the executor the same way as with a JDK/Guava [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)/[`ListeningExecutorService`](https://guava.dev/releases/snapshot/api/docs/com/google/common/util/concurrent/ListeningExecutorService.html)
+### Style 1 - Summon a sequential executor by its sequence key, and use the executor the same way as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of "
 buckets" that are each associated with a sequential executor. The same/equal sequence key - according to its
@@ -55,7 +55,7 @@ better with work loads that are asynchronous and more sensitive on overall syste
 
 ```
 public interface ConcurrentSequencer {
-    ListeningExecutorService getSequentialExecutor(Object sequenceKey);
+    ExecutorService getSequentialExecutor(Object sequenceKey);
 }
 ```
 
