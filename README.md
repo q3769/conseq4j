@@ -84,7 +84,7 @@ public class MessageConsumer {
     ...
 ```
 
-### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
