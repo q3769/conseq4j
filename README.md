@@ -130,7 +130,8 @@ public class MessageConsumer {
         try {
         
             // conseq4j API as a service: Concurrent process, preserving the order/sequence of the tasks
-            List<Future<MySelectionResult>> sequencedResults = conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedSelectionCallables(shoppingEvent));
+            List<Future<MySelectionResult>> sequencedResults = 
+                    conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedCallables(shoppingEvent));
              
             // Single-threaded send, same order/sequence as processed
             publishAll(sequencedResults);
@@ -142,7 +143,7 @@ public class MessageConsumer {
     /**
      * Convert to Callable tasks, in the proper order/sequence, which are then submitted to the conseq4j API.
      */
-    private List<Callable<MySelectionResult>> toSequencedSelectionCallables(Message shoppingEvent) {
+    private List<Callable<MySelectionResult>> toSequencedCallables(Message shoppingEvent) {
         ...
     }
     
