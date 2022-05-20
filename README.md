@@ -2,7 +2,7 @@
 
 # conseq4j
 
-A Java concurrent API to sequence related tasks while concurring unrelated ones, where "conseq" is short for 
+A Java concurrent API to sequence related tasks while concurring unrelated ones, where "conseq" is short for
 **con**current **seq**uencer.
 
 ## User stories
@@ -128,30 +128,20 @@ public class MessageConsumer {
      */
     public void onMessage(Message shoppingEvent) {
         try {
-        
-            // conseq4j API as a service: Concurrent process, preserving the order/sequence of the tasks
-            List<Future<MySelectionResult>> sequencedResults = 
-                    conseqService.invokeAll(shoppingEvent.getShoppingCartId(), toSequencedCallables(shoppingEvent));
-             
-            // Single-threaded send, same order/sequence as processed
-            publishAll(sequencedResults);
+                
+            // conseq4j API as a service: 
+            // Concurrent process inventory and payment tasks, 
+            // preserving the order/sequence in each process
+            
+            List<Future<InventoryResult>> sequencedInventoryResults = 
+                    conseqService.invokeAll(shoppingEvent.getInventoryId(), toSequencedInventoryCallables(shoppingEvent));
+            List<Future<PaymentResult>> sequencedPaymentResults = 
+                    conseqService.invokeAll(shoppingEvent.getPaymentId(), toSequencedPaymentCallables(shoppingEvent));
+
+            ...          
         } catch(InterruptedException e) {
             ...
         }
-    }
-    
-    /**
-     * Convert to Callable tasks, in the proper order/sequence, which are then submitted to the conseq4j API.
-     */
-    private List<Callable<MySelectionResult>> toSequencedCallables(Message shoppingEvent) {
-        ...
-    }
-    
-    /**
-     * Use a message sender to publish future results. Yes, we are single-threading here to preserve the processing order.
-     */
-    private void publishAll(List<Future<MySelectionResult>> sequencedResults) {
-        sequencedResults.forEach(futureResult -> messageSender.send(futureResult.get());         
     }
     ...
 ```
