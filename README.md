@@ -130,8 +130,7 @@ public class MessageConsumer {
         try {
                 
             // conseq4j API as a service: 
-            // Concurrent process inventory and payment tasks, 
-            // preserving the order/sequence in each process
+            // concurrent process inventory and payment tasks, preserving the order/sequence in each process
             
             List<Future<InventoryResult>> sequencedInventoryResults = 
                     conseqService.invokeAll(shoppingEvent.getInventoryId(), toSequencedInventoryCallables(shoppingEvent));
