@@ -156,7 +156,7 @@ In asynchronous messaging, there are generally two approaches to achieve orderin
 ### 1. Proactive/Preventive
 
 This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of
-order in globally concurrent execution. This implies:
+order in globally concurrent executions. This implies:
 
 (1) The message producer ensures that messages are posted to the messaging provider in correct order.
 
