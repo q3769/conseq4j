@@ -44,12 +44,12 @@ implementation 'io.github.q3769:conseq4j:20220518.0.0'
 
 ### Style 1 - Summon a sequential executor by its sequence key, and use the executor the same way as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
-The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of "
-buckets" that are each associated with a sequential executor. The same/equal sequence key - according to its
-JDK `Object.hashCode` implementation contract - gets back the same sequential executor to ensure execution order of
+The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of 
+"buckets" that are each associated with a sequential/single-thread executor. The same/equal sequence key - according to its
+JDK `Object.hashCode` implementation - gets back the same sequential executor to ensure execution order of
 related tasks. As with hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly
 precede each other in execution order. However, with the benefit of fewer synchronization checkings, this style may
-better suit work loads that are asynchronous and more sensitive on overall system throughput.
+better suit workloads that are asynchronous and more sensitive on overall system throughput.
 
 #### The API:
 
@@ -89,7 +89,7 @@ public class MessageConsumer {
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
 secondary hash collision, so unrelated tasks will not unfairly block each other from executing. As a trade-off, more
-synchronization checkings exist. This style may better suit work loads that are more sensitive on individual
+synchronization checkings exist. This style may better suit workloads that are more sensitive on individual
 response-time.
 
 #### The API:
