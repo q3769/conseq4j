@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220518.0.0'
 
 ## Use it...
 
-### Style 1 - Summon a sequential executor by its sequence key, and use the executor the same way as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+### Style 1 - Summon a sequential executor by its sequence key, and use the executor as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of 
 "buckets" that are each associated with a sequential/single-thread executor. The same/equal sequence key - according to its
