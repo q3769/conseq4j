@@ -45,7 +45,7 @@ implementation 'io.github.q3769:conseq4j:20220518.0.0'
 ### Style 1 - Summon a sequential executor by its sequence key, and use the executor as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of 
-"buckets" that are each associated with a sequential/single-thread executor. The same/equal sequence key - according to its
+"buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key - according to its
 JDK `Object.hashCode` implementation - gets back the same sequential executor to ensure execution order of
 related tasks. As with hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly
 precede each other in execution order. However, with the benefit of fewer synchronization checkings, this style may
