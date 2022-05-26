@@ -46,10 +46,10 @@ implementation 'io.github.q3769:conseq4j:20220518.0.0'
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of
 "buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key
-summons and gets back the same sequential executor which ensures execution order of its tasks. As with hashing, when
-collision occurs among different sequence keys, unrelated tasks may unfairly precede each other in execution order.
-Nevertheless, with the benefit of fewer synchronization checks, this style may better suit workloads that are
-asynchronous and more sensitive on overall system throughput.
+summons and always gets back the same sequential executor which ensures execution order of its tasks. As with 
+hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly precede each other in 
+execution order. Nevertheless, with the benefit of fewer synchronization checks, this style may better suit 
+workloads that are asynchronous and more sensitive on overall system throughput.
 
 #### The API:
 
@@ -90,7 +90,7 @@ This style further decouples the runnable tasks from their executors, by avoidin
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
 secondary hash collision, so unrelated tasks will not unfairly block each other from executing. As a trade-off, though,
 more synchronization checks exist. This style may better suit workloads that are more sensitive on individual task's
-immediate execution time.
+immediate execution time after submitted.
 
 #### The API:
 
