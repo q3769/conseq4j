@@ -14,9 +14,13 @@
  */
 package conseq4j.service;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeoutException;
 
 /**
  * @author Qingtian Wang
@@ -34,13 +38,13 @@ public interface ConcurrentSequencerService {
     <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException;
 
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
-            TimeUnit unit) throws InterruptedException;
+    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+            throws InterruptedException;
 
     <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException;
 
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
             throws InterruptedException, ExecutionException, TimeoutException;
 
 }

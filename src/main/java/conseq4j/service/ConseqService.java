@@ -21,6 +21,7 @@ import org.apache.commons.pool2.ObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPool;
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -146,14 +147,14 @@ import java.util.logging.Level;
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout,
-            TimeUnit unit) throws InterruptedException {
+    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+            throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                futuresHolder.setFutures(computedExecutor.invokeAll(tasks, timeout, unit));
+                futuresHolder.setFutures(computedExecutor.invokeAll(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));
             } catch (InterruptedException ex) {
                 logExecutionError(computedExecutor, tasks, ex);
                 futuresHolder.setExecutionError(ex);
@@ -191,15 +192,14 @@ import java.util.logging.Level;
         }
     }
 
-    @Override
-    public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             GlobalConcurrencyBoundedRunningTasksCountingExecutorService computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
-                resultHolder.setResult(computedExecutor.invokeAny(tasks, timeout, unit));
+                resultHolder.setResult(computedExecutor.invokeAny(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));
             } catch (InterruptedException ex) {
                 logExecutionError(computedExecutor, tasks, ex);
                 resultHolder.setExecutionError(ex);
