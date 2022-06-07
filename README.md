@@ -30,14 +30,14 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220518.0.0</version>
+    <version>20220607.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220518.0.0'
+implementation 'io.github.q3769:conseq4j:20220607.0.0'
 ```
 
 ## Use it...
