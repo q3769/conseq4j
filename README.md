@@ -153,7 +153,7 @@ maintaining meaningful local order and maximizing global concurrency.
 
 In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
 
-### 1. Proactive/Preventive
+### 1. Preventive
 
 This is more on the technical level. Sometimes it is possible to ensure related messages are never processed out of
 order in globally concurrent executions. This implies:
@@ -166,10 +166,10 @@ received.
 (3) The message consumer ensures that related messages are processed in the same order, e.g., by using a
 sequence/correlation key as with this API.
 
-### 2. Reactive/Curative
+### 2. Curative
 
 This is more on the business rule level. Sometimes preventative measures of message order preservation are either not
-possible or not worthwhile to pursue. By the time of processing on the message consumer side, things can be out of order
+possible or not worthwhile to pursue. By the time the consumer receives the messages, things can be out of order
 already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
 of correct ordering in the first place. Now the message consumer's job is to detect and make amends when things do go
 out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and
