@@ -148,7 +148,7 @@ public class MessageConsumer {
 ## Full disclosure - Asynchronous Conundrum
 
 The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
-execution do not come together naturally: In asynchronous systems, certain limits and impedance mismatch exist between
+execution do not come together naturally; in asynchronous systems, certain limits and impedance mismatch exist between
 maintaining meaningful local order and maximizing global concurrency.
 
 In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
@@ -173,6 +173,6 @@ possible or not worthwhile to pursue. By the time the consumer receives the mess
 already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
 of correct ordering in the first place. Now the message consumer's job is to detect and make amends when things do go
 out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and
-runtime performance. E.g. it may help to do a stateful/historical look-up and review of all data related to the incoming
-event trying to determine if the event is out of order, and take corrective actions per business rules as needed.
-Sometimes such responsive measures can be achieved by using State Machines.
+runtime performance. E.g. it may help to do a stateful/historical look-up and review of all data and other events 
+received earlier and are related to the incoming event; try to determine if the incoming event is out of order, and take 
+corrective actions per business rules as needed. State Machines can be a useful design in such scenario.
