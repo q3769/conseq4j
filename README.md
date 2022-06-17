@@ -173,6 +173,8 @@ possible or not worthwhile to pursue. By the time the consumer receives the mess
 already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
 of correct ordering in the first place. Now the message consumer's job is to detect and make amends when things do go
 out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and
-runtime performance. E.g. it may help to do a stateful/historical look-up and review of all data and other events 
-received earlier and are related to the incoming event; try to determine if the incoming event is out of order, and take 
-corrective actions per business rules as needed. State Machines can be a useful design in such scenario.
+runtime performance. E.g. it may help to do a stateful/historical look-up of all data and other events received so far 
+that are related to the incoming event; try to determine if the incoming event is out of order through a comprehensive 
+review on the collective state gathered, and then take corrective actions per business rules as needed. This may fall 
+into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines 
+can also be a useful design in such scenario.
