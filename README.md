@@ -168,13 +168,14 @@ sequence/correlation key as with this API.
 
 ### 2. Curative
 
-This is more on the business rule level. Sometimes preventative measures of message order preservation are either not
-possible or not worthwhile to pursue. By the time the consumer receives the messages, things can be out of order
-already. E.g., when the messages are coming in from different message producers and sources, there may be no guarantee
-of correct ordering in the first place. Now the message consumer's job is to detect and make amends when things do go
-out of order, by using business rules. This corrective measure can be much more complicated both in terms of coding and
-runtime performance. E.g. it may help to do a stateful/historical look-up of all data and other events received so far 
-that are related to the incoming event; try to determine if the incoming event is out of order through a comprehensive 
-review on the collective state gathered, and then take corrective actions per business rules as needed. This may fall 
-into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines 
-can also be a useful design in such scenario.
+This is more on the business rule level. Sometimes preventative measures of message order preservation to the likes of 
+this API are either not possible or not worthwhile to pursue. By the time the consumer receives the messages, things can
+be out of order already. E.g., when the messages are coming in from independent message producers and sources, there may 
+be no guarantee of correct ordering in the first place. Now the message consumer's job is to detect and make amends when 
+things do go out of order, by using business rules. This corrective measure can be much more complicated in terms 
+of system design, implementation and runtime performance. E.g. it may help to do a stateful/historical look-up of all 
+data and other events received so far that are related to the incoming event; try to determine if the incoming event is 
+out of order via a comprehensive review on the collective state gathered, and then take corrective actions per business
+rules as needed. This may fall into the scope of 
+[Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can also be a 
+useful design in such scenario.
