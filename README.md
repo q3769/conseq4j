@@ -176,7 +176,8 @@ and make amends when things do go out of order, by using business rules.
 
 Corrective measures can be much more complicated in terms of system design, implementation and runtime performance.
 E.g. it may help to do a stateful/historical look-up of all data and other events received so far that are related to 
-the incoming event; try to determine if the incoming event is out of order via a comprehensive review on the correlated
-state gathered per business rules, and then take corrective actions as needed. This may fall into the scope of 
+the incoming event. This forms a correlated state session for the incoming event. A comprehensive review of such
+session can detect and determine if the incoming event is out of order per business rules; then corrective actions
+can be taken as needed. This may fall into the scope of 
 [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can also be a 
 useful design in such scenario.
