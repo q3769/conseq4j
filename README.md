@@ -176,8 +176,8 @@ and make amends when things do go out of order, by using business rules.
 
 Compared to preventative ones, corrective measures can be much more complicated in terms of design, implementation 
 and runtime performance. E.g. it may help to do a stateful/historical look-up of all data and other events received
-so far that are related to the incoming event. This forms a correlated and collective session of information for 
+so far that are related to the incoming event; this forms a correlated and collective session of information for 
 the incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of 
-order per business rules; and corrective actions can be taken as needed. This may fall into the scope of 
-[Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can also be
-a useful design in such scenario.
+order per business rules; corrective actions (among others) can then be taken as needed. This may fall into the scope
+of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can also
+be a useful design in such scenario.
