@@ -30,17 +30,17 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Qingitan Wang
  */
-@Log @ToString(callSuper = true) class RunningTasksCountingExecutorService extends AsyncListenableExecutorService {
+@Log @ToString(callSuper = true) class RunningTaskCountingExecutorService extends AsyncListenableExecutorService {
 
     private final AtomicInteger runningTaskCount = new AtomicInteger();
 
-    RunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    RunningTaskCountingExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    static RunningTasksCountingExecutorService newSingleThreadInstance(int taskQueueSize) {
-        return new RunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
+    static RunningTaskCountingExecutorService newSingleThreadInstance(int taskQueueSize) {
+        return new RunningTaskCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize));
     }
 

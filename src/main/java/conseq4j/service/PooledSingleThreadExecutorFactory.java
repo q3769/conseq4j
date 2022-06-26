@@ -31,7 +31,7 @@ import java.util.Objects;
  * @author Qingitan Wang
  */
 @Log @ToString(callSuper = true) class PooledSingleThreadExecutorFactory
-        extends BasePooledObjectFactory<RunningTasksCountingExecutorService> {
+        extends BasePooledObjectFactory<RunningTaskCountingExecutorService> {
 
     private final int executorTaskQueueCapacity;
 
@@ -39,21 +39,21 @@ import java.util.Objects;
         this.executorTaskQueueCapacity = executorTaskQueueCapacity;
     }
 
-    @Override public RunningTasksCountingExecutorService create() {
-        return RunningTasksCountingExecutorService.newSingleThreadInstance(executorTaskQueueCapacity);
+    @Override public RunningTaskCountingExecutorService create() {
+        return RunningTaskCountingExecutorService.newSingleThreadInstance(executorTaskQueueCapacity);
     }
 
-    @Override public PooledObject<RunningTasksCountingExecutorService> wrap(RunningTasksCountingExecutorService t) {
+    @Override public PooledObject<RunningTaskCountingExecutorService> wrap(RunningTaskCountingExecutorService t) {
         return new DefaultPooledObject<>(t);
     }
 
-    @Override public void activateObject(PooledObject<RunningTasksCountingExecutorService> p) throws Exception {
+    @Override public void activateObject(PooledObject<RunningTaskCountingExecutorService> p) throws Exception {
         super.activateObject(p);
         Objects.requireNonNull(p.getObject()).clearListeners();
     }
 
-    @Override public boolean validateObject(PooledObject<RunningTasksCountingExecutorService> p) {
-        RunningTasksCountingExecutorService executorService =
+    @Override public boolean validateObject(PooledObject<RunningTaskCountingExecutorService> p) {
+        RunningTaskCountingExecutorService executorService =
                 Objects.requireNonNull(p.getObject(), "unexpected NULL executor being returned to pool");
         if (executorService.isShutdown()) {
             log.warning("executor " + executorService + " already shut down, thus being dropped from pool");

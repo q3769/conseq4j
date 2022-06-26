@@ -32,12 +32,12 @@ import java.util.logging.Level;
 @Log @ToString class SweepingExecutorServiceListener implements ExecutionListener {
 
     private final Object sequenceKey;
-    private final ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors;
-    private final ObjectPool<RunningTasksCountingExecutorService> executorPool;
+    private final ConcurrentMap<Object, RunningTaskCountingExecutorService> servicingSequentialExecutors;
+    private final ObjectPool<RunningTaskCountingExecutorService> executorPool;
 
     public SweepingExecutorServiceListener(Object sequenceKey,
-            ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors,
-            ObjectPool<RunningTasksCountingExecutorService> executorPool) {
+            ConcurrentMap<Object, RunningTaskCountingExecutorService> servicingSequentialExecutors,
+            ObjectPool<RunningTaskCountingExecutorService> executorPool) {
         this.sequenceKey = sequenceKey;
         this.servicingSequentialExecutors = servicingSequentialExecutors;
         this.executorPool = executorPool;
@@ -61,7 +61,7 @@ import java.util.logging.Level;
         log.log(Level.FINER, () -> "done sweeping-check executor using " + this);
     }
 
-    private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
+    private boolean sweepingExecutor(RunningTaskCountingExecutorService presentExecutor, Throwable executionError) {
         if (presentExecutor == null) {
             log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener than " + this);
             return true;
