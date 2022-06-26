@@ -8,10 +8,10 @@
 # To enable this hook, rename this file to "pre-commit".
 
 echo
-if [ -z "$(git status --porcelain)" ]; then 
+if [ -z "$(git status --porcelain)" ]; then
   # Working directory clean
   exit
-else 
+else
   # Uncommitted changes
   touch .commit
 fi
