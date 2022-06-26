@@ -14,6 +14,7 @@
  */
 package conseq4j.service;
 
+import lombok.Data;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
@@ -56,49 +57,25 @@ import java.util.logging.Level;
         return genericObjectPoolConfig;
     }
 
+    private static void logExecutionError(RunningTasksCountingExecutorService executor, Collection<?> tasks,
+            Exception ex) {
+        log.log(Level.SEVERE, "error executing tasks " + tasks + " by executor " + executor + " - " + ex.getClass()
+                .getCanonicalName(), ex);
+    }
+
     @Override public void execute(Object sequenceKey, Runnable runnable) {
-        servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor).execute(runnable);
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            computedExecutor.execute(runnable);
+            return computedExecutor;
+        });
     }
 
-    @Override public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor).submit(task);
-    }
-
-    @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor)
-                .submit(task, result);
-    }
-
-    @Override public Future<?> submit(Object sequenceKey, Runnable task) {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor).submit(task);
-    }
-
-    @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor)
-                .invokeAll(tasks);
-    }
-
-    @Override
-    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
-            throws InterruptedException {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor)
-                .invokeAll(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS);
-    }
-
-    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor)
-                .invokeAny(tasks);
-    }
-
-    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        return servicingSequentialExecutors.computeIfAbsent(sequenceKey, this::borrowSequentialExecutor)
-                .invokeAny(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS);
-    }
-
-    private RunningTasksCountingExecutorService borrowSequentialExecutor(Object sequenceKey) {
+    private RunningTasksCountingExecutorService computeExecutor(Object presentSequenceKey,
+            RunningTasksCountingExecutorService servicingExecutor) {
+        if (servicingExecutor != null) {
+            return servicingExecutor;
+        }
         final RunningTasksCountingExecutorService pooledExecutor;
         try {
             pooledExecutor = executorPool.borrowObject();
@@ -106,8 +83,126 @@ import java.util.logging.Level;
             throw new IllegalStateException("failed to borrow executor from pool " + executorPool, ex);
         }
         pooledExecutor.addListener(
-                new SweepingExecutorServiceListener(sequenceKey, servicingSequentialExecutors, executorPool));
+                new SweepingExecutorServiceListener(presentSequenceKey, servicingSequentialExecutors, executorPool));
         return pooledExecutor;
+    }
+
+    @Override public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
+        FutureHolder<T> futureHolder = new FutureHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            futureHolder.setFuture(computedExecutor.submit(task));
+            return computedExecutor;
+        });
+        return futureHolder.getFuture();
+    }
+
+    @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
+        FutureHolder<T> futureHolder = new FutureHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            futureHolder.setFuture(computedExecutor.submit(task, result));
+            return computedExecutor;
+        });
+        return futureHolder.getFuture();
+    }
+
+    @Override public Future<?> submit(Object sequenceKey, Runnable task) {
+        FutureHolder<?> futureHolder = new FutureHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            futureHolder.setFutureUnbounded(computedExecutor.submit(task));
+            return computedExecutor;
+        });
+        return futureHolder.getFutureUnbounded();
+    }
+
+    @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
+        FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            try {
+                final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
+                futuresHolder.setFutures(invokeAll);
+            } catch (InterruptedException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                futuresHolder.setExecutionError(ex);
+                Thread.currentThread().interrupt();
+            }
+            return computedExecutor;
+        });
+        return futuresHolder.get();
+    }
+
+    @Override
+    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+            throws InterruptedException {
+        FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            try {
+                futuresHolder.setFutures(computedExecutor.invokeAll(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));
+            } catch (InterruptedException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                futuresHolder.setExecutionError(ex);
+                Thread.currentThread().interrupt();
+            }
+            return computedExecutor;
+        });
+        return futuresHolder.get();
+    }
+
+    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
+        ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            try {
+                resultHolder.setResult(computedExecutor.invokeAny(tasks));
+            } catch (InterruptedException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                resultHolder.setExecutionError(ex);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                resultHolder.setExecutionError(ex);
+            }
+            return computedExecutor;
+        });
+        try {
+            return resultHolder.get();
+        } catch (InterruptedException | ExecutionException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException("unexpected error: " + e.getMessage(), e);
+        }
+    }
+
+    @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+            throws InterruptedException, ExecutionException, TimeoutException {
+        ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
+            try {
+                resultHolder.setResult(computedExecutor.invokeAny(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));
+            } catch (InterruptedException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                resultHolder.setExecutionError(ex);
+                Thread.currentThread().interrupt();
+            } catch (ExecutionException | TimeoutException ex) {
+                logExecutionError(computedExecutor, tasks, ex);
+                resultHolder.setExecutionError(ex);
+            }
+            return computedExecutor;
+        });
+        try {
+            return resultHolder.get();
+        } catch (InterruptedException | ExecutionException | TimeoutException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new ExecutionException("unexpected error: " + e.getMessage(), e);
+        }
     }
 
     @ToString @Log public static class Builder {
@@ -137,6 +232,38 @@ import java.util.logging.Level;
         public Builder globalConcurrency(int globalConcurrency) {
             this.globalConcurrency = globalConcurrency;
             return this;
+        }
+    }
+
+    @Data private static class FutureHolder<T> {
+
+        Future<T> future;
+        Future<?> futureUnbounded;
+    }
+
+    @Data private static class FuturesHolder<T, E extends Throwable> {
+
+        List<Future<T>> futures;
+        E executionError;
+
+        List<Future<T>> get() throws E {
+            if (executionError != null) {
+                throw executionError;
+            }
+            return futures;
+        }
+    }
+
+    @Data private static class ResultHolder<T, E extends Throwable> {
+
+        T result;
+        E executionError;
+
+        public T get() throws E {
+            if (executionError != null) {
+                throw executionError;
+            }
+            return result;
         }
     }
 }
