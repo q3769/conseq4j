@@ -52,13 +52,13 @@ import java.util.logging.Level;
     }
 
     private void sweepOrKeepExecutorInService(Runnable task, Throwable taskExecutionError) {
-        log.log(Level.FINER,
+        log.log(Level.FINE,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
-                        + taskExecutionError + ", using " + this);
+                        + taskExecutionError + " in " + this);
         servicingSequentialExecutors.compute(sequenceKey,
                 (presentSequenceKey, presentExecutor) -> sweepingExecutor(presentExecutor, taskExecutionError) ? null :
                         presentExecutor);
-        log.log(Level.FINER, () -> "done sweeping-check executor using " + this);
+        log.log(Level.FINE, () -> "done sweeping-check executor for sequence key in " + this);
     }
 
     private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
