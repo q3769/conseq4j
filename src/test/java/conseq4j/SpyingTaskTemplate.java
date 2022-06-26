@@ -20,18 +20,17 @@
 package conseq4j;
 
 import lombok.ToString;
+import lombok.extern.java.Log;
 
 import java.time.Duration;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * @author Qingtian Wang
  */
-@ToString public abstract class SpyingTaskTemplate {
-
-    private static final Logger LOG = Logger.getLogger(SpyingTaskTemplate.class.getName());
+@ToString @Log public abstract class SpyingTaskTemplate {
 
     protected final UUID id = UUID.randomUUID();
     protected final Duration taskRunDuration;
@@ -61,8 +60,8 @@ import java.util.logging.Logger;
     protected void doRun() throws InterruptedException {
         this.taskData.setRunStartTimeNanos(System.nanoTime());
         this.taskData.setRunThreadName(Thread.currentThread().getName());
-        Thread.sleep(threadRunDurationMillis());
+        TimeUnit.MILLISECONDS.sleep(threadRunDurationMillis());
         this.taskData.setRunEndTimeNanos(System.nanoTime());
-        LOG.log(Level.INFO, "Task : {0} completed with data : {1}", new Object[] { this.getId(), this.getTaskData() });
+        log.log(Level.FINE, () -> "task " + this.id + " completed with data " + this.getTaskData());
     }
 }

@@ -27,7 +27,7 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 @Log @ToString class SweepingExecutorServiceListener implements ExecutionListener {
 

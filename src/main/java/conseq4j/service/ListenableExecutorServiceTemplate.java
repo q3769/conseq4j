@@ -28,7 +28,7 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor implements ExecutionListenable {
 

@@ -28,7 +28,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 @Log @ToString(callSuper = true) class RunningTasksCountingExecutorService extends AsyncListenableExecutorService {
 
@@ -39,7 +39,7 @@ import java.util.concurrent.atomic.AtomicInteger;
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    static RunningTasksCountingExecutorService newSingleThreadInstance(int taskQueueSize) {
+    static RunningTasksCountingExecutorService singleThreadedWithTaskQueueSize(int taskQueueSize) {
         return new RunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
                 new LinkedBlockingQueue<>(taskQueueSize));
     }

@@ -223,7 +223,7 @@ import java.util.logging.Level;
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
             if (executorTaskQueueCapacity != DEFAULT_TASK_QUEUE_CAPACITY) {
                 log.log(Level.WARNING,
-                        "may not be a good idea to limit task queue capacity; unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead");
+                        "may not be a good idea to limit task queue capacity. unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead");
             }
             this.executorTaskQueueCapacity = executorTaskQueueCapacity;
             return this;

@@ -26,7 +26,7 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
 

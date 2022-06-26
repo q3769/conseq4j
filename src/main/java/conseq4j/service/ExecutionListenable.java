@@ -21,7 +21,7 @@
 package conseq4j.service;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 interface ExecutionListenable {
 

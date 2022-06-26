@@ -28,7 +28,7 @@ import org.apache.commons.pool2.impl.DefaultPooledObject;
 import java.util.Objects;
 
 /**
- * @author Qingitan Wang
+ * @author Qingtian Wang
  */
 @Log @ToString(callSuper = true) class PooledSingleThreadExecutorFactory
         extends BasePooledObjectFactory<RunningTasksCountingExecutorService> {
@@ -40,7 +40,7 @@ import java.util.Objects;
     }
 
     @Override public RunningTasksCountingExecutorService create() {
-        return RunningTasksCountingExecutorService.newSingleThreadInstance(executorTaskQueueCapacity);
+        return RunningTasksCountingExecutorService.singleThreadedWithTaskQueueSize(executorTaskQueueCapacity);
     }
 
     @Override public PooledObject<RunningTasksCountingExecutorService> wrap(RunningTasksCountingExecutorService t) {
