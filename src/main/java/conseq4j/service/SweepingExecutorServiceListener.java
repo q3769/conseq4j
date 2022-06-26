@@ -19,6 +19,7 @@
  */
 package conseq4j.service;
 
+import lombok.ToString;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
 
@@ -28,25 +29,18 @@ import java.util.logging.Level;
 /**
  * @author Qingitan Wang
  */
-@Log class SweepingExecutorServiceListener implements ExecutionListener {
+@Log @ToString class SweepingExecutorServiceListener implements ExecutionListener {
 
     private final Object sequenceKey;
-    private final ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService>
-            servicingSequentialExecutors;
-    private final ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool;
+    private final ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors;
+    private final ObjectPool<RunningTasksCountingExecutorService> executorPool;
 
     public SweepingExecutorServiceListener(Object sequenceKey,
-            ConcurrentMap<Object, GlobalConcurrencyBoundedRunningTasksCountingExecutorService> servicingSequentialExecutors,
-            ObjectPool<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> executorPool) {
+            ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors,
+            ObjectPool<RunningTasksCountingExecutorService> executorPool) {
         this.sequenceKey = sequenceKey;
         this.servicingSequentialExecutors = servicingSequentialExecutors;
         this.executorPool = executorPool;
-    }
-
-    @Override public String toString() {
-        return "SweepingExecutorServiceListener{" + "sequenceKey=" + sequenceKey + ", servicingSequentialExecutors="
-                + servicingSequentialExecutors.size() + ", pooledActiveExecutors=" + executorPool.getNumActive()
-                + ", pooledIdleExecutors=" + executorPool.getNumIdle() + '}';
     }
 
     @Override public void beforeEachExecute(Thread taskExecutionThread, Runnable task) {
@@ -54,20 +48,20 @@ import java.util.logging.Level;
     }
 
     @Override public void afterEachExecute(Runnable task, Throwable taskExecutionError) {
-        sweepOrKeepExecutorInServiceMap(task, taskExecutionError);
+        sweepOrKeepExecutorInService(task, taskExecutionError);
     }
 
-    private void sweepOrKeepExecutorInServiceMap(Runnable task, Throwable taskExecutionError) {
+    private void sweepOrKeepExecutorInService(Runnable task, Throwable taskExecutionError) {
         log.log(Level.FINER,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + ", using " + this);
-        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) ->
-                sweepingExecutorOffOfServicingMap(presentExecutor, taskExecutionError) ? null : presentExecutor);
+        servicingSequentialExecutors.compute(sequenceKey,
+                (presentSequenceKey, presentExecutor) -> sweepingExecutor(presentExecutor, taskExecutionError) ? null :
+                        presentExecutor);
         log.log(Level.FINER, () -> "done sweeping-check executor using " + this);
     }
 
-    private boolean sweepingExecutorOffOfServicingMap(
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
+    private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
         if (presentExecutor == null) {
             log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener than " + this);
             return true;

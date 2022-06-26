@@ -19,47 +19,41 @@
  */
 package conseq4j.service;
 
+import lombok.ToString;
 import lombok.extern.java.Log;
 import org.apache.commons.pool2.BasePooledObjectFactory;
 import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 import java.util.Objects;
-import java.util.concurrent.Semaphore;
 
 /**
  * @author Qingitan Wang
  */
-@Log class PooledSingleThreadExecutorFactory
-        extends BasePooledObjectFactory<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> {
+@Log @ToString(callSuper = true) class PooledSingleThreadExecutorFactory
+        extends BasePooledObjectFactory<RunningTasksCountingExecutorService> {
 
-    private final Semaphore globalConcurrencySemaphore;
     private final int executorTaskQueueCapacity;
 
-    public PooledSingleThreadExecutorFactory(Semaphore globalConcurrencySemaphore, int executorTaskQueueCapacity) {
-        this.globalConcurrencySemaphore = globalConcurrencySemaphore;
+    public PooledSingleThreadExecutorFactory(int executorTaskQueueCapacity) {
         this.executorTaskQueueCapacity = executorTaskQueueCapacity;
     }
 
-    @Override public GlobalConcurrencyBoundedRunningTasksCountingExecutorService create() {
-        return GlobalConcurrencyBoundedRunningTasksCountingExecutorService.newSingleThreadInstance(
-                globalConcurrencySemaphore, executorTaskQueueCapacity);
+    @Override public RunningTasksCountingExecutorService create() {
+        return RunningTasksCountingExecutorService.newSingleThreadInstance(executorTaskQueueCapacity);
     }
 
-    @Override public PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> wrap(
-            GlobalConcurrencyBoundedRunningTasksCountingExecutorService t) {
+    @Override public PooledObject<RunningTasksCountingExecutorService> wrap(RunningTasksCountingExecutorService t) {
         return new DefaultPooledObject<>(t);
     }
 
-    @Override public void activateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p)
-            throws Exception {
+    @Override public void activateObject(PooledObject<RunningTasksCountingExecutorService> p) throws Exception {
         super.activateObject(p);
         Objects.requireNonNull(p.getObject()).clearListeners();
     }
 
-    @Override
-    public boolean validateObject(PooledObject<GlobalConcurrencyBoundedRunningTasksCountingExecutorService> p) {
-        GlobalConcurrencyBoundedRunningTasksCountingExecutorService executorService =
+    @Override public boolean validateObject(PooledObject<RunningTasksCountingExecutorService> p) {
+        RunningTasksCountingExecutorService executorService =
                 Objects.requireNonNull(p.getObject(), "unexpected NULL executor being returned to pool");
         if (executorService.isShutdown()) {
             log.warning("executor " + executorService + " already shut down, thus being dropped from pool");

@@ -168,16 +168,16 @@ sequence/correlation key as with this API.
 
 ### 2. Curative
 
-This is more on the business rule level. Sometimes preventative measures of message order preservation, through the 
-likes of this API, are either not possible or not worthwhile to pursue. By the time the consumer receives the messages, 
-things can be out of order already. E.g., when the messages are coming in from independent message producers and 
-sources, there may be no guarantee of correct ordering in the first place. Now the message consumer's job is to detect 
-and make amends when things do go out of order, by using business rules. 
+This is more on the business rule level. Sometimes preventative measures of message order preservation, through the
+likes of this API, are either not possible or not worthwhile to pursue. By the time the consumer receives the messages,
+things can be out of order already. E.g., when the messages are coming in from independent message producers and
+sources, there may be no guarantee of correct ordering in the first place. Now the message consumer's job is to detect
+and make amends when things do go out of order, by using business rules.
 
-Compared to preventative ones, corrective measures can be much more complicated in terms of design, implementation 
+Compared to preventative ones, corrective measures can be much more complicated in terms of design, implementation
 and runtime performance. E.g. it may help to do a stateful/historical look-up of all data and other events received
-so far that are related to the incoming event; this forms a correlated and collective session of information for 
-the incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of 
+so far that are related to the incoming event; this forms a correlated and collective session of information for
+the incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of
 order per business rules; corrective actions (among others) can then be taken as needed. This may fall into the scope
 of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can also
 be a useful design in such scenario.
