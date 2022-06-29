@@ -46,10 +46,13 @@ implementation 'io.github.q3769:conseq4j:20220607.0.4'
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of
 "buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key
-summons and always gets back the same sequential executor which ensures execution order of its tasks. As with
-hashing, when collision occurs among different sequence keys, unrelated tasks may unfairly precede each other in
-execution order. Nevertheless, with the benefit of fewer synchronization checks, this style may better suit
-workloads that are asynchronous and more sensitive on overall system throughput.
+summons and always gets back the same sequential executor which ensures execution order of its tasks. 
+
+As with hashing, collision may occur among different sequence keys. When hash collision heppens, different sequence 
+keys' tasks are assinged to the same executor. In that case, while the required local execution order for each 
+indivdiual sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly 
+block/delay each other from executing. With the benefit of fewer synchronization checks, though, this style may 
+better suit workloads that are asynchronous and more sensitive on overall system throughput.
 
 #### The API:
 
