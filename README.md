@@ -49,10 +49,10 @@ The implementation of this style relies on further hashing of the sequence key's
 summons and always gets back the same sequential executor which ensures execution order of its tasks. 
 
 As with hashing, collision may occur among different sequence keys. When hash collision heppens, different sequence 
-keys' tasks are assinged to the same executor. In that case, while the required local execution order for each 
-indivdiual sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly 
-block/delay each other from executing. With the benefit of fewer synchronization checks, though, this style may 
-better suit workloads that are asynchronous and more sensitive on overall system throughput.
+keys' tasks are assigned to the same executor. In that case, while the local execution order for each indivdiual 
+sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly block/delay each other
+from executing. With the benefit of fewer synchronization checks, though, this style may better suit workloads that 
+are more sensitive on overall system throughput.
 
 #### The API:
 
@@ -93,7 +93,7 @@ This style further decouples the runnable tasks from their executors, by avoidin
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
 secondary hash collision, so unrelated tasks will not unfairly block each other from executing. As a trade-off, though,
 more synchronization checks exist. This style may better suit workloads that are more sensitive on individual task's
-immediate execution time after submitted.
+immediate execution when submitted.
 
 #### The API:
 
