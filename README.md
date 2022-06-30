@@ -90,10 +90,11 @@ public class MessageConsumer {
 ### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
-sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That eliminates the
-secondary hash collision, so unrelated tasks will not unfairly block each other from executing. As a trade-off, though,
-more synchronization checks exist. This style may better suit workloads that are more sensitive on individual task's
-immediate execution when submitted.
+sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. That prevents 
+unrelated tasks from unfairly blocking each other from executing due to hash collisions. The only factor that may
+delay task execution would be the maximum global concurrency i.e. the maximum number of concurrent executors 
+configured via the API. The trade-off of this setup, though, is that more synchronization checks exist. This style 
+may better suit workloads that are more sensitive on individual task's immediate execution when submitted.
 
 #### The API:
 
