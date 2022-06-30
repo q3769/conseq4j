@@ -42,7 +42,7 @@ implementation 'io.github.q3769:conseq4j:20220607.0.4'
 
 ## Use it...
 
-### Style 1 - Summon a sequential executor by its sequence key, and use the executor as with a JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+### Style 1 - Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of
 "buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key
@@ -87,7 +87,7 @@ public class MessageConsumer {
     ...
 ```
 
-### Style 2 - Submit `Runnable`/`Callable` task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+### Style 2 - Submit [Runnable](https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html)/[Callable](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html) task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
 sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. 
