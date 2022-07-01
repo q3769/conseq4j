@@ -56,19 +56,17 @@ import java.util.logging.Level;
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + " in " + this);
         servicingSequentialExecutors.compute(sequenceKey,
-                (presentSequenceKey, presentExecutor) -> sweepingExecutor(presentExecutor, taskExecutionError) ? null :
-                        presentExecutor);
+                (presentSequenceKey, presentExecutor) -> sweepingExecutor(presentExecutor) ? null : presentExecutor);
         log.log(Level.FINE, () -> "done sweeping-check executor for sequence key in " + this);
     }
 
-    private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor, Throwable executionError) {
+    private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor) {
         if (presentExecutor == null) {
             log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener than " + this);
             return true;
         }
         final int runningTaskCount = presentExecutor.getRunningTaskCount();
-        final boolean shutdown = presentExecutor.isShutdown();
-        if (runningTaskCount == 0 || shutdown || executionError != null) {
+        if (runningTaskCount == 0 || presentExecutor.isShutdown()) {
             log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + " off of servicing map");
             try {
                 executorPool.returnObject(presentExecutor);

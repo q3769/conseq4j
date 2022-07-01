@@ -46,12 +46,12 @@ implementation 'io.github.q3769:conseq4j:20220607.0.4'
 
 The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of
 "buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key
-summons and always gets back the same sequential executor which ensures execution order of its tasks. 
+summons and always gets back the same sequential executor which ensures execution order of its tasks.
 
-As with hashing, collision may occur among different sequence keys. When hash collision heppens, different sequence 
-keys' tasks are assigned to the same executor. In that case, while the local execution order for each indivdiual 
+As with hashing, collision may occur among different sequence keys. When hash collision heppens, different sequence
+keys' tasks are assigned to the same executor. In that case, while the local execution order for each indivdiual
 sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly block/delay each other
-from executing. With the benefit of fewer synchronization checks, though, this style may better suit workloads that 
+from executing. With the benefit of fewer synchronization checks, though, this style may better suit workloads that
 are more sensitive on overall system throughput.
 
 #### The API:
@@ -70,11 +70,14 @@ public class MessageConsumer {
     private ConcurrentSequencer conseq = Conseq.newBuilder().globalConcurrency(10).build();
     
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider
+     * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
      */
     public void onMessage(Message shoppingEvent) {
     
-        // conseq4j API to summon sequential executor: Events with the same shopping cart Id are processed sequentially by the same executor. Events with different sequence keys will be attempted to process concurrently by different executors.
+        // conseq4j API to summon sequential executor: Events with the same shopping cart Id are processed sequentially 
+        // by the same executor. Events with different sequence keys will be attempted to process concurrently by 
+        // different executors.
+        
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); 
     }
     
@@ -90,12 +93,12 @@ public class MessageConsumer {
 ### Style 2 - Submit [Runnable](https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html)/[Callable](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html) task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
 This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
-sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor. 
+sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor.
 
-This prevents unrelated tasks from unfairly blocking each other from executing due to hash collisions. The only 
-factor that may still limit/delay task execution would be the maximum global concurrency i.e. the maximum number 
+This prevents unrelated tasks from unfairly blocking each other from executing due to hash collisions. The only
+factor that may still limit/delay task execution would be the maximum global concurrency i.e. the maximum number
 of concurrent executors configured via the API. The trade-off of this setup, though, is that more synchronization
-checks exist. This style may better suit workloads that are more sensitive on individual task's immediate 
+checks exist. This style may better suit workloads that are more sensitive on individual task's immediate
 execution when submitted.
 
 #### The API:
@@ -130,13 +133,13 @@ public class MessageConsumer {
     private ConcurrentSequencerService conseqService = ConseqService.newBuilder().globalConcurrency(10).build();
     
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider
+     * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
      */
     public void onMessage(Message shoppingEvent) {
         try {
                 
-            // conseq4j API as a service: 
-            // concurrently process inventory and payment tasks, preserving local order/sequence in each process
+            // conseq4j API as a service - concurrently process inventory and payment tasks, preserving local 
+            // order/sequence per each sequence key
             
             List<Future<InventoryResult>> sequencedInventoryResults = 
                     conseqService.invokeAll(shoppingEvent.getInventoryId(), toSequencedInventoryCallables(shoppingEvent));
