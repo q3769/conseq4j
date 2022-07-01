@@ -69,6 +69,10 @@ public class MessageConsumer {
 
     private ConcurrentSequencer conseq = Conseq.newBuilder().globalConcurrency(10).build();
     
+    @Autowired
+    private ShoppingEventProcessor shoppingEventProcessor;
+    
+    
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
      */
@@ -78,15 +82,10 @@ public class MessageConsumer {
         // by the same executor. Events with different sequence keys will be attempted to process concurrently by 
         // different executors.
         
-        conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId()).execute(() -> process(shoppingEvent)); 
+        conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
+                .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
     }
-    
-    /**
-     * Business method, most likely translating message to domain objects for further processing by using other collaborators 
-     */
-    private void process(Message shoppingEvent) {
-        ...
-    }
+
     ...
 ```
 
@@ -132,6 +131,9 @@ public class MessageConsumer {
 
     private ConcurrentSequencerService conseqService = ConseqService.newBuilder().globalConcurrency(10).build();
     
+    @Autowired
+    private ShoppingEventAssembler shoppingEventAssembler;
+    
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
      */
@@ -142,9 +144,11 @@ public class MessageConsumer {
             // order/sequence per each sequence key
             
             List<Future<InventoryResult>> sequencedInventoryResults = 
-                    conseqService.invokeAll(shoppingEvent.getInventoryId(), toSequencedInventoryCallables(shoppingEvent));
+                    conseqService.invokeAll(shoppingEvent.getInventoryId(), 
+                    shoppingEventAssembler.toSequencedInventoryCallables(shoppingEvent));
             List<Future<PaymentResult>> sequencedPaymentResults = 
-                    conseqService.invokeAll(shoppingEvent.getPaymentId(), toSequencedPaymentCallables(shoppingEvent));
+                    conseqService.invokeAll(shoppingEvent.getPaymentId(), 
+                    shoppingEventAssembler.toSequencedPaymentCallables(shoppingEvent));
 
             ...          
         } catch(InterruptedException e) {
