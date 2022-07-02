@@ -76,14 +76,19 @@ import java.util.logging.Level;
         if (servicingExecutor != null) {
             return servicingExecutor;
         }
+        final RunningTasksCountingExecutorService pooledExecutor = borrowPooledExecutor();
+        pooledExecutor.addListener(
+                new SweepingExecutorServiceListener(presentSequenceKey, servicingSequentialExecutors, executorPool));
+        return pooledExecutor;
+    }
+
+    private RunningTasksCountingExecutorService borrowPooledExecutor() {
         final RunningTasksCountingExecutorService pooledExecutor;
         try {
             pooledExecutor = executorPool.borrowObject();
         } catch (Exception ex) {
             throw new IllegalStateException("failed to borrow executor from pool " + executorPool, ex);
         }
-        pooledExecutor.addListener(
-                new SweepingExecutorServiceListener(presentSequenceKey, servicingSequentialExecutors, executorPool));
         return pooledExecutor;
     }
 

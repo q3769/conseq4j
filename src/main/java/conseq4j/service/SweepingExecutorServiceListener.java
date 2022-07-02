@@ -55,28 +55,29 @@ import java.util.logging.Level;
         log.log(Level.FINE,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + " in " + this);
-        servicingSequentialExecutors.compute(sequenceKey,
-                (presentSequenceKey, presentExecutor) -> sweepingExecutor(presentExecutor) ? null : presentExecutor);
+        servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
+            if (presentExecutor == null) {
+                log.log(Level.FINE,
+                        () -> "executor already swept off of servicing map by another listener than " + this);
+                return null;
+            }
+            if (presentExecutor.getRunningTaskCount() == 0) {
+                returnPooled(presentExecutor);
+                log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + " off of servicing map");
+                return null;
+            }
+            log.log(Level.FINE, () -> "keeping executor " + presentExecutor + " in servicing map");
+            return presentExecutor;
+        });
         log.log(Level.FINE, () -> "done sweeping-check executor for sequence key in " + this);
     }
 
-    private boolean sweepingExecutor(RunningTasksCountingExecutorService presentExecutor) {
-        if (presentExecutor == null) {
-            log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener than " + this);
-            return true;
+    private void returnPooled(RunningTasksCountingExecutorService presentExecutor) {
+        try {
+            executorPool.returnObject(presentExecutor);
+        } catch (Exception ex) {
+            throw new IllegalStateException("error returning " + presentExecutor + " back to pool " + executorPool, ex);
         }
-        final int runningTaskCount = presentExecutor.getRunningTaskCount();
-        if (runningTaskCount == 0 || presentExecutor.isShutdown()) {
-            log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + " off of servicing map");
-            try {
-                executorPool.returnObject(presentExecutor);
-            } catch (Exception ex) {
-                log.log(Level.WARNING, "error returning executor " + presentExecutor + " back to pool " + executorPool,
-                        ex);
-            }
-            return true;
-        }
-        log.log(Level.FINE, () -> "keeping executor " + presentExecutor + " in servicing map");
-        return false;
     }
+
 }
