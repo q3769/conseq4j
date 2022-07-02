@@ -74,7 +74,8 @@ public class MessageConsumer {
     
     
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
+     * Suppose run-time invocation of this method is managed by the messaging provider.
+     * This is usually via a single calling thread.
      */
     public void onMessage(Message shoppingEvent) {
     
@@ -135,7 +136,8 @@ public class MessageConsumer {
     private ShoppingEventToSubmittableConverter shoppingEventToSubmittableConverter;
     
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider, via a single calling thread
+     * Suppose run-time invocation of this method is managed by the messaging provider. 
+     * This is usually via a single calling thread.
      */
     public void onMessage(Message shoppingEvent) {
         try {
