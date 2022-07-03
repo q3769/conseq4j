@@ -116,7 +116,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
-    @Test void syncInvokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -132,7 +132,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertSequence(doneTasks);
     }
 
-    @Test void syncInvokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
+    @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -148,7 +148,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
     }
 
-    @Test void asyncSubmitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();

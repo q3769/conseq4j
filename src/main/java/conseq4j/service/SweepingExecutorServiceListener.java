@@ -57,7 +57,8 @@ import java.util.logging.Level;
                         + taskExecutionError + " in " + this);
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor == null) {
-                log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener");
+                log.log(Level.FINE, () -> "executor for sequence key " + sequenceKey
+                        + " already swept off of service by another listener");
                 return null;
             }
             if (presentExecutor.getRunningTaskCount() == 0) {
