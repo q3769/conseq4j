@@ -133,7 +133,7 @@ public class MessageConsumer {
     private ConcurrentSequencerService conseqService = ConseqService.newBuilder().globalConcurrency(10).build();
     
     @Autowired
-    private ShoppingEventToSubmittableConverter shoppingEventToSubmittableConverter;
+    private ShoppingEventSubmittableAssembler shoppingEventSubmittableAssembler;
     
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider. 
@@ -147,10 +147,10 @@ public class MessageConsumer {
             
             List<Future<InventoryResult>> sequencedInventoryResults = 
                     conseqService.invokeAll(shoppingEvent.getInventoryId(), 
-                    shoppingEventToSubmittableConverter.toSequencedInventoryCallables(shoppingEvent));
+                    shoppingEventSubmittableAssembler.makeSequencedInventoryProcessingCallables(shoppingEvent));
             List<Future<PaymentResult>> sequencedPaymentResults = 
                     conseqService.invokeAll(shoppingEvent.getPaymentId(), 
-                    shoppingEventToSubmittableConverter.toSequencedPaymentCallables(shoppingEvent));
+                    shoppingEventSubmittableAssembler.makeSequencedPaymentProcessingCallables(shoppingEvent));
 
             ...          
         } catch(InterruptedException e) {
