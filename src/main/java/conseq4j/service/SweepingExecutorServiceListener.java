@@ -63,10 +63,10 @@ import java.util.logging.Level;
             }
             if (presentExecutor.getRunningTaskCount() == 0) {
                 returnPooled(presentExecutor);
-                log.log(Level.FINE, () -> "sweeping executor " + presentExecutor + " off of servicing map");
+                log.log(Level.FINE, () -> "sweeping " + presentExecutor + " off of service");
                 return null;
             }
-            log.log(Level.FINE, () -> "keeping executor " + presentExecutor + " in servicing map");
+            log.log(Level.FINE, () -> "keeping " + presentExecutor + " in service");
             return presentExecutor;
         });
         log.log(Level.FINE, () -> "done sweeping-check executor for sequence key in " + this);
