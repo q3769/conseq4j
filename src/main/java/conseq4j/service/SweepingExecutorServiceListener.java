@@ -52,13 +52,12 @@ import java.util.logging.Level;
     }
 
     private void sweepOrKeepExecutorInService(Runnable task, Throwable taskExecutionError) {
-        log.log(Level.FINE,
+        log.log(Level.FINER,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + " in " + this);
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             if (presentExecutor == null) {
-                log.log(Level.FINE,
-                        () -> "executor already swept off of servicing map by another listener than " + this);
+                log.log(Level.FINE, () -> "executor already swept off of servicing map by another listener");
                 return null;
             }
             if (presentExecutor.getRunningTaskCount() == 0) {
@@ -69,7 +68,7 @@ import java.util.logging.Level;
             log.log(Level.FINE, () -> "keeping " + presentExecutor + " in service");
             return presentExecutor;
         });
-        log.log(Level.FINE, () -> "done sweeping-check executor for sequence key in " + this);
+        log.log(Level.FINER, () -> "done sweeping-check executor for sequence key in " + this);
     }
 
     private void returnPooled(RunningTasksCountingExecutorService presentExecutor) {
