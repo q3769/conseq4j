@@ -33,14 +33,14 @@ import java.util.logging.Level;
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 40;
     final Integer scheduledSequence;
-    final int targetRunTimeMillis;
+    final Duration targetRunDuration;
     Instant runStart = Instant.EPOCH;
     Instant runEnd = Instant.EPOCH;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
-        this.targetRunTimeMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
+        this.targetRunDuration = Duration.ofMillis(randomIntInclusive(1, MAX_RUN_TIME_MILLIS));
     }
 
     private static int randomIntInclusive(int min, int max) {
@@ -51,11 +51,10 @@ import java.util.logging.Level;
         this.runStart = Instant.now();
         this.runThreadName = Thread.currentThread().getName();
         try {
-            TimeUnit.MILLISECONDS.sleep(targetRunTimeMillis);
+            TimeUnit.MILLISECONDS.sleep(this.targetRunDuration.toMillis());
         } catch (InterruptedException ex) {
             log.log(Level.WARNING,
-                    "Interrupted while " + this + " was trying to sleep for " + Duration.ofMillis(targetRunTimeMillis),
-                    ex);
+                    this + " was interrupted after executing for " + Duration.between(runStart, Instant.now()), ex);
             Thread.currentThread().interrupt();
         }
         this.runEnd = Instant.now();
