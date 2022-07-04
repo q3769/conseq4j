@@ -48,10 +48,10 @@ import java.util.logging.Level;
     }
 
     @Override public void afterEachExecute(Runnable task, Throwable taskExecutionError) {
-        sweepOrKeepExecutorInService(task, taskExecutionError);
+        sweepOrKeepSequentialExecutorInService(task, taskExecutionError);
     }
 
-    private void sweepOrKeepExecutorInService(Runnable task, Throwable taskExecutionError) {
+    private void sweepOrKeepSequentialExecutorInService(Runnable task, Throwable taskExecutionError) {
         log.log(Level.FINER,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + " in " + this);
