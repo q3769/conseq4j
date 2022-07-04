@@ -72,11 +72,12 @@ import java.util.logging.Level;
         log.log(Level.FINER, () -> "done sweeping-check executor for sequence key in " + this);
     }
 
-    private void returnPooled(RunningTasksCountingExecutorService presentExecutor) {
+    private void returnPooled(RunningTasksCountingExecutorService sequentialExecutor) {
         try {
-            executorPool.returnObject(presentExecutor);
+            executorPool.returnObject(sequentialExecutor);
         } catch (Exception ex) {
-            throw new IllegalStateException("error returning " + presentExecutor + " back to pool " + executorPool, ex);
+            throw new IllegalStateException("error returning " + sequentialExecutor + " back to pool " + executorPool,
+                    ex);
         }
     }
 
