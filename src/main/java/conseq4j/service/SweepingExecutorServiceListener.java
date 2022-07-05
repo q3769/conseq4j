@@ -52,7 +52,7 @@ import java.util.logging.Level;
     }
 
     private void sweepOrKeepSequentialExecutorInService(Runnable task, Throwable taskExecutionError) {
-        log.log(Level.FINER,
+        log.log(Level.FINEST,
                 () -> "start sweeping-check executor after servicing task " + task + " with execution error "
                         + taskExecutionError + " in " + this);
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
@@ -62,23 +62,17 @@ import java.util.logging.Level;
                 return null;
             }
             if (presentExecutor.getRunningTaskCount() == 0) {
-                returnPooled(presentExecutor);
                 log.log(Level.FINE, () -> "sweeping " + presentExecutor + " off of service");
+                try {
+                    executorPool.returnObject(presentExecutor);
+                } catch (Exception ex) {
+                    log.log(Level.WARNING, "error returning " + presentExecutor + " back to pool " + executorPool, ex);
+                }
                 return null;
             }
             log.log(Level.FINE, () -> "keeping " + presentExecutor + " in service");
             return presentExecutor;
         });
-        log.log(Level.FINER, () -> "done sweeping-check executor for sequence key in " + this);
+        log.log(Level.FINEST, () -> "done sweeping-check executor for sequence key in " + this);
     }
-
-    private void returnPooled(RunningTasksCountingExecutorService sequentialExecutor) {
-        try {
-            executorPool.returnObject(sequentialExecutor);
-        } catch (Exception ex) {
-            throw new IllegalStateException("error returning " + sequentialExecutor + " back to pool " + executorPool,
-                    ex);
-        }
-    }
-
 }
