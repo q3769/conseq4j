@@ -44,6 +44,9 @@ import java.util.concurrent.atomic.AtomicInteger;
                 new LinkedBlockingQueue<>(taskQueueSize));
     }
 
+    /**
+     * @return count of tasks submitted yet not finished.
+     */
     public int getRunningTaskCount() {
         return runningTaskCount.get();
     }

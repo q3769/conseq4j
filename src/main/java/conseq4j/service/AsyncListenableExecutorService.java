@@ -39,10 +39,12 @@ abstract class AsyncListenableExecutorService extends ListenableExecutorServiceT
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
+    /** {@inheritDoc} */
     @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
         listeningThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
     }
 
+    /** {@inheritDoc} */
     @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
         listeningThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
     }

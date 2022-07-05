@@ -26,6 +26,7 @@ import org.apache.commons.pool2.PooledObject;
 import org.apache.commons.pool2.impl.DefaultPooledObject;
 
 import java.util.Objects;
+import java.util.concurrent.ThreadPoolExecutor;
 
 /**
  * @author Qingtian Wang
@@ -35,23 +36,42 @@ import java.util.Objects;
 
     private final int executorTaskQueueCapacity;
 
+    /**
+     * <p>Constructor for PooledSingleThreadExecutorFactory.</p>
+     *
+     * @see "{@code workQueue} JavaDoc in {@link java.util.concurrent.ThreadPoolExecutor}"
+     * @param executorTaskQueueCapacity a int.
+     */
     public PooledSingleThreadExecutorFactory(int executorTaskQueueCapacity) {
         this.executorTaskQueueCapacity = executorTaskQueueCapacity;
     }
 
+    /** {@inheritDoc} */
     @Override public RunningTasksCountingExecutorService create() {
         return RunningTasksCountingExecutorService.singleThreadedWithTaskQueueSize(executorTaskQueueCapacity);
     }
 
+    /** {@inheritDoc} */
     @Override public PooledObject<RunningTasksCountingExecutorService> wrap(RunningTasksCountingExecutorService t) {
         return new DefaultPooledObject<>(t);
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Removing any and all information related to previous execution. Ensures all
+     * {@code RunningTasksCountingExecutorService} instances borrowed from the pool are stateless.
+     */
     @Override public void activateObject(PooledObject<RunningTasksCountingExecutorService> p) throws Exception {
         super.activateObject(p);
         Objects.requireNonNull(p.getObject()).clearListeners();
     }
 
+    /**
+     * {@inheritDoc}
+     *
+     * Executor that is already shutdown is excluded from returning to the pool.
+     */
     @Override public boolean validateObject(PooledObject<RunningTasksCountingExecutorService> p) {
         RunningTasksCountingExecutorService executorService =
                 Objects.requireNonNull(p.getObject(), "unexpected NULL executor being returned to pool");

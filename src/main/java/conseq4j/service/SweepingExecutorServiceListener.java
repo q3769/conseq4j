@@ -27,6 +27,8 @@ import java.util.concurrent.ConcurrentMap;
 import java.util.logging.Level;
 
 /**
+ * Returns in-service executor back to pool when there is no submitted tasks pending to run.
+ *
  * @author Qingtian Wang
  */
 @Log @ToString class SweepingExecutorServiceListener implements ExecutionListener {
@@ -35,6 +37,11 @@ import java.util.logging.Level;
     private final ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors;
     private final ObjectPool<RunningTasksCountingExecutorService> executorPool;
 
+    /**
+     * @param sequenceKey                  the sequence key whose corresponding executor is under operation.
+     * @param servicingSequentialExecutors map of all in-service executors keyed on their sequence keys.
+     * @param executorPool                 executor pool.
+     */
     public SweepingExecutorServiceListener(Object sequenceKey,
             ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors,
             ObjectPool<RunningTasksCountingExecutorService> executorPool) {
@@ -43,10 +50,16 @@ import java.util.logging.Level;
         this.executorPool = executorPool;
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override public void beforeEachExecute(Thread taskExecutionThread, Runnable task) {
         // no-op
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override public void afterEachExecute(Runnable task, Throwable taskExecutionError) {
         sweepOrKeepSequentialExecutorInService(task, taskExecutionError);
     }

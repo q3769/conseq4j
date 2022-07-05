@@ -28,7 +28,10 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 
 /**
+ * <p>Default implementation of {@code ConcurrentSequencerService}.</p>
+ *
  * @author Qingtian Wang
+ * @version $Id: $Id
  */
 @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
@@ -41,6 +44,11 @@ import java.util.logging.Level;
         this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
     }
 
+    /**
+     * <p>To get a new fluent builder.</p>
+     *
+     * @return a new {@link conseq4j.service.ConseqService.Builder} instance.
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -63,10 +71,18 @@ import java.util.logging.Level;
                 .getCanonicalName(), ex);
     }
 
-    @Override public void execute(Object sequenceKey, Runnable runnable) {
+    /**
+     * {@inheritDoc}
+     *
+     * If no executor is currently running task(s) for the {@code sequenceKey}, an executor will be borrowed from a pool
+     * to execute the {@code task}. Otherwise, if other task(s) of the same/equal {@code sequenceKey} are already being
+     * run by a sequential executor, the {@code task} will be queued by the same in-service executor, and run in the
+     * FIFO order when possible.
+     */
+    @Override public void execute(Object sequenceKey, Runnable task) {
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
-            computedExecutor.execute(runnable);
+            computedExecutor.execute(task);
             return computedExecutor;
         });
     }
@@ -92,6 +108,7 @@ import java.util.logging.Level;
         return pooledExecutor;
     }
 
+    /** {@inheritDoc} */
     @Override public <T> Future<T> submit(Object sequenceKey, Callable<T> task) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
@@ -102,6 +119,7 @@ import java.util.logging.Level;
         return futureHolder.getFuture();
     }
 
+    /** {@inheritDoc} */
     @Override public <T> Future<T> submit(Object sequenceKey, Runnable task, T result) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
@@ -112,6 +130,7 @@ import java.util.logging.Level;
         return futureHolder.getFuture();
     }
 
+    /** {@inheritDoc} */
     @Override public Future<?> submit(Object sequenceKey, Runnable task) {
         FutureHolder<?> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
@@ -122,6 +141,7 @@ import java.util.logging.Level;
         return futureHolder.getFutureUnbounded();
     }
 
+    /** {@inheritDoc} */
     @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
@@ -140,9 +160,9 @@ import java.util.logging.Level;
         return futuresHolder.get();
     }
 
-    @Override
-    public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
-            throws InterruptedException {
+    /** {@inheritDoc} */
+    @Override public <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks,
+            Duration timeout) throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
             RunningTasksCountingExecutorService computedExecutor = computeExecutor(presentSequenceKey, presentExecutor);
@@ -158,6 +178,7 @@ import java.util.logging.Level;
         return futuresHolder.get();
     }
 
+    /** {@inheritDoc} */
     @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
@@ -184,6 +205,7 @@ import java.util.logging.Level;
         }
     }
 
+    /** {@inheritDoc} */
     @Override public <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();

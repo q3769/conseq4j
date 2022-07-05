@@ -20,13 +20,23 @@
 
 package conseq4j.service;
 
+import java.util.concurrent.ThreadPoolExecutor;
+
 /**
+ * Listener on each execution invocation of the target executor.
+ *
  * @author Qingtian Wang
  */
 interface ExecutionListener {
 
+    /**
+     * @see ThreadPoolExecutor#beforeExecute(Thread, Runnable)
+     */
     void beforeEachExecute(Thread taskExecutionThread, Runnable task);
 
+    /**
+     * @see java.util.concurrent.ThreadPoolExecutor#afterExecute(Runnable, Throwable)
+     */
     void afterEachExecute(Runnable task, Throwable taskExecutionError);
 
 }

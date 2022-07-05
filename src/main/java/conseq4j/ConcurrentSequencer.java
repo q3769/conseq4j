@@ -22,10 +22,19 @@ package conseq4j;
 import java.util.concurrent.ExecutorService;
 
 /**
+ * <p>Main API interface to summon a sequential executor by a sequence key. The same/equal sequence key gets back the
+ * same single-thread executor; this ensures task(s) of the same key are executed in the same order as submitted.</p>
+ *
  * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 
+    /**
+     * @param sequenceKey an {@link java.lang.Object} object whose hash code is used to locate and summon the
+     *                    corresponding sequential executor.
+     * @return a {@link java.util.concurrent.ExecutorService} dedicated execute tasks of the same sequence key in the
+     *         same order they are submitted.
+     */
     ExecutorService getSequentialExecutor(Object sequenceKey);
 
 }

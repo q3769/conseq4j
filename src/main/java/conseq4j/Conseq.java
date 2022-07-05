@@ -29,11 +29,19 @@ import java.util.logging.Level;
 import static java.lang.Math.floorMod;
 
 /**
+ * <p>Default implementation of {@code ConcurrentSequencer}.</p>
+ *
  * @author Qingtian Wang
  */
 @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
+    /**
+     * Default global concurrency is set to {@code Integer.MAX_VALUE}
+     */
     public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
+    /**
+     * Default task queue size for an executor set to {@code Integer.MAX_VALUE}
+     */
     public static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
     private static final int SINGLE_THREAD_COUNT = 1;
     private static final long KEEP_ALIVE_SAME_THREAD = 0L;
@@ -47,6 +55,11 @@ import static java.lang.Math.floorMod;
         this.sequentialExecutors = new ConcurrentHashMap<>();
     }
 
+    /**
+     * <p>To get a new fluent builder.</p>
+     *
+     * @return a new {@link conseq4j.Conseq.Builder} instance.
+     */
     public static Builder newBuilder() {
         return new Builder();
     }
@@ -56,6 +69,9 @@ import static java.lang.Math.floorMod;
                 TimeUnit.MILLISECONDS, blockingTaskQueue);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
             if (executor != null) {

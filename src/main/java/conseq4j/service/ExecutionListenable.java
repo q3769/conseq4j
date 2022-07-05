@@ -21,12 +21,22 @@
 package conseq4j.service;
 
 /**
+ * Executor whose execution can be listened by {@code ExecutionListener}(s)
+ *
  * @author Qingtian Wang
  */
 interface ExecutionListenable {
 
+    /**
+     * <p>Add a {@code ExecutionListener}</p>
+     *
+     * @param executionListener a {@link conseq4j.service.ExecutionListener} object.
+     */
     void addListener(ExecutionListener executionListener);
 
+    /**
+     * <p>Remove all {@code ExecutionListener}s.</p>
+     */
     void clearListeners();
 
 }
