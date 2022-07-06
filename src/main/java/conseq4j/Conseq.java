@@ -100,6 +100,10 @@ import static java.lang.Math.floorMod;
         private Builder() {
         }
 
+        /**
+         * @param globalConcurrency max global concurrency i.e. the max number of sequential executors.
+         * @return
+         */
         public Builder globalConcurrency(int globalConcurrency) {
             if (globalConcurrency <= 0)
                 throw new IllegalArgumentException(
@@ -108,6 +112,10 @@ import static java.lang.Math.floorMod;
             return this;
         }
 
+        /**
+         * @param executorTaskQueueSize for each sequential executor
+         * @return
+         */
         public Builder executorTaskQueueSize(int executorTaskQueueSize) {
             if (executorTaskQueueSize <= 0)
                 throw new IllegalArgumentException(

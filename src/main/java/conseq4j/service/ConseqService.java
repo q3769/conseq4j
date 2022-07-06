@@ -269,6 +269,10 @@ import java.util.logging.Level;
             return conseqService;
         }
 
+        /**
+         * @param executorTaskQueueCapacity for each sequential executor.
+         * @return
+         */
         public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
             if (executorTaskQueueCapacity != DEFAULT_TASK_QUEUE_CAPACITY) {
                 log.log(Level.WARNING,
@@ -278,6 +282,11 @@ import java.util.logging.Level;
             return this;
         }
 
+        /**
+         * @param globalConcurrency enforced by the max number of executors that can be borrowed from the executor
+         *                          pool.
+         * @return
+         */
         public Builder globalConcurrency(int globalConcurrency) {
             this.globalConcurrency = globalConcurrency;
             return this;
