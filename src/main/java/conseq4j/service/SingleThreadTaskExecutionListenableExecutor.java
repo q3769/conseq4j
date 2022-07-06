@@ -17,35 +17,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package conseq4j.service;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import lombok.ToString;
+import lombok.extern.java.Log;
+
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Sequential task executing and asynchronously listenable executor.
+ *
  * @author Qingtian Wang
  */
-abstract class AsyncListenableExecutorService extends ListenableExecutorServiceTemplate {
+@Log @ToString(callSuper = true) class SingleThreadTaskExecutionListenableExecutor
+        extends AsyncTaskExecutionListenableExecutor {
 
-    private static final boolean FIFO_LISTENING_TASKS = true;
-    private final Executor listeningThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
-            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, FIFO_LISTENING_TASKS);
-
-    AsyncListenableExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-            BlockingQueue<Runnable> workQueue) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-    }
-
-    /** {@inheritDoc} */
-    @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
-        listeningThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
-    }
-
-    /** {@inheritDoc} */
-    @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
-        listeningThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
+    SingleThreadTaskExecutionListenableExecutor(int taskQueueSize) {
+        super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
     }
 }

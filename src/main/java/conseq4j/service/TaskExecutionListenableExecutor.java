@@ -30,85 +30,92 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingtian Wang
  */
-abstract class ListenableExecutorServiceTemplate extends ThreadPoolExecutor implements ExecutionListenable {
+class TaskExecutionListenableExecutor extends ThreadPoolExecutor implements ExecutionListenable {
 
-    protected final List<ExecutionListener> executionListeners = Collections.synchronizedList(new ArrayList<>());
+    protected final List<TaskExecutionListener> taskExecutionListeners = Collections.synchronizedList(new ArrayList<>());
 
     /**
-     * <p>Constructor for ListenableExecutorServiceTemplate.</p>
-     *
      * @see ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue)
-     * @param corePoolSize a int.
-     * @param maximumPoolSize a int.
-     * @param keepAliveTime a long.
-     * @param unit a {@link java.util.concurrent.TimeUnit} object.
-     * @param workQueue a {@link java.util.concurrent.BlockingQueue} object.
      */
-    protected ListenableExecutorServiceTemplate(int corePoolSize, int maximumPoolSize, long keepAliveTime,
-            TimeUnit unit, BlockingQueue<Runnable> workQueue) {
+    protected TaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+            BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    abstract void doBeforeExecute(Thread taskExecutionThread, Runnable task);
-
-    abstract void doAfterExecute(Runnable task, Throwable taskExecutionError);
-
     /**
-     * <p>Notify all listeners before each execute.</p>
+     * Called before each execution, prior to notifying listener(s). Default to no-op.
      *
      * @see ThreadPoolExecutor#beforeExecute(Thread, Runnable)
-     * @param taskExecutionThread a {@link java.lang.Thread} object.
-     * @param task a {@link java.lang.Runnable} object.
+     */
+    protected void doBeforeExecute(Thread taskExecutionThread, Runnable task) {
+        // no-op
+    }
+
+    /**
+     * Called after each execution, prior to notifying listener(s). Default to no-op.
+     *
+     * @see ThreadPoolExecutor#afterExecute(Runnable, Throwable)
+     */
+    protected void doAfterExecute(Runnable task, Throwable taskExecutionError) {
+        // no-op
+    }
+
+    /**
+     * @see ThreadPoolExecutor#beforeExecute(Thread, Runnable)
      */
     protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
-        synchronized (executionListeners) {
-            if (executionListeners.isEmpty()) {
+        synchronized (taskExecutionListeners) {
+            if (taskExecutionListeners.isEmpty()) {
                 return;
             }
-            executionListeners.forEach(
-                    executionListener -> executionListener.beforeEachExecute(taskExecutionThread, task));
+            taskExecutionListeners.forEach(
+                    taskExecutionListener -> taskExecutionListener.beforeExecute(taskExecutionThread, task));
         }
     }
 
     /**
-     * <p>Notify all listeners after each execute.</p>
-     *
      * @see ThreadPoolExecutor#afterExecute(Runnable, Throwable)
-     * @param task a {@link java.lang.Runnable} object.
-     * @param taskExecutionError a {@link java.lang.Throwable} object.
      */
     protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
-        synchronized (executionListeners) {
-            if (executionListeners.isEmpty()) {
+        synchronized (taskExecutionListeners) {
+            if (taskExecutionListeners.isEmpty()) {
                 return;
             }
-            executionListeners.forEach(
-                    executionListener -> executionListener.afterEachExecute(task, taskExecutionError));
+            taskExecutionListeners.forEach(
+                    taskExecutionListener -> taskExecutionListener.afterExecute(task, taskExecutionError));
         }
     }
 
-    /** {@inheritDoc} */
-    @Override protected void beforeExecute(Thread t, Runnable r) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override protected final void beforeExecute(Thread t, Runnable r) {
         doBeforeExecute(t, r);
         super.beforeExecute(t, r);
         notifyListenersBeforeExecute(t, r);
     }
 
-    /** {@inheritDoc} */
-    @Override protected void afterExecute(Runnable r, Throwable t) {
+    /**
+     * {@inheritDoc}
+     */
+    @Override protected final void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         doAfterExecute(r, t);
         notifyListenersAfterExecute(r, t);
     }
 
-    /** {@inheritDoc} */
-    @Override public void addListener(ExecutionListener executionListener) {
-        executionListeners.add(executionListener);
+    /**
+     * {@inheritDoc}
+     */
+    @Override public void addListener(TaskExecutionListener taskExecutionListener) {
+        taskExecutionListeners.add(taskExecutionListener);
     }
 
-    /** {@inheritDoc} */
+    /**
+     * {@inheritDoc}
+     */
     @Override public void clearListeners() {
-        this.executionListeners.clear();
+        this.taskExecutionListeners.clear();
     }
 
 }

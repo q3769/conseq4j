@@ -24,43 +24,55 @@ import lombok.extern.java.Log;
 import org.apache.commons.pool2.ObjectPool;
 
 import java.util.concurrent.ConcurrentMap;
+import java.util.function.BiFunction;
 import java.util.logging.Level;
 
 /**
- * Returns in-service executor back to pool when there is no submitted tasks pending to run.
+ * Returns in-service executor back to pool when there is no more submitted tasks pending to run.
  *
  * @author Qingtian Wang
  */
-@Log @ToString class SweepingExecutorServiceListener implements ExecutionListener {
+@Log @ToString class ExecutorSweepingTaskExecutionListener implements TaskExecutionListener {
 
     private final Object sequenceKey;
-    private final ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors;
-    private final ObjectPool<RunningTasksCountingExecutorService> executorPool;
+    private final ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors;
+    private final ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool;
 
     /**
      * @param sequenceKey                  the sequence key whose corresponding executor is under operation.
      * @param servicingSequentialExecutors map of all in-service executors keyed on their sequence keys.
      * @param executorPool                 executor pool.
      */
-    public SweepingExecutorServiceListener(Object sequenceKey,
-            ConcurrentMap<Object, RunningTasksCountingExecutorService> servicingSequentialExecutors,
-            ObjectPool<RunningTasksCountingExecutorService> executorPool) {
+    public ExecutorSweepingTaskExecutionListener(Object sequenceKey,
+            ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors,
+            ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool) {
         this.sequenceKey = sequenceKey;
         this.servicingSequentialExecutors = servicingSequentialExecutors;
         this.executorPool = executorPool;
     }
 
     /**
-     * {@inheritDoc}
+     * This should return accurate (rather than approximate) count when invoked synchronously from inside
+     * {@link ConcurrentMap#compute(Object, BiFunction)}
      */
-    @Override public void beforeEachExecute(Thread taskExecutionThread, Runnable task) {
-        // no-op
+    private static long pendingTaskCountOf(SingleThreadTaskExecutionListenableExecutor presentExecutor) {
+        long pendingTaskCount = presentExecutor.getTaskCount() - presentExecutor.getCompletedTaskCount();
+        log.log(Level.FINE, () -> pendingTaskCount + " task(s) submitted to yet not finished by " + presentExecutor);
+        return pendingTaskCount;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public void afterEachExecute(Runnable task, Throwable taskExecutionError) {
+    @Override public void beforeExecute(Thread taskExecutionThread, Runnable task) {
+        // no-op
+    }
+
+    /**
+     * Check and return in-service executor back to pool. Invoked at the end of each task execution to ensure no idle
+     * executors linger in the active-servicing map.
+     */
+    @Override public void afterExecute(Runnable task, Throwable taskExecutionError) {
         sweepOrKeepSequentialExecutorInService(task, taskExecutionError);
     }
 
@@ -74,7 +86,7 @@ import java.util.logging.Level;
                         + " already swept off of service by another listener");
                 return null;
             }
-            if (presentExecutor.getRunningTaskCount() == 0) {
+            if (pendingTaskCountOf(presentExecutor) == 0) {
                 log.log(Level.FINE, () -> "sweeping " + presentExecutor + " off of service");
                 try {
                     executorPool.returnObject(presentExecutor);

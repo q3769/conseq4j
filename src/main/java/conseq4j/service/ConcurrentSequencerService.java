@@ -28,14 +28,9 @@ import java.util.concurrent.*;
 public interface ConcurrentSequencerService {
 
     /**
-     * <p>execute.</p>
-     *
-     * @param sequenceKey an {@link java.lang.Object} whose hash code is used to locate a corresponding sequential
-     *                    executor.
-     * @param runnable    a {@link java.lang.Runnable} to be submitted under the {@code sequenceKey}.
      * @see java.util.concurrent.ExecutorService#execute(Runnable)
      */
-    void execute(Object sequenceKey, Runnable runnable);
+    void execute(Object sequenceKey, Runnable command);
 
     /**
      * @see java.util.concurrent.ExecutorService#submit(Callable)

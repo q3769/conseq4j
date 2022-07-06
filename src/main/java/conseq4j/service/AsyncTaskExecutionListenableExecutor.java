@@ -17,45 +17,39 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package conseq4j.service;
 
-import lombok.ToString;
-import lombok.extern.java.Log;
-
 import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author Qingtian Wang
  */
-@Log @ToString(callSuper = true) class RunningTasksCountingExecutorService extends AsyncListenableExecutorService {
+class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecutor {
 
-    private final AtomicInteger runningTaskCount = new AtomicInteger();
+    private static final boolean FIFO_LISTENING_TASKS = true;
+    private final Executor listeningThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
+            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, FIFO_LISTENING_TASKS);
 
-    RunningTasksCountingExecutorService(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    AsyncTaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
-    static RunningTasksCountingExecutorService singleThreadedWithTaskQueueSize(int taskQueueSize) {
-        return new RunningTasksCountingExecutorService(1, 1, 0L, TimeUnit.MILLISECONDS,
-                new LinkedBlockingQueue<>(taskQueueSize));
+    /**
+     * {@inheritDoc}
+     */
+    @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
+        listeningThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
     }
 
     /**
-     * @return count of tasks submitted yet not finished.
+     * {@inheritDoc}
      */
-    public int getRunningTaskCount() {
-        return runningTaskCount.get();
-    }
-
-    @Override void doBeforeExecute(Thread taskExecutionThread, Runnable task) {
-        runningTaskCount.incrementAndGet();
-    }
-
-    @Override void doAfterExecute(Runnable task, Throwable taskExecutionError) {
-        runningTaskCount.decrementAndGet();
+    @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
+        listeningThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
     }
 }

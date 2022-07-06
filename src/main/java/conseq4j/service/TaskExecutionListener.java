@@ -25,16 +25,16 @@ package conseq4j.service;
  *
  * @author Qingtian Wang
  */
-interface ExecutionListener {
+interface TaskExecutionListener {
 
     /**
      * @see java.util.concurrent.ThreadPoolExecutor#beforeExecute(Thread, Runnable)
      */
-    void beforeEachExecute(Thread taskExecutionThread, Runnable task);
+    void beforeExecute(Thread taskExecutionThread, Runnable task);
 
     /**
      * @see java.util.concurrent.ThreadPoolExecutor#afterExecute(Runnable, Throwable)
      */
-    void afterEachExecute(Runnable task, Throwable taskExecutionError);
+    void afterExecute(Runnable task, Throwable taskExecutionError);
 
 }

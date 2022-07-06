@@ -21,21 +21,21 @@
 package conseq4j.service;
 
 /**
- * Executor whose execution can be listened by {@code ExecutionListener}(s)
+ * Executor whose execution can be listened by {@code TaskExecutionListener}(s)
  *
  * @author Qingtian Wang
  */
 interface ExecutionListenable {
 
     /**
-     * <p>Add a {@code ExecutionListener}</p>
+     * <p>Add a {@code TaskExecutionListener}</p>
      *
-     * @param executionListener a {@link conseq4j.service.ExecutionListener} object.
+     * @param taskExecutionListener a {@link TaskExecutionListener} object.
      */
-    void addListener(ExecutionListener executionListener);
+    void addListener(TaskExecutionListener taskExecutionListener);
 
     /**
-     * <p>Remove all {@code ExecutionListener}s.</p>
+     * <p>Remove all {@code TaskExecutionListener}s.</p>
      */
     void clearListeners();
 
