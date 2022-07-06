@@ -69,8 +69,8 @@ import java.util.logging.Level;
     }
 
     /**
-     * Check and return in-service executor back to pool. Invoked after each task execution to ensure no idle executors
-     * linger in the active-servicing executor map.
+     * Checks and returns in-service executor back to pool if the executor has no more pending/submitted task to run.
+     * Invoked after each task execution to ensure no idle executor lingers in the map of active-servicing executors.
      */
     @Override public void afterExecute(Runnable task, Throwable taskExecutionError) {
         sweepOrKeepSequentialExecutorInService(task, taskExecutionError);
