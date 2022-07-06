@@ -7,13 +7,9 @@ A Java concurrent API to sequence related tasks while concurring unrelated ones,
 
 ## User stories
 
-1. As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related
-   tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
-   sequence keys can be executed concurrently by different executors.
-
-2. As a client of this Java concurrent API, I want to submit my runnable/callable tasks together with a sequence key,
-   so that all related tasks with the same sequence key are executed sequentially while unrelated tasks with different
-   sequence keys are executed concurrently.
+As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related
+tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
+sequence keys can be executed concurrently by different executors.
 
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
 execution order at the same time.
@@ -30,31 +26,22 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220706.0.0</version>
+    <version>20220707.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220706.0.0'
+implementation 'io.github.q3769:conseq4j:20220707.0.0'
 ```
 
 ## Use it...
 
-### Style 1 - Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+Summon a sequential executor by its sequence key, and use the executor as with a
+JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 
-The implementation of this style relies on further hashing of the sequence key's hash code into a fixed number of
-"buckets". These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key
-summons and always gets back the same sequential executor which ensures execution order of its tasks.
-
-As with hashing, collision may occur among different sequence keys. When hash collision heppens, different sequence
-keys' tasks are assigned to the same executor. In that case, while the local execution order for each indivdiual
-sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly block/delay each other
-from executing. With the benefit of fewer synchronization checks, though, this style may better suit workloads that
-are completely asynchronous and more sensitive on overall system throughput.
-
-#### The API:
+### The API:
 
 ```
 public interface ConcurrentSequencer {
@@ -62,7 +49,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-#### Usage example:
+### Usage example:
 
 ```
 public class MessageConsumer {
@@ -85,75 +72,6 @@ public class MessageConsumer {
         
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
-    }
-    ...
-```
-
-### Style 2 - Submit [Runnable](https://docs.oracle.com/javase/8/docs/api/java/lang/Runnable.html)/[Callable](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Callable.html) task(s) together with a sequence key, directly using the conseq4j API as a service similar to the JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
-
-This style further decouples the runnable tasks from their executors, by avoiding the secondary bucket hashing. The
-sequence key's hash code is directly used to locate the corresponding (pooled) sequential executor.
-
-This prevents unrelated tasks from unfairly blocking each other from executing due to hash collisions. The only
-factor that may still limit/delay task execution would be the maximum global concurrency i.e. the maximum number
-of concurrent executors configured via the API. The trade-off of this setup, though, is that more synchronization
-checks exist. This style may better suit workloads that involve synchronous waits on concurrent processes and are
-more sensitive on individual task's immediate execution when submitted.
-
-#### The API:
-
-```
-public interface ConcurrentSequencerService {
-
-    void execute(Runnable command, Object sequenceKey);
-
-    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
-
-    <T> Future<T> submit(Runnable task, T result, Object sequenceKey);
-
-    Future<?> submit(Runnable task, Object sequenceKey);
-
-    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Object sequenceKey) throws InterruptedException;
-
-    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey) throws InterruptedException;
-
-    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Object sequenceKey) throws InterruptedException, ExecutionException;
-
-    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey) throws InterruptedException, ExecutionException, TimeoutException;
-
-}
-```
-
-#### Usage example:
-
-```
-public class MessageConsumer {
-
-    private ConcurrentSequencerService conseqService = ConseqService.newBuilder().globalConcurrency(10).build();
-    
-    @Autowired
-    private ShoppingEventSubmittableAssembler shoppingEventSubmittableAssembler;
-    
-    /**
-     * Suppose run-time invocation of this method is managed by the messaging provider. 
-     * This is usually via a single calling thread.
-     */
-    public void onMessage(Message shoppingEvent) {
-        try {
-                
-            // conseq4j API as a service - concurrently process inventory and payment tasks, preserving local 
-            // order/sequence per each sequence key
-            
-            List<Future<InventoryResult>> sequencedInventoryResults = conseqService.invokeAll(
-                    shoppingEventSubmittableAssembler.makeSequencedInventoryProcessingCallables(shoppingEvent),
-                    shoppingEvent.getInventoryId());
-            List<Future<PaymentResult>> sequencedPaymentResults = conseqService.invokeAll(
-                    shoppingEventSubmittableAssembler.makeSequencedPaymentProcessingCallables(shoppingEvent),
-                    shoppingEvent.getPaymentId());
-            ...          
-        } catch(InterruptedException e) {
-            ...
-        }
     }
     ...
 ```
