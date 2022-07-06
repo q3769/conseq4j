@@ -30,45 +30,45 @@ public interface ConcurrentSequencerService {
     /**
      * @see java.util.concurrent.ExecutorService#execute(Runnable)
      */
-    void execute(Object sequenceKey, Runnable command);
+    void execute(Runnable command, Object sequenceKey);
 
     /**
      * @see java.util.concurrent.ExecutorService#submit(Callable)
      */
-    <T> Future<T> submit(Object sequenceKey, Callable<T> task);
+    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 
     /**
      * @see java.util.concurrent.ExecutorService#submit(Runnable, Object)
      */
-    <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
+    <T> Future<T> submit(Runnable task, T result, Object sequenceKey);
 
     /**
      * @see java.util.concurrent.ExecutorService#submit(Runnable)
      */
-    Future<?> submit(Object sequenceKey, Runnable task);
+    Future<?> submit(Runnable task, Object sequenceKey);
 
     /**
      * @see java.util.concurrent.ExecutorService#invokeAll(Collection)
      */
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Object sequenceKey)
             throws InterruptedException;
 
     /**
      * @see java.util.concurrent.ExecutorService#invokeAll(Collection, long, TimeUnit)
      */
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey)
             throws InterruptedException;
 
     /**
      * @see ExecutorService#invokeAny(Collection)
      */
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks)
+    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Object sequenceKey)
             throws InterruptedException, ExecutionException;
 
     /**
      * @see ExecutorService#invokeAny(Collection, long, TimeUnit)
      */
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout)
+    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey)
             throws InterruptedException, ExecutionException, TimeoutException;
 
 }

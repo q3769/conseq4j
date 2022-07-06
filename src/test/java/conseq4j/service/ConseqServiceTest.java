@@ -82,7 +82,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         List<Future<SpyingTask>> futures = new ArrayList<>();
         createSpyingTasks(TASK_COUNT).forEach(
-                task -> futures.add(defaultConseq.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+                task -> futures.add(defaultConseq.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
 
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
@@ -95,7 +95,7 @@ import static org.junit.jupiter.api.Assertions.*;
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
-                lowConcurrencyService.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+                lowConcurrencyService.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
         awaitAllComplete(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
@@ -103,7 +103,7 @@ import static org.junit.jupiter.api.Assertions.*;
         List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
-                highConcurrencyService.submit(UUID.randomUUID(), (Callable<SpyingTask>) task)));
+                highConcurrencyService.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
@@ -123,7 +123,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(sameSequenceKey, tasks);
+        final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(tasks, sameSequenceKey);
         log.log(Level.INFO, () -> "Done single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
@@ -139,7 +139,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        SpyingTask doneTask = defaultConseq.invokeAny(sameSequenceKey, tasks);
+        SpyingTask doneTask = defaultConseq.invokeAny(tasks, sameSequenceKey);
         log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
@@ -157,7 +157,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        tasks.forEach(task -> defaultConseq.execute(sameSequenceKey, task));
+        tasks.forEach(task -> defaultConseq.execute(task, sameSequenceKey));
         log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
@@ -175,7 +175,7 @@ import static org.junit.jupiter.api.Assertions.*;
         UUID sameSequenceKey = UUID.randomUUID();
 
         try {
-            tasks.forEach(task -> taskQueueCapacityLimited.execute(sameSequenceKey, task));
+            tasks.forEach(task -> taskQueueCapacityLimited.execute(task, sameSequenceKey));
         } catch (RejectedExecutionException e) {
             log.log(Level.WARNING,
                     "almost never a good idea to limit task queue capacity; unless you intend to reject excessive tasks that the task queue cannot hold, consider default/unbounded capacity instead",

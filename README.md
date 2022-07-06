@@ -30,14 +30,14 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220607.0.9</version>
+    <version>20220706.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220607.0.9'
+implementation 'io.github.q3769:conseq4j:20220706.0.0'
 ```
 
 ## Use it...
@@ -62,7 +62,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-#### The usage example:
+#### Usage example:
 
 ```
 public class MessageConsumer {
@@ -86,7 +86,6 @@ public class MessageConsumer {
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
     }
-
     ...
 ```
 
@@ -106,26 +105,26 @@ execution when submitted.
 ```
 public interface ConcurrentSequencerService {
 
-    void execute(Object sequenceKey, Runnable command);
+    void execute(Runnable command, Object sequenceKey);
 
-    <T> Future<T> submit(Object sequenceKey, Callable<T> task);
+    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 
-    <T> Future<T> submit(Object sequenceKey, Runnable task, T result);
+    <T> Future<T> submit(Runnable task, T result, Object sequenceKey);
 
-    Future<?> submit(Object sequenceKey, Runnable task);
+    Future<?> submit(Runnable task, Object sequenceKey);
 
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException;
+    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Object sequenceKey) throws InterruptedException;
 
-    <T> List<Future<T>> invokeAll(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout) throws InterruptedException;
+    <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey) throws InterruptedException;
 
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException;
+    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Object sequenceKey) throws InterruptedException, ExecutionException;
 
-    <T> T invokeAny(Object sequenceKey, Collection<? extends Callable<T>> tasks, Duration timeout) throws InterruptedException, ExecutionException, TimeoutException;
+    <T> T invokeAny(Collection<? extends Callable<T>> tasks, Duration timeout, Object sequenceKey) throws InterruptedException, ExecutionException, TimeoutException;
 
 }
 ```
 
-#### The usage example:
+#### Usage example:
 
 ```
 public class MessageConsumer {
@@ -145,13 +144,12 @@ public class MessageConsumer {
             // conseq4j API as a service - concurrently process inventory and payment tasks, preserving local 
             // order/sequence per each sequence key
             
-            List<Future<InventoryResult>> sequencedInventoryResults = 
-                    conseqService.invokeAll(shoppingEvent.getInventoryId(), 
-                    shoppingEventSubmittableAssembler.makeSequencedInventoryProcessingCallables(shoppingEvent));
-            List<Future<PaymentResult>> sequencedPaymentResults = 
-                    conseqService.invokeAll(shoppingEvent.getPaymentId(), 
-                    shoppingEventSubmittableAssembler.makeSequencedPaymentProcessingCallables(shoppingEvent));
-
+            List<Future<InventoryResult>> sequencedInventoryResults = conseqService.invokeAll(
+                    shoppingEventSubmittableAssembler.makeSequencedInventoryProcessingCallables(shoppingEvent),
+                    shoppingEvent.getInventoryId());
+            List<Future<PaymentResult>> sequencedPaymentResults = conseqService.invokeAll(
+                    shoppingEventSubmittableAssembler.makeSequencedPaymentProcessingCallables(shoppingEvent),
+                    shoppingEvent.getPaymentId());
             ...          
         } catch(InterruptedException e) {
             ...
