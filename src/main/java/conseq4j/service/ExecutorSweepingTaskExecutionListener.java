@@ -69,8 +69,9 @@ import java.util.logging.Level;
     }
 
     /**
-     * Checks and returns in-service executor back to pool if the executor has no more pending/submitted task to run.
-     * Invoked after each task execution to ensure no idle executor lingers in the map of active-servicing executors.
+     * Checks and returns the executor for {@link this#sequenceKey} back to pool if the executor has no more
+     * pending/submitted task to run. Invoked after the finish of each task execution to ensure no idle executors linger
+     * in the map of actively in-service executors.
      */
     @Override public void afterExecute(Runnable task, Throwable taskExecutionError) {
         sweepOrKeepSequentialExecutorInService(task, taskExecutionError);
