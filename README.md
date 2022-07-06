@@ -52,7 +52,7 @@ As with hashing, collision may occur among different sequence keys. When hash co
 keys' tasks are assigned to the same executor. In that case, while the local execution order for each indivdiual
 sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly block/delay each other
 from executing. With the benefit of fewer synchronization checks, though, this style may better suit workloads that
-are more sensitive on overall system throughput.
+are completely asynchronous and more sensitive on overall system throughput.
 
 #### The API:
 
@@ -97,8 +97,8 @@ sequence key's hash code is directly used to locate the corresponding (pooled) s
 This prevents unrelated tasks from unfairly blocking each other from executing due to hash collisions. The only
 factor that may still limit/delay task execution would be the maximum global concurrency i.e. the maximum number
 of concurrent executors configured via the API. The trade-off of this setup, though, is that more synchronization
-checks exist. This style may better suit workloads that are more sensitive on individual task's immediate
-execution when submitted.
+checks exist. This style may better suit workloads that involve synchronous waits on concurrent processes and are
+more sensitive on individual task's immediate execution when submitted.
 
 #### The API:
 
