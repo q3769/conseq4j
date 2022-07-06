@@ -106,7 +106,7 @@ execution when submitted.
 ```
 public interface ConcurrentSequencerService {
 
-    void execute(Object sequenceKey, Runnable runnable);
+    void execute(Object sequenceKey, Runnable command);
 
     <T> Future<T> submit(Object sequenceKey, Callable<T> task);
 
