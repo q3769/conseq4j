@@ -22,7 +22,7 @@ package conseq4j.service;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.Executor;
-import java.util.concurrent.ForkJoinPool;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -30,9 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecutor {
 
-    private static final boolean FIFO_LISTENING_TASKS = true;
-    private final Executor listeningThreadPool = new ForkJoinPool(Runtime.getRuntime().availableProcessors(),
-            ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, FIFO_LISTENING_TASKS);
+    private final Executor listenerThreadPool = Executors.newWorkStealingPool();
 
     AsyncTaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
@@ -43,13 +41,13 @@ class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecut
      * {@inheritDoc}
      */
     @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
-        listeningThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
+        listenerThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
     }
 
     /**
      * {@inheritDoc}
      */
     @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
-        listeningThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
+        listenerThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
     }
 }
