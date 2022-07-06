@@ -52,7 +52,7 @@ import java.util.logging.Level;
     }
 
     /**
-     * This should return accurate (rather than approximate) count when invoked synchronously from inside
+     * This should return accurate (rather than approximate) count when invoked from inside a synchronized scope like
      * {@link ConcurrentMap#compute(Object, BiFunction)}
      */
     private static long pendingTaskCountOf(SingleThreadTaskExecutionListenableExecutor presentExecutor) {
