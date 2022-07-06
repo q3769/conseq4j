@@ -31,7 +31,6 @@ import java.util.logging.Level;
  * <p>Default implementation of {@code ConcurrentSequencerService}.</p>
  *
  * @author Qingtian Wang
- * @version $Id: $Id
  */
 @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
