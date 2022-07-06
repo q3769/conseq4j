@@ -91,19 +91,19 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void concurrencyBoundedByMaxConcurrency() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
+        Conseq lowConcurrencyConseq = Conseq.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
-                lowConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
+                lowConcurrencyConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
         awaitAllComplete(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        Conseq highConcurrencyService = Conseq.newBuilder().globalConcurrency(TASK_COUNT).build();
+        Conseq highConcurrencyConseq = Conseq.newBuilder().globalConcurrency(TASK_COUNT).build();
         List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
-                highConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
+                highConcurrencyConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
@@ -135,6 +135,7 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         ConcurrentSequencer defaultConseq = Conseq.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        Collections.shuffle(tasks);
         UUID sameSequenceKey = UUID.randomUUID();
 
         log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
