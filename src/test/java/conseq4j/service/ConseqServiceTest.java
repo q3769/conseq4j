@@ -210,7 +210,7 @@ import static org.junit.jupiter.api.Assertions.*;
         for (int i = 0; i < tasks.size() - 1; i++) {
             final Instant currentEnd = tasks.get(i).getRunEnd();
             final Instant nextStart = tasks.get(i + 1).getRunStart();
-            assertFalse(currentEnd.isAfter(nextStart));
+            assertTrue(currentEnd.isBefore(nextStart));
         }
         log.log(Level.INFO, "{0} tasks executed sequentially in chronological order", tasks.size());
     }
