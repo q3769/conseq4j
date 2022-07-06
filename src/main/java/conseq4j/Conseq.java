@@ -101,10 +101,10 @@ import java.util.logging.Level;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
 
         public Conseq build() {
-            log.log(Level.INFO, "building conseq service using {0}", this);
-            final Conseq conseqService = new Conseq(this);
-            log.log(Level.FINEST, () -> "built " + conseqService);
-            return conseqService;
+            log.log(Level.INFO, "building conseq using {0}", this);
+            final Conseq conseq = new Conseq(this);
+            log.log(Level.FINEST, () -> "built " + conseq);
+            return conseq;
         }
 
         /**

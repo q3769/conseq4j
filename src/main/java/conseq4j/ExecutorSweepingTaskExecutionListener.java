@@ -55,9 +55,9 @@ import java.util.logging.Level;
      * This should return accurate (rather than approximate) count when invoked from inside a synchronized scope like
      * {@link ConcurrentMap#compute(Object, BiFunction)}
      */
-    private static long pendingTaskCountOf(SingleThreadTaskExecutionListenableExecutor presentExecutor) {
-        long pendingTaskCount = presentExecutor.getTaskCount() - presentExecutor.getCompletedTaskCount();
-        log.log(Level.FINE, () -> pendingTaskCount + " task(s) submitted to yet not finished by " + presentExecutor);
+    private static long pendingTaskCountOf(SingleThreadTaskExecutionListenableExecutor executor) {
+        long pendingTaskCount = executor.getTaskCount() - executor.getCompletedTaskCount();
+        log.log(Level.FINE, () -> pendingTaskCount + " task(s) submitted to yet not finished by " + executor);
         return pendingTaskCount;
     }
 
