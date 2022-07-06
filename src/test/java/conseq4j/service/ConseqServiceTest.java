@@ -212,6 +212,6 @@ import static org.junit.jupiter.api.Assertions.*;
             final Instant nextStart = tasks.get(i + 1).getRunStart();
             assertFalse(currentEnd.isAfter(nextStart));
         }
-        log.log(Level.INFO, "{0} tasks executed sequentially in chronical order", tasks.size());
+        log.log(Level.INFO, "{0} tasks executed sequentially in chronological order", tasks.size());
     }
 }
