@@ -32,8 +32,8 @@ public interface ConcurrentSequencer {
     /**
      * @param sequenceKey an {@link java.lang.Object} object whose hash code is used to locate and summon the
      *                    corresponding sequential executor.
-     * @return a {@link java.util.concurrent.ExecutorService} dedicated execute tasks of the same sequence key in the
-     *         same order they are submitted.
+     * @return a {@link java.util.concurrent.ExecutorService} where dedicated execute tasks of the same sequence key in
+     *         the same order they are submitted.
      */
     ExecutorService getSequentialExecutor(Object sequenceKey);
 

@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 Qingtian Wang.
+ * Copyright 2022 Qingtian Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,25 +17,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package conseq4j;
 
-import lombok.ToString;
-
-import java.time.Duration;
-import java.util.concurrent.Callable;
-
 /**
- * @author q3769
+ * Executor whose execution can be listened by {@code TaskExecutionListener}(s)
+ *
+ * @author Qingtian Wang
  */
-@ToString(callSuper = true) class SpyingCallableTask extends SpyingTaskTemplate implements Callable<SpyingTaskPayload> {
+interface ExecutionListenable {
 
-    public SpyingCallableTask(SpyingTaskPayload taskData, Duration taskRunDuration) {
-        super(taskData, taskRunDuration);
-    }
+    /**
+     * <p>Add a {@code TaskExecutionListener}</p>
+     *
+     * @param taskExecutionListener a {@link conseq4j.TaskExecutionListener} object.
+     */
+    void addListener(TaskExecutionListener taskExecutionListener);
 
-    @Override public SpyingTaskPayload call() throws Exception {
-        doRun();
-        return this.taskData;
-    }
+    /**
+     * <p>Remove all {@code TaskExecutionListener}s.</p>
+     */
+    void clearListeners();
 
 }

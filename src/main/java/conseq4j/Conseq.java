@@ -21,12 +21,14 @@ package conseq4j;
 
 import lombok.ToString;
 import lombok.extern.java.Log;
+import org.apache.commons.pool2.ObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPool;
+import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 
-import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
 import java.util.logging.Level;
-
-import static java.lang.Math.floorMod;
 
 /**
  * <p>Default implementation of {@code ConcurrentSequencer}.</p>
@@ -35,24 +37,28 @@ import static java.lang.Math.floorMod;
  */
 @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
-    /**
-     * Default global concurrency is set to {@code Integer.MAX_VALUE}
-     */
-    public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
-    /**
-     * Default task queue size for an executor set to {@code Integer.MAX_VALUE}
-     */
-    public static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
-    private static final int SINGLE_THREAD_COUNT = 1;
-    private static final long KEEP_ALIVE_SAME_THREAD = 0L;
-    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
-    private final int globalConcurrency;
-    private final int executorTaskQueueSize;
+    private static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
+    private static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
+    private final ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors =
+            new ConcurrentHashMap<>();
+    private final ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool;
 
     private Conseq(Builder builder) {
-        this.globalConcurrency = builder.globalConcurrency;
-        this.executorTaskQueueSize = builder.executorTaskQueueSize;
-        this.sequentialExecutors = new ConcurrentHashMap<>();
+        this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
+    }
+
+    private static PooledSingleThreadExecutorFactory pooledExecutorFactory(Builder builder) {
+        return new PooledSingleThreadExecutorFactory(builder.executorTaskQueueCapacity);
+    }
+
+    private static GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> executorPoolConfig(
+            Builder builder) {
+        final GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> genericObjectPoolConfig =
+                new GenericObjectPoolConfig<>();
+        genericObjectPoolConfig.setMaxTotal(builder.globalConcurrency);
+        genericObjectPoolConfig.setTestOnReturn(VALIDATE_EXECUTOR_ON_RETURN_TO_POOL);
+        return genericObjectPoolConfig;
     }
 
     /**
@@ -64,72 +70,62 @@ import static java.lang.Math.floorMod;
         return new Builder();
     }
 
-    private static ThreadPoolExecutor newSingleThreadExecutor(BlockingQueue<Runnable> blockingTaskQueue) {
-        return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
-                TimeUnit.MILLISECONDS, blockingTaskQueue);
-    }
-
     /**
      * {@inheritDoc}
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
+        return this.servicingSequentialExecutors.compute(sequenceKey, (k, executor) -> {
             if (executor != null) {
                 return executor;
             }
-            return new IrrevocableExecutorService(newSequentialExecutorService());
+            final SingleThreadTaskExecutionListenableExecutor pooledExecutor = borrowPooledExecutor();
+            pooledExecutor.addListener(
+                    new ExecutorSweepingTaskExecutionListener(sequenceKey, servicingSequentialExecutors, executorPool));
+            return pooledExecutor;
         });
     }
 
-    private ExecutorService newSequentialExecutorService() {
-        if (this.executorTaskQueueSize == DEFAULT_EXECUTOR_QUEUE_SIZE) {
-            return Executors.newSingleThreadExecutor();
+    private SingleThreadTaskExecutionListenableExecutor borrowPooledExecutor() {
+        final SingleThreadTaskExecutionListenableExecutor pooledExecutor;
+        try {
+            pooledExecutor = executorPool.borrowObject();
+        } catch (Exception ex) {
+            throw new IllegalStateException("failed to borrow executor from pool " + executorPool, ex);
         }
-        return newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorTaskQueueSize));
+        return pooledExecutor;
     }
 
-    private int bucketOf(Object sequenceKey) {
-        return floorMod(Objects.hash(sequenceKey), this.globalConcurrency);
-    }
+    @ToString @Log public static class Builder {
 
-    public static final class Builder {
-
+        private int executorTaskQueueCapacity = DEFAULT_TASK_QUEUE_CAPACITY;
         private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
-        private int executorTaskQueueSize = DEFAULT_EXECUTOR_QUEUE_SIZE;
-
-        private Builder() {
-        }
-
-        /**
-         * @param globalConcurrency max global concurrency i.e. the max number of sequential executors.
-         * @return
-         */
-        public Builder globalConcurrency(int globalConcurrency) {
-            if (globalConcurrency <= 0)
-                throw new IllegalArgumentException(
-                        "global concurrency has to be greater than zero, but given: " + globalConcurrency);
-            this.globalConcurrency = globalConcurrency;
-            return this;
-        }
-
-        /**
-         * @param executorTaskQueueSize for each sequential executor
-         * @return
-         */
-        public Builder executorTaskQueueSize(int executorTaskQueueSize) {
-            if (executorTaskQueueSize <= 0)
-                throw new IllegalArgumentException(
-                        "executor task queue size has to be greater than zero, but given: " + executorTaskQueueSize);
-            else
-                log.log(Level.WARNING,
-                        "may not be a good idea to limit the size of an executor''s task queue; at runtime any excessive task beyond the given queue size {0} will be rejected unless you set up custom handler. consider using the default/unbounded size instead",
-                        executorTaskQueueSize);
-            this.executorTaskQueueSize = executorTaskQueueSize;
-            return this;
-        }
 
         public Conseq build() {
-            return new Conseq(this);
+            log.log(Level.INFO, "building conseq service using {0}", this);
+            final Conseq conseqService = new Conseq(this);
+            log.log(Level.FINEST, () -> "built " + conseqService);
+            return conseqService;
+        }
+
+        /**
+         * @param executorTaskQueueCapacity for each sequential executor.
+         */
+        public Builder executorTaskQueueCapacity(int executorTaskQueueCapacity) {
+            if (executorTaskQueueCapacity != DEFAULT_TASK_QUEUE_CAPACITY) {
+                log.log(Level.WARNING,
+                        "may not be a good idea to limit task queue capacity. unless you intend to reject and fail all excessive tasks that the executor task queue cannot hold, consider using the default/unbounded capacity instead");
+            }
+            this.executorTaskQueueCapacity = executorTaskQueueCapacity;
+            return this;
+        }
+
+        /**
+         * @param globalConcurrency enforced by the max number of executors that can be borrowed from the executor
+         *                          pool.
+         */
+        public Builder globalConcurrency(int globalConcurrency) {
+            this.globalConcurrency = globalConcurrency;
+            return this;
         }
     }
 }

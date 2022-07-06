@@ -1,6 +1,6 @@
 /*
  * The MIT License
- * Copyright 2021 Qingtian Wang.
+ * Copyright 2022 Qingtian Wang.
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
@@ -17,25 +17,37 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package conseq4j;
 
-import lombok.Data;
-
-import java.util.UUID;
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Qingtian Wang
  */
-@Data public class SpyingTaskPayload {
+class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecutor {
 
-    protected final UUID id = UUID.randomUUID();
-    private final Long correlationKey;
-    private Long runStartTimeNanos;
-    private Long runEndTimeNanos;
-    private String runThreadName;
+    private final Executor listenerThreadPool = Executors.newSingleThreadExecutor();
 
-    public SpyingTaskPayload(Long correlationKey) {
-        this.correlationKey = correlationKey;
+    AsyncTaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+            BlockingQueue<Runnable> workQueue) {
+        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
+        listenerThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
+        listenerThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
+    }
 }

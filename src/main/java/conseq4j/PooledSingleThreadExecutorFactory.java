@@ -17,7 +17,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package conseq4j.service;
+package conseq4j;
 
 import lombok.ToString;
 import lombok.extern.java.Log;
@@ -36,9 +36,7 @@ import java.util.Objects;
     private final int executorTaskQueueCapacity;
 
     /**
-     * <p>Constructor for PooledSingleThreadExecutorFactory.</p>
-     *
-     * @param executorTaskQueueCapacity a int.
+     * @param executorTaskQueueCapacity max task queue depth.
      * @see "{@code workQueue} JavaDoc in {@link java.util.concurrent.ThreadPoolExecutor}"
      */
     public PooledSingleThreadExecutorFactory(int executorTaskQueueCapacity) {
@@ -61,7 +59,7 @@ import java.util.Objects;
     }
 
     /**
-     * {@inheritDoc} Removing any and all information related to previous execution. Ensures all
+     * Removing any and all information related to previous execution. Ensures all
      * {@code SingleThreadTaskExecutionListenableExecutor} instances borrowed from the pool are stateless.
      */
     @Override public void activateObject(PooledObject<SingleThreadTaskExecutionListenableExecutor> p) throws Exception {
@@ -70,7 +68,7 @@ import java.util.Objects;
     }
 
     /**
-     * {@inheritDoc} Executor that is already shutdown is excluded from returning to the pool.
+     * If an executor that is already shutdown, it is excluded from returning to the pool.
      */
     @Override public boolean validateObject(PooledObject<SingleThreadTaskExecutionListenableExecutor> p) {
         SingleThreadTaskExecutionListenableExecutor executorService =

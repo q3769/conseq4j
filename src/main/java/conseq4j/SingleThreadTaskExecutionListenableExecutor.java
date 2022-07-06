@@ -17,37 +17,23 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package conseq4j;
 
-package conseq4j.service;
+import lombok.ToString;
+import lombok.extern.java.Log;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
 /**
+ * Sequential task executing and asynchronously listenable executor.
+ *
  * @author Qingtian Wang
  */
-class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecutor {
+@Log @ToString(callSuper = true) public class SingleThreadTaskExecutionListenableExecutor
+        extends AsyncTaskExecutionListenableExecutor {
 
-    private final Executor listenerThreadPool = Executors.newSingleThreadExecutor();
-
-    AsyncTaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
-            BlockingQueue<Runnable> workQueue) {
-        super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override protected void notifyListenersBeforeExecute(Thread taskExecutionThread, Runnable task) {
-        listenerThreadPool.execute(() -> super.notifyListenersBeforeExecute(taskExecutionThread, task));
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override protected void notifyListenersAfterExecute(Runnable task, Throwable taskExecutionError) {
-        listenerThreadPool.execute(() -> super.notifyListenersAfterExecute(task, taskExecutionError));
+    SingleThreadTaskExecutionListenableExecutor(int taskQueueSize) {
+        super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
     }
 }

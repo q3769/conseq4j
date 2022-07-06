@@ -18,7 +18,7 @@
  * THE SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,7 +32,8 @@ import java.util.concurrent.TimeUnit;
  */
 class TaskExecutionListenableExecutor extends ThreadPoolExecutor implements ExecutionListenable {
 
-    protected final List<TaskExecutionListener> taskExecutionListeners = Collections.synchronizedList(new ArrayList<>());
+    protected final List<TaskExecutionListener> taskExecutionListeners =
+            Collections.synchronizedList(new ArrayList<>());
 
     /**
      * @see ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue)

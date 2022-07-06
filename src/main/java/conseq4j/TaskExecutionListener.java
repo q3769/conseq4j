@@ -17,23 +17,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package conseq4j.service;
 
-import lombok.ToString;
-import lombok.extern.java.Log;
-
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
+package conseq4j;
 
 /**
- * Sequential task executing and asynchronously listenable executor.
+ * Listener on each execution invocation of the target executor.
  *
  * @author Qingtian Wang
  */
-@Log @ToString(callSuper = true) class SingleThreadTaskExecutionListenableExecutor
-        extends AsyncTaskExecutionListenableExecutor {
+interface TaskExecutionListener {
 
-    SingleThreadTaskExecutionListenableExecutor(int taskQueueSize) {
-        super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
-    }
+    /**
+     * <p>beforeExecute.</p>
+     *
+     * @see java.util.concurrent.ThreadPoolExecutor#beforeExecute(Thread, Runnable)
+     * @param taskExecutionThread a {@link java.lang.Thread} object.
+     * @param task a {@link java.lang.Runnable} object.
+     */
+    void beforeExecute(Thread taskExecutionThread, Runnable task);
+
+    /**
+     * <p>afterExecute.</p>
+     *
+     * @see java.util.concurrent.ThreadPoolExecutor#afterExecute(Runnable, Throwable)
+     * @param task a {@link java.lang.Runnable} object.
+     * @param taskExecutionError a {@link java.lang.Throwable} object.
+     */
+    void afterExecute(Runnable task, Throwable taskExecutionError);
+
 }
