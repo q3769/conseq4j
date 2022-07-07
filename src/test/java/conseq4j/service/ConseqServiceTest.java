@@ -91,8 +91,8 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void higherConcurrencyRendersBetterThroughput() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        int lowConcurrency = 10;
-        int highConcurrency = 100;
+        int lowConcurrency = 2;
+        int highConcurrency = 20;
 
         Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
