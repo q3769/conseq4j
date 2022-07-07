@@ -43,11 +43,11 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 
 Notes:
 
-- The current implementation relies on further hashing of the sequence keys' hash codes into a fixed number of "buckets"
-  . These buckets are each associated with a sequential executor. The same/equal sequence key summons and always gets
-  back the same executor. Single-threaded, each executor ensures the same execution order of all its tasks as they are
-  submitted. Thus, the total number of buckets (a.k.a. the global concurrency) is the max number tasks that can be
-  executed in parallel at any given time.
+- The implementation of the API relies on hashing the sequence keys into a fixed number of "buckets". These buckets are
+  each associated with a sequential executor. The same/equal sequence key is always hashed to and summons back the same
+  executor. Single-threaded, each executor ensures the same execution order of all its tasks as they are submitted.
+  Thus, the total number of buckets (a.k.a. the global concurrency) is the maximum number tasks that can be executed in
+  parallel at any given time.
 
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
   keys' tasks are assigned to the same executor. Due to the single-thread setup, the local execution order for each
@@ -55,8 +55,8 @@ Notes:
   block/delay each other from executing. For that reason, conseq4j does not support any shutdown action on the
   sequential
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
-  obtained through its API, to prevent unintended task cancellation across different sequence keys. This may not
-  be an issue for an asynchronous, overall-throughput driven, workload but is something to be aware of.
+  obtained through its API, to prevent unintended task cancellation across different sequence keys. This may not be an
+  issue for workloads that are asynchronous and overall-throughput driven but is something to be aware of.
 
 ### The API:
 
