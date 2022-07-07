@@ -77,7 +77,7 @@ import static java.lang.Math.floorMod;
             if (executor != null) {
                 return executor;
             }
-            return new IrrevocableExecutorService(newSequentialExecutorService());
+            return new ShutdownDisallowedExecutorService(newSequentialExecutorService());
         });
     }
 
@@ -102,7 +102,6 @@ import static java.lang.Math.floorMod;
 
         /**
          * @param globalConcurrency max global concurrency i.e. the max number of sequential executors.
-         * @return
          */
         public Builder globalConcurrency(int globalConcurrency) {
             if (globalConcurrency <= 0)
@@ -113,8 +112,7 @@ import static java.lang.Math.floorMod;
         }
 
         /**
-         * @param executorTaskQueueSize for each sequential executor
-         * @return
+         * @param executorTaskQueueSize max task queue capacity for each sequential executor.
          */
         public Builder executorTaskQueueSize(int executorTaskQueueSize) {
             if (executorTaskQueueSize <= 0)

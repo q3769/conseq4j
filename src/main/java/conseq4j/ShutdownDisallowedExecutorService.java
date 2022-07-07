@@ -31,7 +31,7 @@ import java.util.concurrent.*;
  *
  * @author Qingtian Wang
  */
-@ToString final class IrrevocableExecutorService implements ExecutorService {
+@ToString final class ShutdownDisallowedExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
             "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
@@ -39,11 +39,11 @@ import java.util.concurrent.*;
     private final ExecutorService executorService;
 
     /**
-     * <p>Constructor for IrrevocableExecutorService.</p>
+     * <p>Constructor for ShutdownDisallowedExecutorService.</p>
      *
      * @param executorService the delegate {@link java.util.concurrent.ExecutorService} to run the submitted task(s).
      */
-    public IrrevocableExecutorService(ExecutorService executorService) {
+    public ShutdownDisallowedExecutorService(ExecutorService executorService) {
         this.executorService = executorService;
     }
 
