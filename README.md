@@ -26,14 +26,14 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220706.0.0</version>
+    <version>20220707.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220706.0.0'
+implementation 'io.github.q3769:conseq4j:20220707.0.0'
 ```
 
 ## Use it...
@@ -43,12 +43,13 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 
 The current implementation relies on further hashing of the sequence key's hash code into a fixed number of "buckets".
 These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
-always gets back the same sequential executor which ensures execution order of its tasks.
+always gets back the same sequential executor which ensures execution order of all its submitted tasks.
 
 As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
 keys' tasks are assigned to the same executor. In that case, while the local execution order for each individual
 sequence key is still preserved (due to the single-thread setup), unrelated tasks may unfairly block/delay each other
-from executing. This may not be an issue in an asynchronous, overall throughput-driven workload but something to be
+from executing. For that reason, conseq4j does not support any cancellation (e.g. `ExecutorService.shutdown`) once a
+task is submitted. This may not be an issue for an asynchronous, overall throughput-driven, workload but something to be
 aware of.
 
 ### The API:
