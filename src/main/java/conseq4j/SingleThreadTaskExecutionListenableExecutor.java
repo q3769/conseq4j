@@ -22,6 +22,7 @@ package conseq4j;
 import lombok.ToString;
 import lombok.extern.java.Log;
 
+import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 
@@ -30,9 +31,12 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Qingtian Wang
  */
-@Log @ToString(callSuper = true) public class SingleThreadTaskExecutionListenableExecutor
+@Log @ToString(callSuper = true) class SingleThreadTaskExecutionListenableExecutor
         extends AsyncTaskExecutionListenableExecutor {
 
+    /**
+     * @see java.util.concurrent.ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue)
+     */
     SingleThreadTaskExecutionListenableExecutor(int taskQueueSize) {
         super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
     }
