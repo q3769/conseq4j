@@ -25,7 +25,7 @@ package conseq4j.service;
  *
  * @author Qingtian Wang
  */
-interface ExecutionListenable {
+interface TaskExecutionListenable {
 
     /**
      * <p>Add a {@code TaskExecutionListener}</p>

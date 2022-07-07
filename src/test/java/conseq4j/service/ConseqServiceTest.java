@@ -18,7 +18,6 @@ import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 import java.util.logging.ConsoleHandler;
@@ -91,7 +90,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void concurrencyBoundedByMaxConcurrency() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        ConseqService lowConcurrencyService = ConseqService.newBuilder().globalConcurrency(TASK_COUNT / 10).build();
+        int lowConcurrency = 10;
+        int highConcurrency = 100;
+
+        ConseqService lowConcurrencyService = ConseqService.newBuilder().globalConcurrency(lowConcurrency).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
@@ -99,7 +101,7 @@ import static org.junit.jupiter.api.Assertions.*;
         awaitAllComplete(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        ConseqService highConcurrencyService = ConseqService.newBuilder().globalConcurrency(TASK_COUNT).build();
+        ConseqService highConcurrencyService = ConseqService.newBuilder().globalConcurrency(highConcurrency).build();
         List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
@@ -107,12 +109,8 @@ import static org.junit.jupiter.api.Assertions.*;
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.log(Level.INFO, "Low concurrency run time {0}, high concurrency run time {1}",
+        log.log(Level.INFO, "Low concurrency run time: {0}, high concurrency run time: {1}",
                 new Object[] { Duration.ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
-        assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
-    }
-
-    void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -129,7 +127,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
         final List<SpyingTask> doneTasks = toDoneTasks(futures);
         assertSingleThread(doneTasks);
-        assertSequence(doneTasks);
     }
 
     @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
@@ -163,7 +160,6 @@ import static org.junit.jupiter.api.Assertions.*;
         TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
 
         assertSingleThread(tasks);
-        assertSequence(tasks);
     }
 
     @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
@@ -204,14 +200,5 @@ import static org.junit.jupiter.api.Assertions.*;
         }).collect(toList());
         log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
         return doneTasks;
-    }
-
-    void assertSequence(List<SpyingTask> tasks) {
-        for (int i = 0; i < tasks.size() - 1; i++) {
-            final Instant currentEnd = tasks.get(i).getRunEnd();
-            final Instant nextStart = tasks.get(i + 1).getRunStart();
-            assertTrue(currentEnd.isBefore(nextStart));
-        }
-        log.log(Level.INFO, "{0} tasks executed sequentially in chronological order", tasks.size());
     }
 }

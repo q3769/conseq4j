@@ -35,9 +35,9 @@ import java.util.logging.Level;
 @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
-    private final ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors =
+    private final ConcurrentMap<Object, SingleThreadTaskExecutionAsyncListenedExecutor> servicingSequentialExecutors =
             new ConcurrentHashMap<>();
-    private final ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool;
+    private final ObjectPool<SingleThreadTaskExecutionAsyncListenedExecutor> executorPool;
 
     private ConseqService(Builder builder) {
         this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
@@ -56,16 +56,16 @@ import java.util.logging.Level;
         return new PooledSingleThreadExecutorFactory(builder.executorTaskQueueCapacity);
     }
 
-    private static GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> executorPoolConfig(
+    private static GenericObjectPoolConfig<SingleThreadTaskExecutionAsyncListenedExecutor> executorPoolConfig(
             Builder builder) {
-        final GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> genericObjectPoolConfig =
+        final GenericObjectPoolConfig<SingleThreadTaskExecutionAsyncListenedExecutor> genericObjectPoolConfig =
                 new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(builder.globalConcurrency);
         genericObjectPoolConfig.setTestOnReturn(VALIDATE_EXECUTOR_ON_RETURN_TO_POOL);
         return genericObjectPoolConfig;
     }
 
-    private static void logExecutionError(SingleThreadTaskExecutionListenableExecutor executor, Collection<?> tasks,
+    private static void logExecutionError(SingleThreadTaskExecutionAsyncListenedExecutor executor, Collection<?> tasks,
             Exception ex) {
         log.log(Level.SEVERE, "error executing tasks " + tasks + " by executor " + executor + " - " + ex.getClass()
                 .getCanonicalName(), ex);
@@ -79,27 +79,27 @@ import java.util.logging.Level;
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             computedExecutor.execute(command);
             return computedExecutor;
         });
     }
 
-    private SingleThreadTaskExecutionListenableExecutor computeExecutor(Object presentSequenceKey,
-            SingleThreadTaskExecutionListenableExecutor servicingExecutor) {
+    private SingleThreadTaskExecutionAsyncListenedExecutor computeExecutor(Object presentSequenceKey,
+            SingleThreadTaskExecutionAsyncListenedExecutor servicingExecutor) {
         if (servicingExecutor != null) {
             return servicingExecutor;
         }
-        final SingleThreadTaskExecutionListenableExecutor pooledExecutor = borrowPooledExecutor();
+        final SingleThreadTaskExecutionAsyncListenedExecutor pooledExecutor = borrowPooledExecutor();
         pooledExecutor.addListener(
                 new ExecutorSweepingTaskExecutionListener(presentSequenceKey, servicingSequentialExecutors,
                         executorPool));
         return pooledExecutor;
     }
 
-    private SingleThreadTaskExecutionListenableExecutor borrowPooledExecutor() {
-        final SingleThreadTaskExecutionListenableExecutor pooledExecutor;
+    private SingleThreadTaskExecutionAsyncListenedExecutor borrowPooledExecutor() {
+        final SingleThreadTaskExecutionAsyncListenedExecutor pooledExecutor;
         try {
             pooledExecutor = executorPool.borrowObject();
         } catch (Exception ex) {
@@ -114,7 +114,7 @@ import java.util.logging.Level;
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFuture(computedExecutor.submit(task));
             return computedExecutor;
@@ -128,7 +128,7 @@ import java.util.logging.Level;
     @Override public <T> Future<T> submit(Runnable task, T result, Object sequenceKey) {
         FutureHolder<T> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFuture(computedExecutor.submit(task, result));
             return computedExecutor;
@@ -142,7 +142,7 @@ import java.util.logging.Level;
     @Override public Future<?> submit(Runnable task, Object sequenceKey) {
         FutureHolder<?> futureHolder = new FutureHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             futureHolder.setFutureUnbounded(computedExecutor.submit(task));
             return computedExecutor;
@@ -157,7 +157,7 @@ import java.util.logging.Level;
             throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
                 final List<Future<T>> invokeAll = computedExecutor.invokeAll(tasks);
@@ -179,7 +179,7 @@ import java.util.logging.Level;
             Object sequenceKey) throws InterruptedException {
         FuturesHolder<T, InterruptedException> futuresHolder = new FuturesHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
                 futuresHolder.setFutures(computedExecutor.invokeAll(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));
@@ -200,7 +200,7 @@ import java.util.logging.Level;
             throws InterruptedException, ExecutionException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
                 resultHolder.setResult(computedExecutor.invokeAny(tasks));
@@ -230,7 +230,7 @@ import java.util.logging.Level;
             throws InterruptedException, ExecutionException, TimeoutException {
         ResultHolder<T, Exception> resultHolder = new ResultHolder<>();
         servicingSequentialExecutors.compute(sequenceKey, (presentSequenceKey, presentExecutor) -> {
-            SingleThreadTaskExecutionListenableExecutor computedExecutor =
+            SingleThreadTaskExecutionAsyncListenedExecutor computedExecutor =
                     computeExecutor(presentSequenceKey, presentExecutor);
             try {
                 resultHolder.setResult(computedExecutor.invokeAny(tasks, timeout.toNanos(), TimeUnit.NANOSECONDS));

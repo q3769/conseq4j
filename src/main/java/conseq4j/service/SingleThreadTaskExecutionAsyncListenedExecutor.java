@@ -30,10 +30,10 @@ import java.util.concurrent.TimeUnit;
  *
  * @author Qingtian Wang
  */
-@Log @ToString(callSuper = true) class SingleThreadTaskExecutionListenableExecutor
-        extends AsyncTaskExecutionListenableExecutor {
+@Log @ToString(callSuper = true) class SingleThreadTaskExecutionAsyncListenedExecutor
+        extends TaskExecutionAsyncListenedExecutor {
 
-    SingleThreadTaskExecutionListenableExecutor(int taskQueueSize) {
+    SingleThreadTaskExecutionAsyncListenedExecutor(int taskQueueSize) {
         super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
     }
 }

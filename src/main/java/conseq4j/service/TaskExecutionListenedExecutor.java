@@ -30,14 +30,15 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingtian Wang
  */
-class TaskExecutionListenableExecutor extends ThreadPoolExecutor implements ExecutionListenable {
+class TaskExecutionListenedExecutor extends ThreadPoolExecutor implements TaskExecutionListenable {
 
-    protected final List<TaskExecutionListener> taskExecutionListeners = Collections.synchronizedList(new ArrayList<>());
+    protected final List<TaskExecutionListener> taskExecutionListeners =
+            Collections.synchronizedList(new ArrayList<>());
 
     /**
      * @see ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue)
      */
-    protected TaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    TaskExecutionListenedExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }

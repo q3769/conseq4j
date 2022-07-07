@@ -28,11 +28,11 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Qingtian Wang
  */
-class AsyncTaskExecutionListenableExecutor extends TaskExecutionListenableExecutor {
+class TaskExecutionAsyncListenedExecutor extends TaskExecutionListenedExecutor {
 
     private final Executor listenerThreadPool = Executors.newSingleThreadExecutor();
 
-    AsyncTaskExecutionListenableExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
+    TaskExecutionAsyncListenedExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
         super(corePoolSize, maximumPoolSize, keepAliveTime, unit, workQueue);
     }
