@@ -54,7 +54,7 @@ Notes:
   individual sequence key's tasks is still preserved; however, unrelated tasks of different sequence keys may unfairly
   block/delay each other from executing. For that reason, conseq4j does not support any shutdown action on the
   sequential
-  executor ([`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
+  executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   obtained through its API, to prevent unintended task cancellation across different sequence keys. This may not
   be an issue for an asynchronous, overall-throughput driven, workload but is something to be aware of.
 
