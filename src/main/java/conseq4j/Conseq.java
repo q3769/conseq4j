@@ -77,7 +77,7 @@ import static java.lang.Math.floorMod;
             if (executor != null) {
                 return executor;
             }
-            return new ShutdownRefusingExecutorService(newSequentialExecutorService());
+            return new ShutdownDisallowingExecutorService(newSequentialExecutorService());
         });
     }
 
