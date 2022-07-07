@@ -105,9 +105,6 @@ class TaskExecutionListenableExecutor extends ThreadPoolExecutor implements Exec
         notifyListenersAfterExecute(r, t);
     }
 
-    /**
-     * {@inheritDoc}
-     */
     @Override public void addListener(TaskExecutionListener taskExecutionListener) {
         taskExecutionListeners.add(taskExecutionListener);
     }
