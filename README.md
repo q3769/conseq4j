@@ -79,7 +79,7 @@ public class MessageConsumer {
     
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider.
-     * This is usually via a single calling thread.
+     * This is usually via a single caller thread.
      */
     public void onMessage(Message shoppingEvent) {       
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
