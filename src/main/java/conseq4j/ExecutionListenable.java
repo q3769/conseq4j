@@ -27,15 +27,10 @@ package conseq4j;
  */
 interface ExecutionListenable {
 
-    /**
-     * <p>Add a {@code TaskExecutionListener}</p>
-     *
-     * @param taskExecutionListener a {@link conseq4j.TaskExecutionListener} object.
-     */
     void addListener(TaskExecutionListener taskExecutionListener);
 
     /**
-     * <p>Remove all {@code TaskExecutionListener}s.</p>
+     * <p>Removes all {@code TaskExecutionListener}s.</p>
      */
     void clearListeners();
 
