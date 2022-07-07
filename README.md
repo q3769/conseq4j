@@ -45,7 +45,7 @@ Notes:
 
 - The current implementation relies on further hashing of the sequence key's hash code into a fixed number of "buckets".
   These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
-  always gets back the same sequential executor, which ensures the same execution order of all its tasks as submitted.
+  always gets back the same sequential executor that ensures the same execution order of all its tasks as submitted.
 
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
   keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
