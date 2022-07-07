@@ -30,10 +30,7 @@ import java.util.concurrent.TimeUnit;
  */
 class TaskExecutionAsyncListenedExecutor extends TaskExecutionListenedExecutor {
 
-    /**
-     * Trying not to compete with executors for threading resource, using one single thread for maintenance/clean up.
-     */
-    private final Executor listenerThreadPool = Executors.newSingleThreadExecutor();
+    private final Executor listenerThreadPool = Executors.newCachedThreadPool();
 
     TaskExecutionAsyncListenedExecutor(int corePoolSize, int maximumPoolSize, long keepAliveTime, TimeUnit unit,
             BlockingQueue<Runnable> workQueue) {
