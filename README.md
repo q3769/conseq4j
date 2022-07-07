@@ -43,17 +43,17 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 
 Notes:
 
-The current implementation relies on further hashing of the sequence key's hash code into a fixed number of "buckets".
-These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
-always gets back the same sequential executor which ensures execution order of all its tasks.
+- The current implementation relies on further hashing of the sequence key's hash code into a fixed number of "buckets".
+  These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
+  always gets back the same sequential executor which ensures execution order of all its tasks.
 
-As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
-keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
-order for each individual sequence key is still preserved; however, unrelated tasks may unfairly block/delay each other
-from executing. For that reason, conseq4j does not support any shutdown action on an executor (of
-type [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)) obtained
-through its API, to prevent unintended task cancellation across different sequence keys. This may not be an issue for an
-asynchronous, overall-throughput driven, workload but something to be aware of.
+- As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
+  keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
+  order for each individual sequence key is still preserved; however, unrelated tasks may unfairly block/delay each
+  other from executing. For that reason, conseq4j does not support any shutdown action on an executor (of
+  type [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
+  obtained through its API, to prevent unintended task cancellation across different sequence keys. This may not be an
+  issue for an asynchronous, overall-throughput driven, workload but something to be aware of.
 
 ### The API:
 
