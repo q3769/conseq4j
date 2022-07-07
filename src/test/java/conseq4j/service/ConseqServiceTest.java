@@ -14,6 +14,7 @@
  */
 package conseq4j.service;
 
+import conseq4j.Conseq;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
@@ -32,7 +33,7 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * @author Qingtian Wang
  */
-@Log public class ConseqServiceTest {
+@Log class ConseqServiceTest {
 
     private static final int TASK_COUNT = 100;
 
@@ -77,35 +78,35 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void concurrencyBoundedByTotalTaskCount() {
-        ConseqService defaultConseq = ConseqService.newBuilder().build();
+        Conseq defaultConseq = Conseq.newBuilder().build();
 
         List<Future<SpyingTask>> futures = new ArrayList<>();
-        createSpyingTasks(TASK_COUNT).forEach(
-                task -> futures.add(defaultConseq.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
+        createSpyingTasks(TASK_COUNT).forEach(task -> futures.add(
+                defaultConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
 
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
-    @Test void concurrencyBoundedByMaxConcurrency() {
+    @Test void higherConcurrencyRendersBetterThroughput() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
         int lowConcurrency = 10;
         int highConcurrency = 100;
 
-        ConseqService lowConcurrencyService = ConseqService.newBuilder().globalConcurrency(lowConcurrency).build();
+        Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
-                lowConcurrencyService.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
+                lowConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
         awaitAllComplete(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        ConseqService highConcurrencyService = ConseqService.newBuilder().globalConcurrency(highConcurrency).build();
+        Conseq highConcurrencyService = Conseq.newBuilder().globalConcurrency(highConcurrency).build();
         List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
-                highConcurrencyService.submit((Callable<SpyingTask>) task, UUID.randomUUID())));
+                highConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
@@ -115,13 +116,13 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
+        Conseq defaultConseq = Conseq.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        final List<Future<SpyingTask>> futures = defaultConseq.invokeAll(tasks, sameSequenceKey);
+        final List<Future<SpyingTask>> futures = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAll(tasks);
         log.log(Level.INFO, () -> "Done single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
@@ -130,13 +131,13 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
-        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
+        Conseq defaultConseq = Conseq.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        SpyingTask doneTask = defaultConseq.invokeAny(tasks, sameSequenceKey);
+        SpyingTask doneTask = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAny(tasks);
         log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
@@ -146,7 +147,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        ConcurrentSequencerService defaultConseq = ConseqService.newBuilder().build();
+        Conseq defaultConseq = Conseq.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
         final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
@@ -154,7 +155,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        tasks.forEach(task -> defaultConseq.execute(task, sameSequenceKey));
+        tasks.forEach(task -> defaultConseq.getSequentialExecutor(sameSequenceKey).execute(task));
         log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
         TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
@@ -165,13 +166,12 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
         int executorTaskQueueCapacity = 42;
         assertTrue(executorTaskQueueCapacity < TASK_COUNT);
-        ConcurrentSequencerService taskQueueCapacityLimited =
-                ConseqService.newBuilder().executorTaskQueueCapacity(executorTaskQueueCapacity).build();
+        Conseq taskQueueCapacityLimited = Conseq.newBuilder().executorTaskQueueSize(executorTaskQueueCapacity).build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         try {
-            tasks.forEach(task -> taskQueueCapacityLimited.execute(task, sameSequenceKey));
+            tasks.forEach(task -> taskQueueCapacityLimited.getSequentialExecutor(sameSequenceKey).execute(task));
         } catch (RejectedExecutionException e) {
             log.log(Level.WARNING,
                     "almost never a good idea to limit task queue capacity; unless you intend to reject excessive tasks that the task queue cannot hold, consider default/unbounded capacity instead",
