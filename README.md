@@ -50,12 +50,13 @@ Notes:
   executed in parallel at any given time.
 
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
-  keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
-  order for each individual sequence key is still preserved; however, unrelated tasks may unfairly block/delay each
-  other from executing. For that reason, conseq4j does not support any shutdown action on an executor (of
+  keys' tasks are assigned to the same executor. Due to the single-thread setup, the local execution order for each
+  individual sequence key's tasks is still preserved; however, unrelated tasks of different sequence keys may unfairly
+  block/delay each other from executing. For that reason, conseq4j does not support any shutdown action on the
+  sequential executor (of
   type [`ExecutorService`](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
-  obtained through its API, to prevent unintended task cancellation across different sequence keys. This may not be an
-  issue for an asynchronous, overall-throughput driven, workload but is something to be aware of.
+  obtained through its API; that is to prevent unintended task cancellation across different sequence keys. This may not
+  be an issue for an asynchronous, overall-throughput driven, workload but is something to be aware of.
 
 ### The API:
 
