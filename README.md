@@ -5,7 +5,7 @@
 A Java concurrent API to sequence related tasks while concurring unrelated ones, where "conseq" is short for
 **con**current **seq**uencer.
 
-## User stories
+## User story
 
 As a client of this Java concurrent API, I want to summon a thread/executor by a sequence key, so that all related
 tasks with the same sequence key are executed sequentially by the same executor while unrelated tasks with different
@@ -45,7 +45,7 @@ Notes:
 
 - The current implementation relies on further hashing of the sequence key's hash code into a fixed number of "buckets".
   These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
-  always gets back the same sequential executor which ensures execution order of all its tasks.
+  always gets back the same sequential executor, which ensures the same execution order of all its tasks as submitted.
 
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
   keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
