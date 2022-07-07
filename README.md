@@ -44,8 +44,9 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 Notes:
 
 - The current implementation relies on further hashing of the sequence keys' hash codes into a fixed number of "buckets"
-  . These buckets are each associated with a sequential/single-thread executor. The same/equal sequence key summons and
-  always gets back the same sequential executor that ensures the same execution order of all its tasks as submitted.
+  . These buckets are each associated with a sequential executor. The same/equal sequence key summons and always gets
+  back the same executor. Single-threaded, the executor ensures the same execution order of all its tasks as they are
+  submitted.
 
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
   keys' tasks are assigned to the same executor. In that case, due to the single-thread setup, the local execution
