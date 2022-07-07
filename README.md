@@ -82,8 +82,8 @@ public class MessageConsumer {
      * This is usually via a single caller thread.
      * 
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
-     * processed in parallel by different executors. Sequence is maintained on all 
-     * shopping events of the same shopping cart ID by the same executor.
+     * processed in parallel, by different executors. Sequence is maintained on all 
+     * shopping events of the same shopping cart ID, by the same executor.
      */
     public void onMessage(Message shoppingEvent) {       
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
