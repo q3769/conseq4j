@@ -81,12 +81,7 @@ public class MessageConsumer {
      * Suppose run-time invocation of this method is managed by the messaging provider.
      * This is usually via a single calling thread.
      */
-    public void onMessage(Message shoppingEvent) {
-    
-        // conseq4j API to summon sequential executor: Events with the same shopping cart Id are processed sequentially 
-        // by the same executor. Events with different sequence keys will be attempted to process concurrently by 
-        // different executors.
-        
+    public void onMessage(Message shoppingEvent) {       
         conseq.getSequentialExecutor(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
     }
