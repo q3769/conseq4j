@@ -28,20 +28,12 @@ package conseq4j;
 interface TaskExecutionListener {
 
     /**
-     * <p>beforeExecute.</p>
-     *
      * @see java.util.concurrent.ThreadPoolExecutor#beforeExecute(Thread, Runnable)
-     * @param taskExecutionThread a {@link java.lang.Thread} object.
-     * @param task a {@link java.lang.Runnable} object.
      */
     void beforeExecute(Thread taskExecutionThread, Runnable task);
 
     /**
-     * <p>afterExecute.</p>
-     *
      * @see java.util.concurrent.ThreadPoolExecutor#afterExecute(Runnable, Throwable)
-     * @param task a {@link java.lang.Runnable} object.
-     * @param taskExecutionError a {@link java.lang.Throwable} object.
      */
     void afterExecute(Runnable task, Throwable taskExecutionError);
 
