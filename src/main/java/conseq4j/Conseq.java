@@ -64,13 +64,13 @@ import static java.lang.Math.floorMod;
         return new Builder();
     }
 
-    private static ThreadPoolExecutor newSingleThreadExecutor(BlockingQueue<Runnable> blockingTaskQueue) {
+    private static ThreadPoolExecutor newSingleThreadExecutor(int executorTaskQueueSize) {
         return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
-                TimeUnit.MILLISECONDS, blockingTaskQueue);
+                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(executorTaskQueueSize));
     }
 
     /**
-     * {@inheritDoc}
+     * @return a single-thread executor that does not support any shutdown action
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
@@ -85,7 +85,7 @@ import static java.lang.Math.floorMod;
         if (this.executorTaskQueueSize == DEFAULT_EXECUTOR_QUEUE_SIZE) {
             return Executors.newSingleThreadExecutor();
         }
-        return newSingleThreadExecutor(new LinkedBlockingQueue<>(this.executorTaskQueueSize));
+        return newSingleThreadExecutor(this.executorTaskQueueSize);
     }
 
     private int bucketOf(Object sequenceKey) {
