@@ -17,21 +17,27 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package conseq4j;
 
+import lombok.ToString;
+import lombok.extern.java.Log;
+
+import java.util.concurrent.BlockingQueue;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
+
 /**
- * Executor whose execution can be listened by {@code TaskExecutionListener}(s)
+ * Sequential task executing and asynchronously listenable executor.
  *
  * @author Qingtian Wang
  */
-interface ExecutionListenable {
-
-    void addListener(TaskExecutionListener taskExecutionListener);
+@Log @ToString(callSuper = true) class SingleThreadTaskExecutionAsyncListenedExecutor
+        extends TaskExecutionAsyncListenedExecutor {
 
     /**
-     * <p>Removes all {@code TaskExecutionListener}s.</p>
+     * @see java.util.concurrent.ThreadPoolExecutor#ThreadPoolExecutor(int, int, long, TimeUnit, BlockingQueue)
      */
-    void clearListeners();
-
+    SingleThreadTaskExecutionAsyncListenedExecutor(int taskQueueSize) {
+        super(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(taskQueueSize));
+    }
 }

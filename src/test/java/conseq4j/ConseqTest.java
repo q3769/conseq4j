@@ -90,10 +90,10 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void concurrencyBoundedByMaxConcurrency() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
-        int lowConcurrncy = 10;
+        int lowConcurrency = 5;
         int highConcurrency = 20;
 
-        Conseq lowConcurrencyConseq = Conseq.newBuilder().globalConcurrency(lowConcurrncy).build();
+        Conseq lowConcurrencyConseq = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
@@ -111,10 +111,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
         log.log(Level.INFO, "Low concurrency run time: {0}, high concurrency run time: {1}",
                 new Object[] { Duration.ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
-        assertHighConcurrencyIsFaster(lowConcurrencyTime, highConcurrencyTime);
-    }
-
-    void assertHighConcurrencyIsFaster(long lowConcurrencyTime, long highConcurrencyTime) {
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 

@@ -40,9 +40,9 @@ import java.util.logging.Level;
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
     private static final int DEFAULT_TASK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final boolean VALIDATE_EXECUTOR_ON_RETURN_TO_POOL = true;
-    private final ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors =
+    private final ConcurrentMap<Object, SingleThreadTaskExecutionAsyncListenedExecutor> servicingSequentialExecutors =
             new ConcurrentHashMap<>();
-    private final ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool;
+    private final ObjectPool<SingleThreadTaskExecutionAsyncListenedExecutor> executorPool;
 
     private Conseq(Builder builder) {
         this.executorPool = new GenericObjectPool<>(pooledExecutorFactory(builder), executorPoolConfig(builder));
@@ -52,9 +52,9 @@ import java.util.logging.Level;
         return new PooledSingleThreadExecutorFactory(builder.executorTaskQueueCapacity);
     }
 
-    private static GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> executorPoolConfig(
+    private static GenericObjectPoolConfig<SingleThreadTaskExecutionAsyncListenedExecutor> executorPoolConfig(
             Builder builder) {
-        final GenericObjectPoolConfig<SingleThreadTaskExecutionListenableExecutor> genericObjectPoolConfig =
+        final GenericObjectPoolConfig<SingleThreadTaskExecutionAsyncListenedExecutor> genericObjectPoolConfig =
                 new GenericObjectPoolConfig<>();
         genericObjectPoolConfig.setMaxTotal(builder.globalConcurrency);
         genericObjectPoolConfig.setTestOnReturn(VALIDATE_EXECUTOR_ON_RETURN_TO_POOL);
@@ -78,15 +78,15 @@ import java.util.logging.Level;
             if (executor != null) {
                 return executor;
             }
-            final SingleThreadTaskExecutionListenableExecutor pooledExecutor = borrowPooledExecutor();
+            final SingleThreadTaskExecutionAsyncListenedExecutor pooledExecutor = borrowPooledExecutor();
             pooledExecutor.addListener(
                     new ExecutorSweepingTaskExecutionListener(sequenceKey, servicingSequentialExecutors, executorPool));
             return pooledExecutor;
         });
     }
 
-    private SingleThreadTaskExecutionListenableExecutor borrowPooledExecutor() {
-        final SingleThreadTaskExecutionListenableExecutor pooledExecutor;
+    private SingleThreadTaskExecutionAsyncListenedExecutor borrowPooledExecutor() {
+        final SingleThreadTaskExecutionAsyncListenedExecutor pooledExecutor;
         try {
             pooledExecutor = executorPool.borrowObject();
         } catch (Exception ex) {

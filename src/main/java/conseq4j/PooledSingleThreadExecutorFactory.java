@@ -31,7 +31,7 @@ import java.util.Objects;
  * @author Qingtian Wang
  */
 @Log @ToString(callSuper = true) class PooledSingleThreadExecutorFactory
-        extends BasePooledObjectFactory<SingleThreadTaskExecutionListenableExecutor> {
+        extends BasePooledObjectFactory<SingleThreadTaskExecutionAsyncListenedExecutor> {
 
     private final int executorTaskQueueCapacity;
 
@@ -39,30 +39,31 @@ import java.util.Objects;
      * @param executorTaskQueueCapacity max task queue depth.
      * @see "{@code workQueue} JavaDoc in {@link java.util.concurrent.ThreadPoolExecutor}"
      */
-    public PooledSingleThreadExecutorFactory(int executorTaskQueueCapacity) {
+    PooledSingleThreadExecutorFactory(int executorTaskQueueCapacity) {
         this.executorTaskQueueCapacity = executorTaskQueueCapacity;
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public SingleThreadTaskExecutionListenableExecutor create() {
-        return new SingleThreadTaskExecutionListenableExecutor(executorTaskQueueCapacity);
+    @Override public SingleThreadTaskExecutionAsyncListenedExecutor create() {
+        return new SingleThreadTaskExecutionAsyncListenedExecutor(executorTaskQueueCapacity);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public PooledObject<SingleThreadTaskExecutionListenableExecutor> wrap(
-            SingleThreadTaskExecutionListenableExecutor t) {
+    @Override public PooledObject<SingleThreadTaskExecutionAsyncListenedExecutor> wrap(
+            SingleThreadTaskExecutionAsyncListenedExecutor t) {
         return new DefaultPooledObject<>(t);
     }
 
     /**
      * Removing any and all information related to previous execution. Ensures all
-     * {@code SingleThreadTaskExecutionListenableExecutor} instances borrowed from the pool are stateless.
+     * {@code SingleThreadTaskExecutionAsyncListenedExecutor} instances borrowed from the pool are stateless.
      */
-    @Override public void activateObject(PooledObject<SingleThreadTaskExecutionListenableExecutor> p) throws Exception {
+    @Override public void activateObject(PooledObject<SingleThreadTaskExecutionAsyncListenedExecutor> p)
+            throws Exception {
         super.activateObject(p);
         Objects.requireNonNull(p.getObject()).clearListeners();
     }
@@ -70,8 +71,8 @@ import java.util.Objects;
     /**
      * If an executor that is already shutdown, it is excluded from returning to the pool.
      */
-    @Override public boolean validateObject(PooledObject<SingleThreadTaskExecutionListenableExecutor> p) {
-        SingleThreadTaskExecutionListenableExecutor executorService =
+    @Override public boolean validateObject(PooledObject<SingleThreadTaskExecutionAsyncListenedExecutor> p) {
+        SingleThreadTaskExecutionAsyncListenedExecutor executorService =
                 Objects.requireNonNull(p.getObject(), "unexpected NULL executor being returned to pool");
         if (executorService.isShutdown()) {
             log.warning("executor " + executorService + " already shut down, thus being dropped from pool");

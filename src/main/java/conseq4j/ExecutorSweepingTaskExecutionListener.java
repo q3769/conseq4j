@@ -35,17 +35,17 @@ import java.util.logging.Level;
 @Log @ToString class ExecutorSweepingTaskExecutionListener implements TaskExecutionListener {
 
     private final Object sequenceKey;
-    private final ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors;
-    private final ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool;
+    private final ConcurrentMap<Object, SingleThreadTaskExecutionAsyncListenedExecutor> servicingSequentialExecutors;
+    private final ObjectPool<SingleThreadTaskExecutionAsyncListenedExecutor> executorPool;
 
     /**
      * @param sequenceKey                  the sequence key whose corresponding executor is under operation.
      * @param servicingSequentialExecutors map of all in-service executors keyed on their sequence keys.
      * @param executorPool                 executor pool.
      */
-    public ExecutorSweepingTaskExecutionListener(Object sequenceKey,
-            ConcurrentMap<Object, SingleThreadTaskExecutionListenableExecutor> servicingSequentialExecutors,
-            ObjectPool<SingleThreadTaskExecutionListenableExecutor> executorPool) {
+    ExecutorSweepingTaskExecutionListener(Object sequenceKey,
+            ConcurrentMap<Object, SingleThreadTaskExecutionAsyncListenedExecutor> servicingSequentialExecutors,
+            ObjectPool<SingleThreadTaskExecutionAsyncListenedExecutor> executorPool) {
         this.sequenceKey = sequenceKey;
         this.servicingSequentialExecutors = servicingSequentialExecutors;
         this.executorPool = executorPool;
@@ -55,7 +55,7 @@ import java.util.logging.Level;
      * This should return accurate (rather than approximate) count when invoked from inside a synchronized scope like
      * {@link ConcurrentMap#compute(Object, BiFunction)}
      */
-    private static long pendingTaskCountOf(SingleThreadTaskExecutionListenableExecutor executor) {
+    private static long pendingTaskCountOf(SingleThreadTaskExecutionAsyncListenedExecutor executor) {
         long pendingTaskCount = executor.getTaskCount() - executor.getCompletedTaskCount();
         log.log(Level.FINE, () -> pendingTaskCount + " task(s) submitted to yet not finished by " + executor);
         return pendingTaskCount;
