@@ -27,7 +27,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * An {@code ExecutorService} that does not allow shutdown of task(s) once submitted.
+ * An {@code ExecutorService} that cannot be shut down at run-time.
  *
  * @author Qingtian Wang
  */
@@ -57,7 +57,7 @@ import java.util.concurrent.*;
     }
 
     /**
-     * @see this#shutdown()
+     * @see #shutdown()
      */
     @Override public List<Runnable> shutdownNow() {
         throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
