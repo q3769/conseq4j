@@ -56,7 +56,7 @@ Notes:
   support any shutdown action on the API's sequential
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance, which is to prevent unintended task cancellation across different sequence keys. This may not be an issue
-  for workloads that are asynchronous and overall-throughput driven but is something to be aware of.
+  for workloads that are asynchronous and focused on throughput, but is something to be aware of.
 
 ### The API:
 
