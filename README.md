@@ -77,7 +77,7 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of conseq4j relies on hashing the sequence keys into a fixed number of "buckets". These buckets are
+- The conseq4j implementation relies on hashing the sequence keys into a fixed number of "buckets". These buckets are
   each associated with a sequential executor. The same/equal sequence key is always hashed to and summons back the same
   executor. Single-threaded, each executor ensures the same execution order of all its tasks as they are submitted;
   excessive tasks pending execution are buffered by the executor in a FIFO task queue. Thus, the total number of
