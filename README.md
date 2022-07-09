@@ -96,7 +96,7 @@ public class MessageConsumer {
 
 The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
 execution do not come together naturally; in asynchronous systems, certain limits and impedance mismatch exist between
-maintaining meaningful local order and maximizing global concurrency.
+maintaining meaningful local execution order and maximizing global concurrency.
 
 In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
 
