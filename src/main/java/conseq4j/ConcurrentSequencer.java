@@ -40,5 +40,4 @@ public interface ConcurrentSequencer {
      *         sequence key in the same order as they are submitted
      */
     ExecutorService getSequentialExecutor(Object sequenceKey);
-
 }
