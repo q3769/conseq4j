@@ -47,8 +47,8 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 public interface ConcurrentSequencer {
 
     /**
-     * @param sequenceKey an {@link java.lang.Object} object whose hash code is used to locate and summon the
-     *                    corresponding sequential executor.
+     * @param sequenceKey an {@link java.lang.Object} whose hash code is used to locate and summon the corresponding
+     *                    sequential executor.
      * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this
      *         sequence key in the same order as they are submitted
      */
