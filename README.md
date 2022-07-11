@@ -84,15 +84,14 @@ public class MessageConsumer {
 
 Notes:
 
-- The conseq4j implementation relies on hashing the sequence keys into a fixed number of "buckets". These buckets are
+- The conseq4j implementation relies on hashing of the sequence keys into a fixed number of "buckets". These buckets are
   each associated with a sequential executor. The same/equal sequence key is always hashed to and summons back the same
-  executor. Single-threaded, each executor ensures the same execution order of all its tasks as they are submitted;
-  excessive tasks pending execution are buffered by the executor in a FIFO task queue. Thus, the total number of
-  buckets (a.k.a. the max number of executors and the global concurrency) is the maximum number tasks that can be
+  executor. Single-threaded, each executor ensures the execution order of all its tasks is the same as they are
+  submitted; excessive tasks pending execution are buffered by the executor in a FIFO task queue. Thus, the total number
+  of buckets (a.k.a. the max number of executors and the global concurrency) is the maximum number tasks that can be
   executed in parallel at any given time.
-
-- As with hashing, collision may occur among different sequence keys. When hash collision happens, different sequence
-  keys' tasks are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
+- As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
+  sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
   execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys may
   inadvertently delay each other's executions while waiting in the executor's task queue. To account for hash collision,
   conseq4j does not support any shutdown action on the
