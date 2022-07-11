@@ -118,8 +118,10 @@ import static org.junit.jupiter.api.Assertions.*;
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.log(Level.INFO, "low concurrency: {0}, run time: {1}" , new Object[]{ lowConcurrency, Duration.ofNanos(lowConcurrencyTime)});
-        log.log(Level.INFO, "high concurrency: {0}, run time: {1}" , new Object[]{ highConcurrency, Duration.ofNanos(highConcurrencyTime)});
+        log.log(Level.INFO, "low concurrency: {0}, run time: {1}",
+                new Object[] { lowConcurrency, Duration.ofNanos(lowConcurrencyTime) });
+        log.log(Level.INFO, "high concurrency: {0}, run time: {1}",
+                new Object[] { highConcurrency, Duration.ofNanos(highConcurrencyTime) });
         assertTrue(lowConcurrency < highConcurrency);
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }

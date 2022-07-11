@@ -32,8 +32,8 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
-import static org.junit.jupiter.api.Assertions.fail;
 
 /**
  * @author q3769
@@ -62,9 +62,7 @@ class ConfigTest {
         } catch (IllegalArgumentException e) {
             errors++;
         }
-        if (errors == 2)
-            return;
-        fail();
+        assertEquals(2, errors);
     }
 
     @Test void errorOnNonPositiveTaskQueueSize() {
@@ -79,9 +77,7 @@ class ConfigTest {
         } catch (IllegalArgumentException e) {
             errors++;
         }
-        if (errors == 2)
-            return;
-        fail();
+        assertEquals(2, errors);
     }
 
     @Test void irrevocable() {
@@ -96,15 +92,17 @@ class ConfigTest {
             }
         });
 
+        int errors = 0;
         try {
             sequentialExecutor.shutdown();
         } catch (UnsupportedOperationException ex) {
+            errors++;
             try {
                 sequentialExecutor.shutdownNow();
             } catch (UnsupportedOperationException ex2) {
-                return;
+                errors++;
             }
         }
-        fail();
+        assertEquals(2, errors);
     }
 }
