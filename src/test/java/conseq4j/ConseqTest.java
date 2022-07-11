@@ -118,8 +118,9 @@ import static org.junit.jupiter.api.Assertions.*;
         awaitAllComplete(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.log(Level.INFO, "Low concurrency run time: {0}, high concurrency run time: {1}",
-                new Object[] { Duration.ofNanos(lowConcurrencyTime), Duration.ofNanos(highConcurrencyTime) });
+        log.log(Level.INFO, "low concurrency: {0}, run time: {1}" , new Object[]{ lowConcurrency, Duration.ofNanos(lowConcurrencyTime)});
+        log.log(Level.INFO, "high concurrency: {0}, run time: {1}" , new Object[]{ highConcurrency, Duration.ofNanos(highConcurrencyTime)});
+        assertTrue(lowConcurrency < highConcurrency);
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -172,9 +173,10 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
-        int executorTaskQueueCapacity = 42;
-        assertTrue(true);
-        Conseq taskQueueCapacityLimited = Conseq.newBuilder().executorTaskQueueSize(executorTaskQueueCapacity).build();
+        int taskQueueSizeLessThanTaskCount = TASK_COUNT / 2;
+        assertTrue(taskQueueSizeLessThanTaskCount < TASK_COUNT);
+        Conseq taskQueueCapacityLimited =
+                Conseq.newBuilder().executorTaskQueueSize(taskQueueSizeLessThanTaskCount).build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 

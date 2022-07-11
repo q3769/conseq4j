@@ -40,7 +40,7 @@ import java.util.logging.Level;
 @Log @ToString @Getter public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
-    public static final int MAX_RUN_TIME_MILLIS = 40;
+    public static final int MAX_RUN_TIME_MILLIS = 20;
     final Integer scheduledSequence;
     final Duration targetRunDuration;
     Instant runStart = Instant.EPOCH;
