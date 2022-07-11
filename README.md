@@ -96,9 +96,10 @@ Notes:
   inadvertently delay each other's execution while waiting in the executor's task queue. To account for hash collision,
   conseq4j does not support any shutdown action on the
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
-  instance created by the API; that is to prevent unintended task cancellation across different sequence keys. This may
-  not be an issue for those workloads that are asynchronous and focused on overall throughput, but is something to be
-  aware of.
+  instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
+  Individual [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) returned
+  by the executor can still be cancelled as usual. This may not be an issue for those workloads that are asynchronous
+  and focused on overall throughput, but is something to be aware of.
 
 ## Full disclosure - Asynchronous Conundrum
 
