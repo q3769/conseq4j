@@ -80,7 +80,7 @@ class ConfigTest {
         assertEquals(2, errors);
     }
 
-    @Test void irrevocable() {
+    @Test void shutdownUnsupported() {
         Conseq target = Conseq.newBuilder().build();
         final ExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
         sequentialExecutor.execute(() -> {
