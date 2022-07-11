@@ -88,7 +88,7 @@ Notes:
   each associated with a sequential executor. The same/equal sequence key is always hashed to and summons back the same
   executor. Single-threaded, each executor ensures the execution order of all its tasks is the same as they are
   submitted; excessive tasks pending execution are buffered by the executor in a FIFO task queue. Thus, the total number
-  of buckets (a.k.a. the max number of executors and the global concurrency) is the maximum number tasks that can be
+  of buckets (a.k.a. the max number of executors and the global concurrency) is the maximum number of tasks that can be
   executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
