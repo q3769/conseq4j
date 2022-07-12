@@ -28,7 +28,6 @@ import lombok.ToString;
 import lombok.extern.java.Log;
 
 import java.time.Duration;
-import java.time.Instant;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.TimeUnit;
@@ -43,8 +42,8 @@ import java.util.logging.Level;
     public static final int MAX_RUN_TIME_MILLIS = 20;
     final Integer scheduledSequence;
     final Duration targetRunDuration;
-    Instant runStart = Instant.EPOCH;
-    Instant runEnd = Instant.EPOCH;
+    long runStart;
+    long runEnd;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {
@@ -52,23 +51,27 @@ import java.util.logging.Level;
         this.targetRunDuration = Duration.ofMillis(randomIntInclusive(1, MAX_RUN_TIME_MILLIS));
     }
 
+    public SpyingTask(Integer scheduledSequence, Duration targetRunDuration) {
+        this.scheduledSequence = scheduledSequence;
+        this.targetRunDuration = targetRunDuration;
+    }
+
     private static int randomIntInclusive(int min, int max) {
         return min + RANDOM.nextInt(max - min + 1);
     }
 
     @Override public void run() {
-        this.runStart = Instant.now();
+        this.runStart = System.currentTimeMillis();
         this.runThreadName = Thread.currentThread().getName();
         try {
             TimeUnit.MILLISECONDS.sleep(this.targetRunDuration.toMillis());
         } catch (InterruptedException ex) {
-            log.log(Level.WARNING,
-                    this + " was interrupted after executing for " + Duration.between(runStart, Instant.now()), ex);
+            log.log(Level.WARNING, this + " was interrupted after executing for " + Duration.ofMillis(
+                    System.currentTimeMillis() - this.runStart), ex);
             Thread.currentThread().interrupt();
         }
-        this.runEnd = Instant.now();
-        log.log(Level.FINEST,
-                () -> "End running: " + this + ", took " + Duration.between(runStart, runEnd).toMillis() + " millis");
+        this.runEnd = System.currentTimeMillis();
+        log.log(Level.FINEST, () -> "End running: " + this + ", took " + (this.runEnd - this.runStart) + " millis");
     }
 
     @Override public SpyingTask call() {
