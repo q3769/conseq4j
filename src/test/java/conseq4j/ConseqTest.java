@@ -64,9 +64,9 @@ import static org.junit.jupiter.api.Assertions.*;
             try {
                 f.get();
             } catch (ExecutionException ex) {
-                throw new IllegalStateException(ex);
+                throw new RuntimeException(ex);
             } catch (InterruptedException e) {
-                log.log(Level.WARNING, "interrupted while awaiting all futures to complete", e);
+                log.log(Level.WARNING, "interrupted while awaiting " + f + " to complete", e);
                 Thread.currentThread().interrupt();
             }
         });

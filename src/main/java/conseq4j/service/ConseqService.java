@@ -8,7 +8,7 @@ import lombok.extern.java.Log;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
-@Log @ToString public class ConseqService implements ConcurrentSequencerService {
+@Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
