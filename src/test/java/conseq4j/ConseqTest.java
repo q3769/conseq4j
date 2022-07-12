@@ -63,8 +63,11 @@ import static org.junit.jupiter.api.Assertions.*;
         futures.forEach(f -> {
             try {
                 f.get();
-            } catch (InterruptedException | ExecutionException ex) {
+            } catch (ExecutionException ex) {
                 throw new IllegalStateException(ex);
+            } catch (InterruptedException e) {
+                log.log(Level.WARNING, "interrupted while awaiting all futures to complete", e);
+                Thread.currentThread().interrupt();
             }
         });
     }
@@ -197,8 +200,8 @@ import static org.junit.jupiter.api.Assertions.*;
         Set<String> uniqueThreadNames =
                 tasks.stream().map(SpyingTask::getRunThreadName).filter(Objects::nonNull).collect(toSet());
         assertEquals(1, uniqueThreadNames.size());
-        log.log(Level.INFO, "{0} tasks executed by single thread {1}",
-                new Object[] { tasks.size(), uniqueThreadNames.stream().findFirst().get() });
+        log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(),
+                uniqueThreadNames.stream().findFirst().orElseThrow(NoSuchElementException::new) });
     }
 
     List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
