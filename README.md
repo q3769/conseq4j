@@ -47,7 +47,7 @@ This provides the API client with a sequential executor of type `ExecutorService
 need the same syntax and semantic richness of
 an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
-#### The API:
+#### API:
 
 ```
 public interface ConcurrentSequencer {
@@ -113,7 +113,7 @@ This bypasses the [ExecutorService](https://docs.oracle.com/javase/8/docs/api/ja
 executor interface. Prefer using this style when you do not require the full-blown syntax and semantic support that a
 JDK `ExecutorService` has to offer.
 
-#### The API:
+#### API:
 
 ```
 public interface ConcurrentSequencerService {
