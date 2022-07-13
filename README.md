@@ -170,9 +170,10 @@ Notes:
   related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
   to offer.
-- For simplicity, the thread pool facilitating this style's asynchronous execution is the default
+- For simplicity, the default backing thread pool facilitating this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  . By design, this is not customizable.
+  ; that is via the `new ConseqService()` API. Otherwise, the backing thread pool can be customized via
+  the `ConseqService.with(ExecutorService backingThreadPool)` API.
 
 ## Full disclosure - Asynchronous Conundrum
 
