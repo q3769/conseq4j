@@ -29,6 +29,7 @@ import lombok.ToString;
 import lombok.Value;
 import lombok.extern.java.Log;
 
+import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
@@ -49,6 +50,8 @@ import java.util.logging.Level;
      * {@inheritDoc}
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
+        Objects.requireNonNull(command, "Runnable command cannot be NULL");
+        Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
             CompletableFuture<Void> replacementExecutor = (executor == null) ? CompletableFuture.runAsync(command) :
                     executor.handleAsync((executionResult, executionException) -> {
@@ -75,6 +78,8 @@ import java.util.logging.Level;
      * {@inheritDoc}
      */
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
+        Objects.requireNonNull(task, "Callable task cannot be NULL");
+        Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
             CompletableFuture<T> replacementExecutor =
