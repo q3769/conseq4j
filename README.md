@@ -120,16 +120,12 @@ JDK `ExecutorService` has to offer.
 public interface ConcurrentSequencerService {
 
     /**
-     * <p>execute.</p>
-     *
      * @param command     the Runnable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
      */
     void execute(Runnable command, Object sequenceKey);
 
     /**
-     * <p>submit.</p>
-     *
      * @param task        the Callable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
      * @param <T>         the type of the task's result
