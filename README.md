@@ -176,13 +176,13 @@ Notes:
   related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
   to offer.
-- For simplicity, the default backing thread pool facilitating this style's asynchronous execution is the
+- For simplicity, the default thread pool that facilites this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  ; that is via the `new ConseqService()` API. Alternatively, the backing thread pool can be customized via
+  ; that is via the `new ConseqService()` API. Alternatively, the thread pool can be customized via
   the `ConseqService.withExecutionThreadPool(ExecutorService executionThreadPool)` API. Since there is no bucket
   hashing, this API style decouples the tasks from their execution threads. I.e. even the tasks of the same sequence key
-  could be executed by different threads from the thread pool at run-time, albeit in sequential order. This may bring
-  extra performance gain compared to the other API style.
+  could be executed by different threads from the thread pool, albeit in sequential order. This may bring extra
+  performance gain compared to the other API style.
 
 ## Full disclosure - Asynchronous Conundrum
 
