@@ -45,8 +45,8 @@ implementation 'io.github.q3769:conseq4j:20220707.1.0'
 
 This provides the API client with a sequential executor of type `ExecutorService`. Consider using this style when you
 need the same syntax and semantic richness of
-an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html), except for
-shutdown actions on the executor level.
+an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) (except for
+shutdown actions on the executor level).
 
 #### The API:
 
