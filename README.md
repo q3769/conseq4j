@@ -172,7 +172,7 @@ Notes:
   to offer.
 - For simplicity, the default backing thread pool facilitating this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  ; that is via the `new ConseqService()` API. Otherwise, the backing thread pool can be customized via
+  ; that is via the `new ConseqService()` API. Alternatively, the backing thread pool can be customized via
   the `ConseqService.with(ExecutorService backingThreadPool)` API.
 
 ## Full disclosure - Asynchronous Conundrum
