@@ -30,8 +30,9 @@ import lombok.extern.java.Log;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
+
+import static org.awaitility.Awaitility.await;
 
 /**
  * @author Qingtian Wang
@@ -63,13 +64,9 @@ import java.util.logging.Level;
     @Override public void run() {
         this.runStart = System.currentTimeMillis();
         this.runThreadName = Thread.currentThread().getName();
-        try {
-            TimeUnit.MILLISECONDS.sleep(this.targetRunDuration.toMillis());
-        } catch (InterruptedException ex) {
-            log.log(Level.WARNING, this + " was interrupted after executing for " + Duration.ofMillis(
-                    System.currentTimeMillis() - this.runStart), ex);
-            Thread.currentThread().interrupt();
-        }
+        await().with()
+                .pollInterval(Duration.ofMillis(1))
+                .until(() -> System.currentTimeMillis() - this.runStart > this.targetRunDuration.toMillis());
         this.runEnd = System.currentTimeMillis();
         log.log(Level.FINEST, () -> "End running: " + this + ", took " + (this.runEnd - this.runStart) + " millis");
     }

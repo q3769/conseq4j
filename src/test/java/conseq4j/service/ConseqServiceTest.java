@@ -34,13 +34,13 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
 @Log class ConseqServiceTest {
@@ -77,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.*;
         log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test void submitConcurrencyBoundedByTotalTaskCount() throws InterruptedException {
+    @Test void submitConcurrencyBoundedByTotalTaskCount() {
         ConseqService conseqService = new ConseqService();
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
@@ -88,8 +88,7 @@ import static org.junit.jupiter.api.Assertions.*;
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads > 1);
         assertTrue(totalRunThreads <= TASK_COUNT);
-        TimeUnit.MILLISECONDS.sleep(500);
-        assertEquals(0, conseqService.getActiveExecutorCount());
+        assertNoActiveExecutor(conseqService);
     }
 
     @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
@@ -97,13 +96,10 @@ import static org.junit.jupiter.api.Assertions.*;
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
-        log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
 
         assertConsecutiveRuntimes(tasks);
+        assertNoActiveExecutor(conseqService);
     }
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
@@ -131,8 +127,11 @@ import static org.junit.jupiter.api.Assertions.*;
         int normalCompleteCount = normalCompleteCount(resultFutures);
         assertEquals(1, cancelledCount);
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
-        TimeUnit.MILLISECONDS.sleep(500);
-        assertEquals(0, conseqService.getActiveExecutorCount());
+        assertNoActiveExecutor(conseqService);
+    }
+
+    private void assertNoActiveExecutor(ConseqService conseqService) {
+        await().until(() -> conseqService.getActiveExecutorCount() == 0);
     }
 
     @Test void returnMinimalisticFuture() {
