@@ -29,14 +29,14 @@ In Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220707.2.0</version>
+    <version>20220713.0.0</version>
 </dependency>
 ```
 
 In Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220707.2.0'
+implementation 'io.github.q3769:conseq4j:20220713.0.0'
 ```
 
 ## Use it...
@@ -140,8 +140,12 @@ public interface ConcurrentSequencerService {
 public class MessageConsumer {
 
     private ConcurrentSequencerService conseqService = new ConseqService();
-    // Or, to use a custom thread pool of size 10, for example, you could do: 
-    // private ConcurrentSequencerService conseqService = ConseqService.with(Executors.newFixedThreadPool(10));
+        
+    /* Or, to use a custom thread pool of size 10, for example, you could do: 
+     *
+     * private ConcurrentSequencerService conseqService = 
+     *                 ConseqService.withExecutionThreadPool(Executors.newFixedThreadPool(10));
+     */
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
@@ -175,7 +179,7 @@ Notes:
 - For simplicity, the default backing thread pool facilitating this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   ; that is via the `new ConseqService()` API. Alternatively, the backing thread pool can be customized via
-  the `ConseqService.with(ExecutorService backingThreadPool)` API.
+  the `ConseqService.withExecutionThreadPool(ExecutorService executionThreadPool)` API.
 
 ## Full disclosure - Asynchronous Conundrum
 
