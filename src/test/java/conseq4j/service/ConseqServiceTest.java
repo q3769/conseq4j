@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -76,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.*;
         log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test void submitConcurrencyBoundedByTotalTaskCount() {
+    @Test void submitConcurrencyBoundedByTotalTaskCount() throws InterruptedException {
         ConseqService conseqService = new ConseqService();
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
@@ -87,6 +88,7 @@ import static org.junit.jupiter.api.Assertions.*;
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads > 1);
         assertTrue(totalRunThreads <= TASK_COUNT);
+        TimeUnit.MILLISECONDS.sleep(500);
         assertEquals(0, conseqService.getActiveExecutorCount());
     }
 
@@ -104,13 +106,14 @@ import static org.junit.jupiter.api.Assertions.*;
         assertConsecutiveRuntimes(tasks);
     }
 
-    @Test void exceptionallyCompletedSubmitHasLocalEffectOnly() throws InterruptedException, ExecutionException {
+    @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
+            throws InterruptedException, ExecutionException {
         ConseqService conseqService = new ConseqService();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         List<Future<SpyingTask>> resultFutures = new ArrayList<>();
-        int cancelTaskIdx = TASK_COUNT / 10;
+        int cancelTaskIdx = 1;
         for (int i = 0; i < TASK_COUNT; i++) {
             Future<SpyingTask> taskFuture = conseqService.submit(tasks.get(i), sameSequenceKey);
             if (i == cancelTaskIdx) {
@@ -128,6 +131,7 @@ import static org.junit.jupiter.api.Assertions.*;
         int normalCompleteCount = normalCompleteCount(resultFutures);
         assertEquals(1, cancelledCount);
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
+        TimeUnit.MILLISECONDS.sleep(500);
         assertEquals(0, conseqService.getActiveExecutorCount());
     }
 
@@ -177,6 +181,9 @@ import static org.junit.jupiter.api.Assertions.*;
         for (int i = 0; i < tasks.size() - 1; i++) {
             SpyingTask current = tasks.get(i);
             SpyingTask next = tasks.get(i + 1);
+            if (current.getRunEnd() > next.getRunStart())
+                log.log(Level.WARNING,
+                        "execution out of order between current task " + current + " and next task " + next);
             assertFalse(current.getRunEnd() > next.getRunStart());
         }
     }
