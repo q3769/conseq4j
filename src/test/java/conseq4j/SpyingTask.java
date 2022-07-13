@@ -42,19 +42,14 @@ import static org.awaitility.Awaitility.await;
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 20;
     final Integer scheduledSequence;
-    final Duration targetRunDuration;
+    final long targetRunDurationMillis;
     long runStart;
     long runEnd;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
-        this.targetRunDuration = Duration.ofMillis(randomIntInclusive(1, MAX_RUN_TIME_MILLIS));
-    }
-
-    public SpyingTask(Integer scheduledSequence, Duration targetRunDuration) {
-        this.scheduledSequence = scheduledSequence;
-        this.targetRunDuration = targetRunDuration;
+        this.targetRunDurationMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
     }
 
     private static int randomIntInclusive(int min, int max) {
@@ -66,7 +61,7 @@ import static org.awaitility.Awaitility.await;
         this.runThreadName = Thread.currentThread().getName();
         await().with()
                 .pollInterval(Duration.ofMillis(1))
-                .until(() -> System.currentTimeMillis() - this.runStart >= this.targetRunDuration.toMillis());
+                .until(() -> (System.currentTimeMillis() - this.runStart) >= this.targetRunDurationMillis);
         this.runEnd = System.currentTimeMillis();
         log.log(Level.FINEST, () -> "End running: " + this + ", took " + (this.runEnd - this.runStart) + " millis");
     }
