@@ -89,7 +89,7 @@ import static org.junit.jupiter.api.Assertions.*;
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads > 1);
         assertTrue(totalRunThreads <= TASK_COUNT);
-        assertNoActiveExecutor(conseqService);
+        assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
     @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
@@ -100,7 +100,7 @@ import static org.junit.jupiter.api.Assertions.*;
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
 
         assertConsecutiveRuntimes(tasks);
-        assertNoActiveExecutor(conseqService);
+        assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
@@ -128,13 +128,14 @@ import static org.junit.jupiter.api.Assertions.*;
         int normalCompleteCount = normalCompleteCount(resultFutures);
         assertEquals(1, cancelledCount);
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
-        assertNoActiveExecutor(conseqService);
+        assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
-    private void assertNoActiveExecutor(ConseqService conseqService) {
-        long timeStart = System.nanoTime();
+    private void assertExecutorsSweptCleanWhenFinished(ConseqService conseqService) {
+        long timeStartNanos = System.nanoTime();
         await().until(() -> conseqService.getActiveExecutorCount() == 0);
-        log.log(Level.INFO, "took " + Duration.ofNanos(System.nanoTime() - timeStart) + " to sweep clean executors");
+        log.log(Level.INFO,
+                "took " + Duration.ofNanos(System.nanoTime() - timeStartNanos) + " to sweep clean executors");
     }
 
     @Test void returnMinimalisticFuture() {
