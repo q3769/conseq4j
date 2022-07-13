@@ -28,6 +28,7 @@ import conseq4j.SpyingTask;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -47,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
+    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
 
     @BeforeAll public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
@@ -131,7 +132,9 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     private void assertNoActiveExecutor(ConseqService conseqService) {
+        long timeStart = System.nanoTime();
         await().until(() -> conseqService.getActiveExecutorCount() == 0);
+        log.log(Level.INFO, "took " + Duration.ofNanos(System.nanoTime() - timeStart) + " to sweep clean executors");
     }
 
     @Test void returnMinimalisticFuture() {
