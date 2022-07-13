@@ -66,7 +66,7 @@ import static org.awaitility.Awaitility.await;
         this.runThreadName = Thread.currentThread().getName();
         await().with()
                 .pollInterval(Duration.ofMillis(1))
-                .until(() -> System.currentTimeMillis() - this.runStart > this.targetRunDuration.toMillis());
+                .until(() -> System.currentTimeMillis() - this.runStart >= this.targetRunDuration.toMillis());
         this.runEnd = System.currentTimeMillis();
         log.log(Level.FINEST, () -> "End running: " + this + ", took " + (this.runEnd - this.runStart) + " millis");
     }
