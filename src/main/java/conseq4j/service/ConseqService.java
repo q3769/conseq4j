@@ -45,7 +45,23 @@ import java.util.logging.Level;
  */
 @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
+    private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
+
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
+
+    private final ExecutorService backingThreadPool;
+
+    public ConseqService() {
+        this.backingThreadPool = DEFAULT_THREAD_POOL;
+    }
+
+    private ConseqService(@NonNull ExecutorService backingThreadPool) {
+        this.backingThreadPool = backingThreadPool;
+    }
+
+    public static ConseqService with(ExecutorService backingThreadPool) {
+        return new ConseqService(backingThreadPool);
+    }
 
     /**
      * {@inheritDoc}
@@ -54,20 +70,28 @@ import java.util.logging.Level;
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
-            CompletableFuture<Void> replacementExecutor = (executor == null) ? CompletableFuture.runAsync(command) :
-                    executor.handleAsync((executionResult, executionException) -> {
-                        if (executionException != null)
-                            log.log(Level.WARNING,
-                                    executionException + " occurred in " + executor + " before executing next "
-                                            + command);
-                        command.run();
-                        return null;
-                    });
+            CompletableFuture<Void> replacementExecutor =
+                    (executor == null) ? CompletableFuture.runAsync(command, this.backingThreadPool) :
+                            executor.handleAsync((executionResult, executionException) -> {
+                                if (executionException != null)
+                                    log.log(Level.WARNING,
+                                            executionException + " occurred in " + executor + " before executing next "
+                                                    + command);
+                                command.run();
+                                return null;
+                            }, this.backingThreadPool);
             sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
             return replacementExecutor;
         });
     }
 
+    /**
+     * The thread pool to conduct the sweeping maintenance is the default {@link ForkJoinPool#commonPool()}, and cannot
+     * be customized.
+     *
+     * @param executor    the executor to check and sweep if its execution is done
+     * @param sequenceKey the key whose tasks are sequentially executed by the executor
+     */
     private void sweepExecutorWhenComplete(CompletableFuture<?> executor, Object sequenceKey) {
         executor.handleAsync((executionResult, executionException) -> {
             new ExecutorSweeper(sequenceKey, this.sequentialExecutors).sweepIfDone();
@@ -84,14 +108,14 @@ import java.util.logging.Level;
         FutureHolder<T> resultHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
             CompletableFuture<T> replacementExecutor =
-                    (executor == null) ? CompletableFuture.supplyAsync(() -> call(task)) :
+                    (executor == null) ? CompletableFuture.supplyAsync(() -> call(task), this.backingThreadPool) :
                             executor.handleAsync((executionResult, executionException) -> {
                                 if (executionException != null)
                                     log.log(Level.WARNING,
                                             executionException + " occurred in " + executor + " before executing next "
                                                     + task);
                                 return call(task);
-                            });
+                            }, this.backingThreadPool);
             resultHolder.setFuture(replacementExecutor);
             sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
             return replacementExecutor;
@@ -110,6 +134,10 @@ import java.util.logging.Level;
             log.log(Level.WARNING, "error executing user provided task " + task, e);
             throw new UncheckedExecutionException(e);
         }
+    }
+
+    String getBackingThreadPoolName() {
+        return this.backingThreadPool.getClass().getName();
     }
 
     @Value private static class ExecutorSweeper {

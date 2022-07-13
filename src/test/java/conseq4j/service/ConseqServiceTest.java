@@ -32,10 +32,7 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -80,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void submitConcurrencyBoundedByTotalTaskCount() {
-        ConseqService conseqService = new ConseqService();
+        ConseqService conseqService = ConseqService.with(Executors.newFixedThreadPool(20));
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
@@ -142,6 +139,22 @@ import static org.junit.jupiter.api.Assertions.*;
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
         assertFalse(result instanceof CompletableFuture);
+    }
+
+    @Test void canCustomizeBackingThreadPool() {
+        ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
+        ConseqService conseqService = ConseqService.with(customBackingThreadPool);
+
+        String customPoolName = customBackingThreadPool.getClass().getName();
+        assertEquals(customPoolName, conseqService.getBackingThreadPoolName());
+    }
+
+    @Test void defaultBackingThreadPool() {
+        ExecutorService expected = ForkJoinPool.commonPool();
+        ConseqService defaultConseqService = new ConseqService();
+
+        String expectedPoolName = expected.getClass().getName();
+        assertEquals(expectedPoolName, defaultConseqService.getBackingThreadPoolName());
     }
 
     private int normalCompleteCount(List<Future<SpyingTask>> resultFutures)
