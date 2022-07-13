@@ -25,6 +25,7 @@
 package conseq4j.service;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.java.Log;
@@ -62,12 +63,12 @@ import java.util.logging.Level;
                         command.run();
                         return null;
                     });
-            sweepExecutorWhenDone(replacementExecutor, sequenceKey);
+            sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
             return replacementExecutor;
         });
     }
 
-    private void sweepExecutorWhenDone(CompletableFuture<?> executor, Object sequenceKey) {
+    private void sweepExecutorWhenComplete(CompletableFuture<?> executor, Object sequenceKey) {
         executor.handleAsync((executionResult, executionException) -> {
             new ExecutorSweeper(sequenceKey, this.sequentialExecutors).sweepIfDone();
             return null;
@@ -92,7 +93,7 @@ import java.util.logging.Level;
                                 return call(task);
                             });
             resultHolder.setFuture(replacementExecutor);
-            sweepExecutorWhenDone(replacementExecutor, sequenceKey);
+            sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
             return replacementExecutor;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
@@ -123,18 +124,18 @@ import java.util.logging.Level;
                             + " already swept off of active service map");
                     return null;
                 }
-                CompletableFuture<?> sweepResult = executor.isDone() ? null : executor;
-                logSweepAction(executor, sweepResult);
-                return sweepResult;
+                return sweeping(executor) ? null : executor;
             });
         }
 
-        private void logSweepAction(CompletableFuture<?> executor, CompletableFuture<?> sweepResult) {
-            if (sweepResult == null) {
+        private boolean sweeping(CompletableFuture<?> executor) {
+            boolean result = executor.isDone();
+            if (result) {
                 log.log(Level.FINE, () -> "sweeping executor " + executor + " off of active service map");
             } else {
                 log.log(Level.FINE, () -> "keeping executor " + executor + " in active service map");
             }
+            return result;
         }
     }
 
@@ -151,14 +152,17 @@ import java.util.logging.Level;
     }
 
     /**
-     * Wrapper to hide intricacies of {@link CompletableFuture} and only expose contract methods on the {@link Future}
-     * interface
+     * Making it impossible to downcast this wrapper's instances any further from {@link Future}
      *
      * @param <V> type of result held by the Future
      */
-    @Value static class MinimalFuture<V> implements Future<V> {
+    private static final class MinimalFuture<V> implements Future<V> {
 
-        Future<V> toMinimalize;
+        private final Future<V> toMinimalize;
+
+        private MinimalFuture(@NonNull Future<V> toMinimalize) {
+            this.toMinimalize = toMinimalize;
+        }
 
         @Override public boolean cancel(boolean mayInterruptIfRunning) {
             return this.toMinimalize.cancel(mayInterruptIfRunning);

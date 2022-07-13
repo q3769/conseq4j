@@ -35,6 +35,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -133,15 +134,13 @@ import static org.junit.jupiter.api.Assertions.*;
 
     private void assertExecutorsSweptCleanWhenFinished(ConseqService conseqService) {
         long timeStartNanos = System.nanoTime();
-        await().until(() -> conseqService.getActiveExecutorCount() == 0);
-        log.log(Level.INFO,
-                "took " + Duration.ofNanos(System.nanoTime() - timeStartNanos) + " to sweep clean executors");
+        await().with().pollInterval(20, TimeUnit.MILLISECONDS).until(() -> conseqService.getActiveExecutorCount() == 0);
+        log.log(Level.INFO, "all executors swept clean in " + Duration.ofNanos(System.nanoTime() - timeStartNanos));
     }
 
     @Test void returnMinimalisticFuture() {
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
-        assertTrue(result instanceof ConseqService.MinimalFuture);
         assertFalse(result instanceof CompletableFuture);
     }
 
