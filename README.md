@@ -168,7 +168,8 @@ Notes:
   achieve sequential execution of related tasks. Unrelated tasks are executed at a concurrency upper-bounded by the
   backing thread pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash collision
   related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
-  an `ExecutorService` executor has to offer.
+  an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
+  to offer.
 - For simplicity, the thread pool facilitating this style's asynchronous execution is the default
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   . By design, this is not customizable.
