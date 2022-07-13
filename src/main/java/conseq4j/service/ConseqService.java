@@ -149,7 +149,7 @@ import java.util.logging.Level;
      * Wrapper to hide intricacies of {@link CompletableFuture} and only expose contract methods on the {@link Future}
      * interface
      *
-     * @param <V> result type held by the Future
+     * @param <V> type of result held by the Future
      */
     @Value static class MinimalFuture<V> implements Future<V> {
 
