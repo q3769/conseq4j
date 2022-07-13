@@ -140,6 +140,8 @@ public interface ConcurrentSequencerService {
 public class MessageConsumer {
 
     private ConcurrentSequencerService conseqService = new ConseqService();
+    // Or, to use a custom thread pool of size 10, for example, you could do: 
+    // private ConcurrentSequencerService conseqService = ConseqService.with(Executors.newFixedThreadPool(10));
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
