@@ -29,7 +29,7 @@ import java.util.concurrent.Future;
 
 /**
  * Main API of concurrent sequencer service, bypassing the intermediate
- * executor/{@link java.util.concurrent.ExecutorService}  interface.
+ * executor/{@link java.util.concurrent.ExecutorService} interface.
  *
  * @author Qingtian Wang
  */
