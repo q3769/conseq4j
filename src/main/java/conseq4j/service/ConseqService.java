@@ -50,11 +50,12 @@ import java.util.logging.Level;
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
-            CompletableFuture<Void> replacementExecutor = executor == null ? CompletableFuture.runAsync(command) :
-                    executor.handleAsync((executionResult, executionError) -> {
-                        if (executionError != null)
+            CompletableFuture<Void> replacementExecutor = (executor == null) ? CompletableFuture.runAsync(command) :
+                    executor.handleAsync((executionResult, executionException) -> {
+                        if (executionException != null)
                             log.log(Level.WARNING,
-                                    executionError + " occurred in " + executor + " before executing next " + command);
+                                    executionException + " occurred in " + executor + " before executing next "
+                                            + command);
                         command.run();
                         return null;
                     });
@@ -64,7 +65,7 @@ import java.util.logging.Level;
     }
 
     private void sweepExecutorWhenDone(CompletableFuture<?> executor, Object sequenceKey) {
-        executor.handleAsync((executionResult, executionError) -> {
+        executor.handleAsync((executionResult, executionException) -> {
             new ExecutorSweeper(sequenceKey, this.sequentialExecutors).sweepIfDone();
             return null;
         });
@@ -77,11 +78,11 @@ import java.util.logging.Level;
         FutureHolder<T> resultHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
             CompletableFuture<T> replacementExecutor =
-                    executor == null ? CompletableFuture.supplyAsync(() -> call(task)) :
-                            executor.handleAsync((executionResult, executionError) -> {
-                                if (executionError != null)
+                    (executor == null) ? CompletableFuture.supplyAsync(() -> call(task)) :
+                            executor.handleAsync((executionResult, executionException) -> {
+                                if (executionException != null)
                                     log.log(Level.WARNING,
-                                            executionError + " occurred in " + executor + " before executing next "
+                                            executionException + " occurred in " + executor + " before executing next "
                                                     + task);
                                 return call(task);
                             });
