@@ -68,15 +68,24 @@ import java.util.logging.Level;
 
     /**
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
-     * completion-stages of the {@link CompletableFuture} of the same key; i.e. the main-line execution. Each task will
-     * always create its own completion-stage which will replace the previous stage under the same sequence key in the
-     * in-service executors map. This current task stage will not start executing before the previous stage of the same
-     * sequence key completes, and, will have to complete its execution before the next task's stage stacked on top of
-     * the current stage can start executing. In parallel, a separate maintenance task/stage is stacked upon the same
-     * current stage. The maintenance task checks on the completion status of the main-line execution under the same
-     * sequence key, and removes {@link CompletableFuture} executor from the service map when there is no more pending
-     * stage to complete in the main-line. The cleanup task/stage runs "off-of-band" of the main-line execution stages,
-     * so that it does not disturb the sequential-ness of the main-line executions.
+     * completion-stages of the {@link CompletableFuture} of the same key; i.e. the "main-line" execution.
+     * <p/>
+     * A {@link ConcurrentMap} keyed on the task's sequence key is employed. The corresponding value is to hold the
+     * latest main-line stage - the tail of the FIFO execution queue for the same sequence key if you will. Each current
+     * task always creates a new main-line execution stage which is stacked on top of the previous stage. As an atomic
+     * transaction to this stage stacking, the just-created current main-line stage also replaces the previous stage as
+     * the new value under the same sequence key in the map. The current stage will not start executing before the
+     * previous stage of the same sequence key completes, and, will have to complete its execution before the next
+     * task's main-line stage can start executing.
+     * <p/>
+     * Aside of the main-line, a separate cleanup task/stage is stacked upon each current main-line stage. After the
+     * main-line stage completes, this cleanup task/stage checks on the completion status of the latest main-line stage
+     * (may not be the same one that triggered the cleanup check) under the same sequence key, and removes the checked
+     * stage from the map if its execution has completed. The cleanup task/stage never alters the linear
+     * progression/stacking of the main-line stages, so it does not disturb the sequential-ness of the main-line
+     * executions. As each main-line stage after its completion is triggering an "off-of-band" cleanup check,
+     * collectively, this ensures that every main-line stage is checked for completion and removal from the service map
+     * at some point; thus, no main-line stage will forever linger in the service map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
