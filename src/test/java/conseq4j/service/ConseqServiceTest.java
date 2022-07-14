@@ -88,7 +88,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
-        assertEquals(threadPoolSize, Math.min(TASK_COUNT, threadPoolSize));
+        assert threadPoolSize < TASK_COUNT;
         assertEquals(threadPoolSize, totalRunThreads);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
@@ -104,7 +104,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
-        assertEquals(TASK_COUNT, Math.min(threadPoolSize, TASK_COUNT));
+        assert TASK_COUNT < threadPoolSize;
         assertEquals(TASK_COUNT, totalRunThreads);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
