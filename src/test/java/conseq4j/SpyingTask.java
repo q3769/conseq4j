@@ -43,8 +43,8 @@ import static org.awaitility.Awaitility.await;
     public static final int MAX_RUN_TIME_MILLIS = 20;
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
-    long runStart;
-    long runEnd;
+    volatile long runStart;
+    volatile long runEnd;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {
