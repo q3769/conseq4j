@@ -141,10 +141,11 @@ public class MessageConsumer {
 
     private ConcurrentSequencerService conseqService = new ConseqService();
         
-    /* Or, to use a custom thread pool of size 10, for example, you could do: 
+    /* 
+     * Or, to use a custom thread pool of size 10, for example, you could do: 
      *
-     * private ConcurrentSequencerService conseqService = 
-     *                 ConseqService.withExecutionThreadPool(Executors.newFixedThreadPool(10));
+     * private ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
+     *
      */
     
     @Autowired
@@ -178,11 +179,22 @@ Notes:
   to offer.
 - For simplicity, the default thread pool that facilitates this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  ; that is via the `new ConseqService()` API. Alternatively, the thread pool can be customized via
-  the `ConseqService.withExecutionThreadPool(ExecutorService executionThreadPool)` API. Since there is no bucket
-  hashing, this API style decouples the tasks from their execution threads. I.e. even the tasks of the same sequence key
-  could be executed by different threads from the thread pool, albeit in sequential order. This may bring extra
-  performance gain compared to the other API style.
+  ; that is by using the default constructor:
+
+  ```
+  ConcurrentSequencerService conseqService = new ConseqService();
+  ```
+
+  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is using a thread pool with
+  a fixed size of 10 threads:
+
+  ```
+  ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
+  ```
+
+  Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
+  the tasks of the same sequence key could be executed by different threads from the thread pool, albeit in sequential
+  order. This may bring extra performance gain compared to the other API style.
 
 ## Full disclosure - Asynchronous Conundrum
 

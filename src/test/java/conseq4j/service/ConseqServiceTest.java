@@ -77,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void submitConcurrencyBoundedByTotalTaskCount() {
-        ConseqService conseqService = ConseqService.withExecutionThreadPool(Executors.newFixedThreadPool(20));
+        ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(20));
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
@@ -143,7 +143,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void canCustomizeBackingThreadPool() {
         ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
-        ConseqService conseqService = ConseqService.withExecutionThreadPool(customBackingThreadPool);
+        ConseqService conseqService = new ConseqService(customBackingThreadPool);
 
         String customPoolName = customBackingThreadPool.getClass().getName();
         assertEquals(customPoolName, conseqService.getExecutionThreadPoolTypeName());

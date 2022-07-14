@@ -55,12 +55,8 @@ import java.util.logging.Level;
         this.executionThreadPool = DEFAULT_THREAD_POOL;
     }
 
-    private ConseqService(@NonNull ExecutorService executionThreadPool) {
+    public ConseqService(@NonNull ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool;
-    }
-
-    public static ConseqService withExecutionThreadPool(ExecutorService executionThreadPool) {
-        return new ConseqService(executionThreadPool);
     }
 
     /**
