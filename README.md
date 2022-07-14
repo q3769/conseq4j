@@ -162,7 +162,8 @@ public class MessageConsumer {
      * {@link CompletableFuture}'s completion stages.
      */
     public void onMessage(Message shoppingEvent) {       
-        conseqService.execute(() -> shoppingEventProcessor.process(shoppingEvent), 
+        conseqService.execute(
+                () -> shoppingEventProcessor.process(shoppingEvent), 
                 shoppingEvent.getShoppingCartId());
     }
     ...
