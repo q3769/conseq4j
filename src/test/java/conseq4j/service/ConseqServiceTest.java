@@ -40,7 +40,8 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 
 @Log class ConseqServiceTest {
 
@@ -77,7 +78,8 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void submitConcurrencyBoundedByTotalTaskCount() {
-        ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(20));
+        int threadPoolSize = TASK_COUNT / 10;
+        ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
@@ -85,8 +87,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
-        assertTrue(totalRunThreads > 1);
-        assertTrue(totalRunThreads <= TASK_COUNT);
+        assertEquals(threadPoolSize, totalRunThreads);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
