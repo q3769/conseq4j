@@ -158,7 +158,7 @@ public class MessageConsumer {
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel by different backing threads. Sequence is maintained on all 
      * shopping events of the same shopping cart ID, via linear progressing of the
-     * CompletableFuture's completion stages.
+     * {@link CompletableFuture}'s completion stages.
      */
     public void onMessage(Message shoppingEvent) {       
         conseqService.execute(() -> shoppingEventProcessor.process(shoppingEvent), 
