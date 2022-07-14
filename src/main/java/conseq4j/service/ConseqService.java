@@ -52,7 +52,8 @@ import java.util.logging.Level;
     private final ExecutorService executionThreadPool;
 
     /**
-     * Default constructor sets the global execution thread pool to the JDK {@link ForkJoinPool#commonPool()}.
+     * Default constructor sets the global execution thread pool to be the default JDK
+     * {@link ForkJoinPool#commonPool()}.
      */
     public ConseqService() {
         this.executionThreadPool = DEFAULT_THREAD_POOL;
