@@ -77,7 +77,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test void submitConcurrencyBoundedByTotalTaskCount() {
+    @Test void submitConcurrencyBoundedByThreadPoolSize() {
         int threadPoolSize = TASK_COUNT / 10;
         ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
@@ -86,8 +86,26 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
                 .collect(toList());
 
         final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-        log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
+        log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
+                new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
+        assertEquals(threadPoolSize, Math.min(TASK_COUNT, threadPoolSize));
         assertEquals(threadPoolSize, totalRunThreads);
+        assertExecutorsSweptCleanWhenFinished(conseqService);
+    }
+
+    @Test void submitConcurrencyBoundedByTotalTaskCount() {
+        int threadPoolSize = TASK_COUNT * 10;
+        ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
+
+        List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
+                .map(task -> conseqService.submit(task, UUID.randomUUID()))
+                .collect(toList());
+
+        final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
+                new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
+        assertEquals(TASK_COUNT, Math.min(threadPoolSize, TASK_COUNT));
+        assertEquals(TASK_COUNT, totalRunThreads);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
