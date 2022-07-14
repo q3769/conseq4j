@@ -43,8 +43,8 @@ implementation 'io.github.q3769:conseq4j:20220713.0.0'
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
-This provides the API client with a sequential executor of type `ExecutorService`. Consider using this style when you
-need the same syntax and semantic richness of
+This API style provides the client with a sequential executor of type `ExecutorService`. Consider using this style when
+you need the syntax and semantic richness of
 an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
 #### API:
@@ -157,8 +157,8 @@ public class MessageConsumer {
      * 
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel by different backing threads. Sequence is maintained on all 
-     * shopping events of the same shopping cart ID, via linear progressing of one 
-     * {@code CompletableFuture} stage.
+     * shopping events of the same shopping cart ID, via linear progressing of the
+     * CompletableFuture's completion stages.
      */
     public void onMessage(Message shoppingEvent) {       
         conseqService.execute(() -> shoppingEventProcessor.process(shoppingEvent), 
@@ -172,11 +172,11 @@ Notes:
 - The implementation of this style replies on the
   JDK [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
   achieve sequential execution of related tasks. Unrelated tasks are executed at a concurrency upper-bounded by the
-  backing thread pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash collision
-  related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
+  execution thread pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash
+  collision related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
   to offer.
-- For simplicity, the default thread pool that facilites this style's asynchronous execution is the
+- For simplicity, the default thread pool that facilitates this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   ; that is via the `new ConseqService()` API. Alternatively, the thread pool can be customized via
   the `ConseqService.withExecutionThreadPool(ExecutorService executionThreadPool)` API. Since there is no bucket
