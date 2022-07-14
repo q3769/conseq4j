@@ -67,61 +67,70 @@ import java.util.logging.Level;
     }
 
     /**
-     * {@inheritDoc}
+     * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
+     * completion-stages of the {@link CompletableFuture} of the same key; i.e. the main-line execution. Each task will
+     * always create its own completion-stage which will replace the previous stage under the same sequence key in the
+     * in-service executors map. This current task stage will not start executing before the previous stage of the same
+     * sequence key completes, and, will have to complete its execution before the next task's stage stacked on top of
+     * the current stage can start executing. In parallel, a separate maintenance task/stage is stacked upon the same
+     * current stage. The maintenance task checks on the completion status of the main-line execution under the same
+     * sequence key, and removes {@link CompletableFuture} executor from the service map when there is no more pending
+     * stage to complete in the main-line. The cleanup task/stage runs "off-of-band" of the main-line execution stages,
+     * so that it does not disturb the sequential-ness of the main-line executions.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
-        this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
-            CompletableFuture<Void> replacementExecutor =
-                    (executor == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
-                            executor.handleAsync((executionResult, executionException) -> {
+        this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
+            CompletableFuture<Void> nextStageExecutor =
+                    (presentStageExecutor == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
+                            presentStageExecutor.handleAsync((executionResult, executionException) -> {
                                 if (executionException != null)
-                                    log.log(Level.WARNING,
-                                            executionException + " occurred in " + executor + " before executing next "
-                                                    + command);
+                                    log.log(Level.WARNING, executionException + " occurred in " + presentStageExecutor
+                                            + " before executing next " + command);
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-            sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
-            return replacementExecutor;
+            sweepExecutorWhenComplete(nextStageExecutor, sequenceKey);
+            return nextStageExecutor;
         });
     }
 
     /**
      * The thread pool to conduct the sweeping maintenance is the default {@link ForkJoinPool#commonPool()}, and cannot
-     * be customized.
+     * be customized. The executor sweeper runs after the completion of the stage's execution. This ensures this stage
+     * executor under the same sequence key will always be checked and cleaned up if it has not been swept off by
+     * earlier sweeps for the same sequence key; thus, no executor can linger forever after its completion.
      *
-     * @param executor    the executor to check and sweep if its execution is done
-     * @param sequenceKey the key whose tasks are sequentially executed by the executor
+     * @param stageExecutor the stageExecutor to check and sweep if its execution is done
+     * @param sequenceKey   the key whose tasks are sequentially executed by the stageExecutor
      */
-    private void sweepExecutorWhenComplete(CompletableFuture<?> executor, Object sequenceKey) {
-        executor.handleAsync((executionResult, executionException) -> {
+    private void sweepExecutorWhenComplete(CompletableFuture<?> stageExecutor, Object sequenceKey) {
+        stageExecutor.handleAsync((executionResult, executionException) -> {
             new ExecutorSweeper(sequenceKey, this.sequentialExecutors).sweepIfDone();
             return null;
         });
     }
 
     /**
-     * {@inheritDoc}
+     * @see {@link #execute(Runnable, Object)}'s Javadoc
      */
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
-        this.sequentialExecutors.compute(sequenceKey, (k, executor) -> {
-            CompletableFuture<T> replacementExecutor =
-                    (executor == null) ? CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
-                            executor.handleAsync((executionResult, executionException) -> {
-                                if (executionException != null)
-                                    log.log(Level.WARNING,
-                                            executionException + " occurred in " + executor + " before executing next "
-                                                    + task);
-                                return call(task);
-                            }, this.executionThreadPool);
-            resultHolder.setFuture(replacementExecutor);
-            sweepExecutorWhenComplete(replacementExecutor, sequenceKey);
-            return replacementExecutor;
+        this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
+            CompletableFuture<T> nextStageExecutor = (presentStageExecutor == null) ?
+                    CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
+                    presentStageExecutor.handleAsync((executionResult, executionException) -> {
+                        if (executionException != null)
+                            log.log(Level.WARNING, executionException + " occurred in " + presentStageExecutor
+                                    + " before executing next " + task);
+                        return call(task);
+                    }, this.executionThreadPool);
+            resultHolder.setFuture(nextStageExecutor);
+            sweepExecutorWhenComplete(nextStageExecutor, sequenceKey);
+            return nextStageExecutor;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
     }
