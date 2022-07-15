@@ -26,8 +26,11 @@ package conseq4j;
 import java.util.concurrent.ExecutorService;
 
 /**
- * <p>Main API interface to summon a sequential executor by a sequence key. The same/equal sequence key gets back the
- * same single-thread executor; this ensures task(s) of the same key are executed in the same order as submitted.</p>
+ * Main API interface to summon a sequential executor by a sequence key. The same/equal sequence key gets back the same
+ * single-thread executor; this ensures task(s) of the same key are executed in the same order as submitted.
+ * <p>
+ * It may come as counter-intuitive for a concurrent API, but it is not mandatory for the implementation to be
+ * thread-safe although the default implementation is.
  *
  * @author Qingtian Wang
  */

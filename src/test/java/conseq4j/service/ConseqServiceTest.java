@@ -153,7 +153,7 @@ import static org.junit.jupiter.api.Assertions.*;
         for (int i = 0; i < TASK_COUNT; i++) {
             Future<SpyingTask> taskFuture = conseqService.submit(tasks.get(i), sameSequenceKey);
             if (i == cancelTaskIdx) {
-                System.out.println("cancelling task " + taskFuture);
+                log.info("cancelling task " + taskFuture);
                 try {
                     taskFuture.cancel(true);
                 } catch (Exception e) {

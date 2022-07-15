@@ -30,6 +30,9 @@ import java.util.concurrent.Future;
 /**
  * Main API of concurrent sequencer service, bypassing the intermediate
  * executor/{@link java.util.concurrent.ExecutorService} interface.
+ * <p>
+ * It may come as counter-intuitive for a concurrent API, but it is not mandatory for the implementation to be
+ * thread-safe although the default implementation is.
  *
  * @author Qingtian Wang
  */

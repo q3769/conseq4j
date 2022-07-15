@@ -25,6 +25,7 @@ package conseq4j;
 
 import lombok.ToString;
 import lombok.extern.java.Log;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.*;
@@ -37,7 +38,7 @@ import static java.lang.Math.floorMod;
  *
  * @author Qingtian Wang
  */
-@ToString @Log public final class Conseq implements ConcurrentSequencer {
+@ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
     /**
      * Default global concurrency is set to {@code Integer.MAX_VALUE}

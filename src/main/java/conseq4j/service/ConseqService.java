@@ -29,27 +29,33 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.java.Log;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
- * <p>
  * The default implementation of the main service API. Relies on the JDK {@code CompletableFuture} as sequential
  * executor of the tasks under the sequence key. For simplicity, the asynchronous execution facility is the default
  * {@link ForkJoinPool#commonPool()}, and cannot be customized by design.
- * </p>
  *
  * @author Qingtian Wang
  */
-@Log @ToString public final class ConseqService implements ConcurrentSequencerService {
+@ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
 
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
+
+    /**
+     * In case of current access, which is not usual, threads are fairly synchronized to ensure chronicle order.
+     */
+    private final Lock fairLock = new ReentrantLock(true);
 
     /**
      * Default constructor sets the global execution thread pool to be the default JDK
@@ -82,13 +88,22 @@ import java.util.logging.Level;
      * Outside the main-line progression, a separate cleanup task/stage is stacked upon each main-line stage. After the
      * main-line stage completes, this cleanup task/stage checks on the completion status of the latest main-line stage
      * (may not be the same one that triggered this cleanup check) under the same sequence key, and removes the checked
-     * stage from the map if its execution has completed. The cleanup task/stage never alters the linear
-     * progression/stacking of the main-line stages, so it does not disturb the sequential-ness of the main-line
-     * executions. As each main-line stage after its completion is triggering an "off-of-band" cleanup check,
-     * collectively, this ensures that every main-line stage is checked for completion and removal from the service map
-     * at some point of time; thus, no main-line stage will forever linger in the service map.
+     * stage from the map if its execution has completed. The cleanup task/stage does not alter the sequential nature of
+     * the main-line stage progression/stacking, so it does not disturb the sequential-ness of the main-line executions.
+     * As each main-line stage after its completion is triggering an "off-of-band" cleanup check, collectively, this
+     * ensures that every main-line stage is checked for completion and removal from the service map at some point of
+     * time; thus, no main-line stage will forever linger in the service map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
+        fairLock.lock();
+        try {
+            doExecute(command, sequenceKey);
+        } finally {
+            fairLock.unlock();
+        }
+    }
+
+    private void doExecute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
@@ -126,6 +141,15 @@ import java.util.logging.Level;
      * @see {@link #execute(Runnable, Object)}'s Javadoc
      */
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
+        fairLock.lock();
+        try {
+            return doSubmit(task, sequenceKey);
+        } finally {
+            fairLock.unlock();
+        }
+    }
+
+    private <T> MinimalFuture<T> doSubmit(Callable<T> task, Object sequenceKey) {
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
