@@ -31,8 +31,19 @@ import java.util.concurrent.Future;
  * Main API of concurrent sequencer service, bypassing the intermediate
  * executor/{@link java.util.concurrent.ExecutorService} interface.
  * <p>
- * It may come as counter-intuitive for a concurrent API, but it is not mandatory for the implementation to be
- * thread-safe although the default implementation is.
+ * This may come as counter-intuitive for a concurrent API, but it is not mandatory for the implementation of this API
+ * to be thread-safe. In fact, for simplicity and separation of concerns, the default API implementation is not
+ * thread-safe in that it provides no garantee of access order.
+ * <p>
+ * It is the API client's responsibility and concern to ensure that tasks are submitted to the API in the correct
+ * sequence in the first place. Often times, that is naturally the case e.g. when the API is invoked by a single thread
+ * caller managed by a messaging provider. Otherwise, if the API client is multi-threaded, then the caller needs to
+ * ensure the correct calling sequence among the concurrent caller threads. This can be as simple as using a <a
+ * href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-">fair
+ * lock</a> to safeguard the API invocation.
+ * <p>
+ * Once the proper calling sequence is ensured by the client, it is the concern and responsibility of the conseq4j API
+ * that further processing of the tasks are executed in the meaningful order and concurrency as promised.
  *
  * @author Qingtian Wang
  */

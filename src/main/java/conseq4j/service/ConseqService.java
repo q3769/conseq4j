@@ -29,12 +29,10 @@ import lombok.NonNull;
 import lombok.ToString;
 import lombok.Value;
 import lombok.extern.java.Log;
-import net.jcip.annotations.ThreadSafe;
+import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
@@ -44,18 +42,13 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
+@NotThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
 
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
-
-    /**
-     * In case of concurrent access, which is not usual, threads are fairly synchronized to ensure chronicle order.
-     */
-    private final Lock fairLock = new ReentrantLock(true);
 
     /**
      * Default constructor sets the global execution thread pool to be the default JDK
@@ -104,15 +97,6 @@ import java.util.logging.Level;
      * time; thus, no main-line stage will forever linger in the service map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
-        fairLock.lock();
-        try {
-            doExecute(command, sequenceKey);
-        } finally {
-            fairLock.unlock();
-        }
-    }
-
-    private void doExecute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
@@ -147,18 +131,9 @@ import java.util.logging.Level;
     }
 
     /**
-     * @see <code>ConseqService#execute(Runnable, Object)</code>'s Javadoc
+     * @see ConseqService#execute(Runnable, Object)
      */
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
-        fairLock.lock();
-        try {
-            return doSubmit(task, sequenceKey);
-        } finally {
-            fairLock.unlock();
-        }
-    }
-
-    private <T> MinimalFuture<T> doSubmit(Callable<T> task, Object sequenceKey) {
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
