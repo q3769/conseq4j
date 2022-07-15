@@ -53,7 +53,7 @@ import java.util.logging.Level;
     private final ExecutorService executionThreadPool;
 
     /**
-     * In case of current access, which is not usual, threads are fairly synchronized to ensure chronicle order.
+     * In case of concurrent access, which is not usual, threads are fairly synchronized to ensure chronicle order.
      */
     private final Lock fairLock = new ReentrantLock(true);
 
