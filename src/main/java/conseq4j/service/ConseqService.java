@@ -75,7 +75,7 @@ import java.util.logging.Level;
     /**
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
      * completion-stages of the {@link CompletableFuture} of the same key; i.e. the "main-line" execution.
-     * <p/>
+     * <p>
      * A {@link ConcurrentMap} keyed on the task's sequence key is employed. The corresponding value is to hold the
      * latest main-line stage - or the tail of the FIFO execution queue for the same sequence key if you will. Each
      * current task always creates a new main-line execution stage which is stacked on top of the previous stage. As an
@@ -84,7 +84,7 @@ import java.util.logging.Level;
      * the previous stage completes, and, will have completed its execution before the next task's main-line stage can
      * start executing. Such linear progression of the main-line stages ensure sequential execution of tasks under the
      * same sequence key.
-     * <p/>
+     * <p>
      * Outside the main-line progression, a separate cleanup task/stage is stacked upon each main-line stage. After the
      * main-line stage completes, this cleanup task/stage checks on the completion status of the latest main-line stage
      * (may not be the same one that triggered this cleanup check) under the same sequence key, and removes the checked
@@ -138,7 +138,7 @@ import java.util.logging.Level;
     }
 
     /**
-     * @see {@link #execute(Runnable, Object)}'s Javadoc
+     * @see <code>ConseqService#execute(Runnable, Object)</code>'s Javadoc
      */
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
         fairLock.lock();
