@@ -36,14 +36,15 @@ import java.util.concurrent.Future;
  * thread-safe in that it provides no garantee of access order.
  * <p>
  * It is the API client's responsibility and concern to ensure that tasks are submitted to the API in the correct
- * sequence in the first place. Often times, that is naturally the case e.g. when the API is invoked by a single thread
- * caller managed by a messaging provider. Otherwise, if the API client is multi-threaded, then the caller needs to
- * ensure the correct calling sequence among the concurrent caller threads. This can be as simple as using a <a
+ * sequence in the first place. Fortunately often times, that is naturally the case e.g. when the API is invoked by a
+ * single thread caller managed by a messaging provider. Otherwise, if the calling client is multi-threaded, then the
+ * client needs to ensure the correct access order among the concurrent caller threads. E.g. This can be as simple as
+ * setting up a <a
  * href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-">fair
  * lock</a> to safeguard the API invocation.
  * <p>
- * Once the proper calling sequence is ensured by the client, it is the concern and responsibility of the conseq4j API
- * that further processing of the tasks are executed in the meaningful order and concurrency as promised.
+ * Once the proper calling sequence is ensured by the client, it is then the concern and responsibility of the conseq4j
+ * API that further processing of the tasks are executed in the meaningful order and concurrency as promised.
  *
  * @author Qingtian Wang
  */
