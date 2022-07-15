@@ -24,6 +24,7 @@
 
 package conseq4j.service;
 
+import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
@@ -40,8 +41,7 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.*;
 
 @Log class ConseqServiceTest {
 
@@ -69,6 +69,27 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         return result;
     }
 
+    private static long totalDoneThreads(List<SpyingTask> tasks) {
+        return tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
+    }
+
+    private static long totalDoneThreadsOf(List<Future<SpyingTask>> futures) {
+        return toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+    }
+
+    static List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
+        log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
+        final List<SpyingTask> doneTasks = futures.stream().map(f -> {
+            try {
+                return f.get();
+            } catch (InterruptedException | ExecutionException ex) {
+                throw new IllegalStateException(ex);
+            }
+        }).collect(toList());
+        log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
+        return doneTasks;
+    }
+
     @BeforeEach void setUp(TestInfo testInfo) {
         log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
     }
@@ -85,11 +106,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        final long ranThreadsTotal = totalDoneThreadsOf(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
+                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert threadPoolSize < TASK_COUNT;
-        assertEquals(threadPoolSize, totalRunThreads);
+        assertEquals(threadPoolSize, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
@@ -101,11 +122,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        final long ranThreadsTotal = totalDoneThreadsOf(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[] { TASK_COUNT, totalRunThreads, threadPoolSize });
+                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert TASK_COUNT < threadPoolSize;
-        assertEquals(TASK_COUNT, totalRunThreads);
+        assertEquals(TASK_COUNT, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
@@ -116,8 +137,9 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
 
-        assertConsecutiveRuntimes(tasks);
         assertExecutorsSweptCleanWhenFinished(conseqService);
+        assertConsecutiveRuntimes(tasks);
+        assertTrue(Range.closed(1, TASK_COUNT).contains((int) totalDoneThreads(tasks)));
     }
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
@@ -220,18 +242,5 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
                         "execution out of order between current task " + current + " and next task " + next);
             assertFalse(current.getRunEnd() > next.getRunStart());
         }
-    }
-
-    List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
-        log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
-        final List<SpyingTask> doneTasks = futures.stream().map(f -> {
-            try {
-                return f.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }).collect(toList());
-        log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
-        return doneTasks;
     }
 }
