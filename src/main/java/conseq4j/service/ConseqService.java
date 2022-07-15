@@ -72,6 +72,15 @@ import java.util.logging.Level;
         this.executionThreadPool = executionThreadPool;
     }
 
+    private static <T> T call(Callable<T> task) {
+        try {
+            return task.call();
+        } catch (Exception e) {
+            log.log(Level.WARNING, "error executing user provided task " + task, e);
+            throw new UncheckedExecutionException(e);
+        }
+    }
+
     /**
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
      * completion-stages of the {@link CompletableFuture} of the same key; i.e. the "main-line" execution.
@@ -171,15 +180,6 @@ import java.util.logging.Level;
 
     int getActiveExecutorCount() {
         return this.sequentialExecutors.size();
-    }
-
-    private <T> T call(Callable<T> task) {
-        try {
-            return task.call();
-        } catch (Exception e) {
-            log.log(Level.WARNING, "error executing user provided task " + task, e);
-            throw new UncheckedExecutionException(e);
-        }
     }
 
     String getExecutionThreadPoolTypeName() {
