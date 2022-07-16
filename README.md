@@ -41,20 +41,19 @@ implementation 'io.github.q3769:conseq4j:20220715.0.0'
 
 ## Use it...
 
-This may come as counter-intuitive for a concurrent API, but it is not mandatory for the implementation of this API to
-be thread-safe. In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in
-that it provides no garantee of access order.
+It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be thread-safe.
+In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides no
+garantee of access order in case of racing conditions in task submission.
 
-It is the API client's responsibility and concern to ensure that tasks are submitted to the API in the correct
-sequence in the first place. Fortunately often times, that is naturally the case e.g. when the API is invoked by a
-single thread caller managed by a messaging provider. Otherwise, if the calling client is multi-threaded, then the
-client needs to ensure the correct access order among the concurrent caller threads. E.g. This can be as simple as
-setting up
+It is the API client's responsibility and concern to ensure that tasks are submitted to conseq4j in proper sequence to
+begin with. Fortunately often times, that is naturally the case e.g. when the client is under the management of a
+messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the API client needs
+to ensure the proper access order among the concurrent caller threads. e.g. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 to safeguard the API invocation.
 
-Once the proper task submission sequence is ensured by the calling client, it is then the concern and responsibility of
-the conseq4j API that further processing of the tasks are executed in the meaningful order and concurrency as promised.
+Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility
+that further processing of the tasks is executed in the meaningful order and concurrency as promised.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
