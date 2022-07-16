@@ -48,7 +48,7 @@ garantee of access order in case of racing conditions in task submission.
 It is the API client's responsibility and concern to ensure that tasks are submitted to conseq4j in proper sequence to
 begin with. Fortunately often times, that is naturally the case e.g. when the client is under the management of a
 messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the API client needs
-to ensure the proper access order among the concurrent caller threads. e.g. This can be as trivial as setting up
+to ensure proper access order among the concurrent caller threads. e.g. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 to safeguard the API invocation.
 
