@@ -173,18 +173,14 @@ import java.util.logging.Level;
                             + " already swept off of active service map");
                     return null;
                 }
-                return sweeping(executor) ? null : executor;
-            });
-        }
-
-        private boolean sweeping(CompletableFuture<?> executor) {
-            boolean result = executor.isDone();
-            if (result) {
-                log.log(Level.FINE, () -> "sweeping executor " + executor + " off of active service map");
-            } else {
+                boolean done = executor.isDone();
+                if (done) {
+                    log.log(Level.FINE, () -> "sweeping executor " + executor + " off of active service map");
+                    return null;
+                }
                 log.log(Level.FINE, () -> "keeping executor " + executor + " in active service map");
-            }
-            return result;
+                return executor;
+            });
         }
     }
 
