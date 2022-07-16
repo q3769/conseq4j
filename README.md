@@ -123,7 +123,8 @@ Notes:
 
 ### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as a service.
 
-This bypasses the [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
+This API style bypasses
+the [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html)
 executor interface, and directly services the submitted task. Prefer using this style when you do not require the
 full-blown syntax and semantic support of a JDK `ExecutorService`.
 
