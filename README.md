@@ -198,14 +198,14 @@ Notes:
   order. This may bring extra performance gain compared to the other API style. For simplicity, the default thread pool
   that facilitates this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  ; that is by using the default constructor:
+  ; this is by using the default constructor:
 
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
 
-  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is using a thread pool with
-  a fixed size of 10 threads:
+  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a thread pool
+  with a fixed size of 10 threads:
 
   ```
   ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
