@@ -112,14 +112,14 @@ Notes:
   that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
-  execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys may also
-  delay each other's execution inadvertently while waiting in the executor's task queue. To account for hash collision,
-  conseq4j does not support any shutdown action on the
+  execution order for each individual sequence key's tasks. Nevertheless, unrelated tasks of different sequence keys
+  will delay each other's execution inadvertently while waiting in the executor's task queue. To account for hash
+  collision, conseq4j does not support any shutdown action on the
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, however, is still cancellable. In general, hash collision may not be an issue for those
-  workloads that are asynchronous and focused on overall throughput, but is something to be aware of.
+  workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 
 ### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as a service.
 
