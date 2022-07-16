@@ -47,7 +47,7 @@ that it provides no garantee of access order.
 
 It is the API client's responsibility and concern to ensure that tasks are submitted to the API in the correct
 sequence in the first place. Fortunately often times, that is naturally the case e.g. when the API is invoked by a
-single thread caller managed by a messaging provider. Otherwise, if the calling client is multi-threaded, then the
+single caller thread managed by a messaging provider. Otherwise, if the calling client is multi-threaded, then the
 client needs to ensure the correct access order among the concurrent caller threads. E.g. This can be as simple as
 setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
