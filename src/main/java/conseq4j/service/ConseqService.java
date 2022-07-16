@@ -203,31 +203,33 @@ import java.util.logging.Level;
      */
     private static final class MinimalFuture<V> implements Future<V> {
 
-        private final Future<V> toMinimalize;
+        private final Future<V> future;
 
-        private MinimalFuture(@NonNull Future<V> toMinimalize) {
-            this.toMinimalize = toMinimalize;
+        private MinimalFuture(@NonNull Future<V> future) {
+            if (future instanceof MinimalFuture)
+                throw new IllegalStateException("already a minimalized Future:" + future);
+            this.future = future;
         }
 
         @Override public boolean cancel(boolean mayInterruptIfRunning) {
-            return this.toMinimalize.cancel(mayInterruptIfRunning);
+            return this.future.cancel(mayInterruptIfRunning);
         }
 
         @Override public boolean isCancelled() {
-            return this.toMinimalize.isCancelled();
+            return this.future.isCancelled();
         }
 
         @Override public boolean isDone() {
-            return this.toMinimalize.isDone();
+            return this.future.isDone();
         }
 
         @Override public V get() throws InterruptedException, ExecutionException {
-            return this.toMinimalize.get();
+            return this.future.get();
         }
 
-        @Override public V get(long timeout, TimeUnit unit)
+        @Override public V get(long timeout, @NonNull TimeUnit unit)
                 throws InterruptedException, ExecutionException, TimeoutException {
-            return this.toMinimalize.get(timeout, unit);
+            return this.future.get(timeout, unit);
         }
     }
 }
