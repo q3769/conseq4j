@@ -48,7 +48,7 @@ garantee of access order in case of multi-thread racing conditions in client-sid
 It is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is imperative,
 the client - no matter running in single or multiple threads - has to ensure that tasks are submitted in proper sequence
 to begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of a
-messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded,, then the client needs
+messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs
 to ensure proper access order to conseq4j among the concurrent caller threads. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 to safeguard the conseq4j API invocation; it is a client-side activity nonetheless.
