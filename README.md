@@ -195,12 +195,11 @@ Notes:
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
   to offer.
 - Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
-  the tasks of the same sequence key could be executed by different threads from the thread pool, albeit in sequential
-  order. This may bring extra performance gain compared to the other API style. For simplicity, the default thread pool
-  that facilitates this style's asynchronous execution is the
+  related tasks of the same sequence key could be executed by different threads from the thread pool, albeit in
+  sequential order. This may bring extra performance gain compared to the other API style. For simplicity, the default
+  thread pool that facilitates this style's asynchronous execution is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   ; this is by using the default constructor:
-
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
