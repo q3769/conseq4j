@@ -69,8 +69,8 @@ import static org.junit.jupiter.api.Assertions.*;
         return result;
     }
 
-    private static long totalDoneThreads(List<SpyingTask> tasks) {
-        return tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
+    private static int totalDoneThreads(List<SpyingTask> tasks) {
+        return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
     private static long totalDoneThreadsOf(List<Future<SpyingTask>> futures) {
@@ -139,7 +139,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
         assertExecutorsSweptCleanWhenFinished(conseqService);
         assertConsecutiveRuntimes(tasks);
-        assertTrue(Range.closed(1, TASK_COUNT).contains((int) totalDoneThreads(tasks)));
+        int ranThreadsTotal = totalDoneThreads(tasks);
+        log.info(TASK_COUNT + " tasks were run by " + ranThreadsTotal + " threads");
+        assertTrue(Range.closed(1, TASK_COUNT).contains(ranThreadsTotal));
     }
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()

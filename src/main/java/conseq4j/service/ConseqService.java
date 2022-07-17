@@ -36,9 +36,8 @@ import java.util.concurrent.*;
 import java.util.logging.Level;
 
 /**
- * The default implementation of the main service API. Relies on the JDK {@code CompletableFuture} as sequential
- * executor of the tasks under the sequence key. For simplicity, the asynchronous execution facility is the default
- * {@link ForkJoinPool#commonPool()}, and cannot be customized by design.
+ * The default implementation of the {@link ConcurrentSequencerService} API. Relies on the JDK {@link CompletableFuture}
+ * as sequential executor of the tasks under the sequence key.
  *
  * @author Qingtian Wang
  */
