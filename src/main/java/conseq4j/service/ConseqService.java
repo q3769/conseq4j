@@ -37,7 +37,7 @@ import java.util.logging.Level;
 
 /**
  * The default implementation of the {@link ConcurrentSequencerService} API. Relies on the JDK {@link CompletableFuture}
- * as sequential executor of the tasks under the sequence key.
+ * as the sequential executor of the tasks under the same sequence key.
  *
  * @author Qingtian Wang
  */
