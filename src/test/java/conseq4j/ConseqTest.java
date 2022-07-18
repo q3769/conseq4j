@@ -60,7 +60,7 @@ import static org.junit.jupiter.api.Assertions.*;
         }
     }
 
-    private static void awaitAllComplete(List<Future<SpyingTask>> futures) {
+    private static void awaitAllFutures(List<Future> futures) {
         futures.forEach(f -> {
             try {
                 f.get();
@@ -81,11 +81,11 @@ import static org.junit.jupiter.api.Assertions.*;
         return result;
     }
 
-    private static void awaitAllDone(List<SpyingTask> commands) {
-        for (SpyingTask command : commands) {
+    private static void awaitAllTasks(List<SpyingTask> tasks) {
+        for (SpyingTask task : tasks) {
             await().with()
                     .pollInterval(10, TimeUnit.MILLISECONDS)
-                    .until(() -> command.getRunEnd() != SpyingTask.UNSET_TIME_STAMP);
+                    .until(() -> task.getRunEnd() != SpyingTask.UNSET_TIME_STAMP);
         }
     }
 
@@ -116,19 +116,19 @@ import static org.junit.jupiter.api.Assertions.*;
         assert lowConcurrency < highConcurrency;
 
         Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
-        List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
+        List<Future> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
                 lowConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
-        awaitAllComplete(lowConcurrencyFutures);
+        awaitAllFutures(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         Conseq highConcurrencyService = Conseq.newBuilder().globalConcurrency(highConcurrency).build();
-        List<Future<SpyingTask>> highConcurrencyFutures = new ArrayList<>();
+        List<Future> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
                 highConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
-        awaitAllComplete(highConcurrencyFutures);
+        awaitAllFutures(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
         log.log(Level.INFO, "low concurrency: {0}, run time: {1}",
@@ -176,7 +176,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
         tasks.forEach(task -> defaultConseq.getSequentialExecutor(sameSequenceKey).execute(task));
 
-        awaitAllDone(tasks);
+        awaitAllTasks(tasks);
         assertSingleThread(tasks);
     }
 
