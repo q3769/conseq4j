@@ -46,7 +46,7 @@ In fact, for simplicity and separation of concerns, the default implementation i
 garantee of access order in case of multi-thread racing conditions in client-side task submission.
 
 It is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is imperative,
-the client - either single or multi-threaded, has to ensure that tasks are submitted in proper sequence
+the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence
 to begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of a
 messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to
 ensure the concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up
