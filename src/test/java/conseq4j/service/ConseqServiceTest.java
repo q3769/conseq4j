@@ -47,7 +47,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
+    private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
 
     @BeforeAll public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");

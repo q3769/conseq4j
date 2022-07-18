@@ -36,6 +36,7 @@ import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
 /**
@@ -80,6 +81,14 @@ import static org.junit.jupiter.api.Assertions.*;
         return result;
     }
 
+    private static void awaitAllDone(List<SpyingTask> commands) {
+        for (SpyingTask command : commands) {
+            await().with()
+                    .pollInterval(10, TimeUnit.MILLISECONDS)
+                    .until(() -> command.getRunEnd() != SpyingTask.UNSET_TIME_STAMP);
+        }
+    }
+
     @BeforeEach void setUp(TestInfo testInfo) {
         log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
     }
@@ -104,6 +113,7 @@ import static org.junit.jupiter.api.Assertions.*;
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
         int lowConcurrency = 2;
         int highConcurrency = lowConcurrency * 10;
+        assert lowConcurrency < highConcurrency;
 
         Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
         List<Future<SpyingTask>> lowConcurrencyFutures = new ArrayList<>();
@@ -125,7 +135,6 @@ import static org.junit.jupiter.api.Assertions.*;
                 new Object[] { lowConcurrency, Duration.ofNanos(lowConcurrencyTime) });
         log.log(Level.INFO, "high concurrency: {0}, run time: {1}",
                 new Object[] { highConcurrency, Duration.ofNanos(highConcurrencyTime) });
-        assertTrue(lowConcurrency < highConcurrency);
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -160,26 +169,20 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
     }
 
-    @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() {
         Conseq defaultConseq = Conseq.newBuilder().build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
-        final int extraFactorEnsuringAllDone = TASK_COUNT / 10;
-        final int timeToAllowAllComplete = (TASK_COUNT + extraFactorEnsuringAllDone) * SpyingTask.MAX_RUN_TIME_MILLIS;
 
-        log.log(Level.INFO, () -> "Start async submitting each of " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
         tasks.forEach(task -> defaultConseq.getSequentialExecutor(sameSequenceKey).execute(task));
-        log.log(Level.INFO, () -> "Done async submitting each of " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
-        TimeUnit.MILLISECONDS.sleep(timeToAllowAllComplete);
 
+        awaitAllDone(tasks);
         assertSingleThread(tasks);
     }
 
     @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
         int taskQueueSizeLessThanTaskCount = TASK_COUNT / 2;
-        assertTrue(taskQueueSizeLessThanTaskCount < TASK_COUNT);
+        assert taskQueueSizeLessThanTaskCount < TASK_COUNT;
         Conseq taskQueueCapacityLimited =
                 Conseq.newBuilder().executorTaskQueueSize(taskQueueSizeLessThanTaskCount).build();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
@@ -188,9 +191,7 @@ import static org.junit.jupiter.api.Assertions.*;
         try {
             tasks.forEach(task -> taskQueueCapacityLimited.getSequentialExecutor(sameSequenceKey).execute(task));
         } catch (RejectedExecutionException e) {
-            log.log(Level.WARNING,
-                    "almost never a good idea to limit task queue capacity; unless you intend to reject excessive tasks that the task queue cannot hold, consider default/unbounded capacity instead",
-                    e);
+            log.log(Level.INFO, "expected rejection error by test", e);
             return;
         }
         fail();

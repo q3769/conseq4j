@@ -54,7 +54,7 @@ import java.util.logging.Level;
      * {@link ForkJoinPool#commonPool()}.
      */
     public ConseqService() {
-        this.executionThreadPool = DEFAULT_THREAD_POOL;
+        this(DEFAULT_THREAD_POOL);
     }
 
     /**
@@ -62,6 +62,7 @@ import java.util.logging.Level;
      */
     public ConseqService(@NonNull ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool;
+        log.fine(() -> "constructed " + this);
     }
 
     private static <T> T call(Callable<T> task) {
@@ -98,12 +99,12 @@ import java.util.logging.Level;
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
-        this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
+        this.sequentialExecutors.compute(sequenceKey, (k, currentStageExecutor) -> {
             CompletableFuture<Void> nextStageExecutor =
-                    (presentStageExecutor == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
-                            presentStageExecutor.handleAsync((executionResult, executionException) -> {
+                    (currentStageExecutor == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
+                            currentStageExecutor.handleAsync((executionResult, executionException) -> {
                                 if (executionException != null)
-                                    log.log(Level.WARNING, executionException + " occurred in " + presentStageExecutor
+                                    log.log(Level.WARNING, executionException + " occurred in " + currentStageExecutor
                                             + " before executing next " + command);
                                 command.run();
                                 return null;
@@ -136,12 +137,12 @@ import java.util.logging.Level;
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
-        this.sequentialExecutors.compute(sequenceKey, (k, presentStageExecutor) -> {
-            CompletableFuture<T> nextStageExecutor = (presentStageExecutor == null) ?
+        this.sequentialExecutors.compute(sequenceKey, (k, currentStageExecutor) -> {
+            CompletableFuture<T> nextStageExecutor = (currentStageExecutor == null) ?
                     CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
-                    presentStageExecutor.handleAsync((executionResult, executionException) -> {
+                    currentStageExecutor.handleAsync((executionResult, executionException) -> {
                         if (executionException != null)
-                            log.log(Level.WARNING, executionException + " occurred in " + presentStageExecutor
+                            log.log(Level.WARNING, executionException + " occurred in " + currentStageExecutor
                                     + " before executing next " + task);
                         return call(task);
                     }, this.executionThreadPool);

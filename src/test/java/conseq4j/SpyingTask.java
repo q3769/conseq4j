@@ -41,10 +41,11 @@ import static org.awaitility.Awaitility.await;
 
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 20;
+    public static final int UNSET_TIME_STAMP = 0;
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
-    volatile long runStart;
-    volatile long runEnd;
+    volatile long runStart = UNSET_TIME_STAMP;
+    volatile long runEnd = UNSET_TIME_STAMP;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {

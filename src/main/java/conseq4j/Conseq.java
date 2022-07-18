@@ -51,14 +51,16 @@ import static java.lang.Math.floorMod;
     public static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
     private static final int SINGLE_THREAD_COUNT = 1;
     private static final long KEEP_ALIVE_SAME_THREAD = 0L;
-    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
+    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
     private final int executorTaskQueueSize;
 
     private Conseq(Builder builder) {
-        this.globalConcurrency = builder.globalConcurrency;
-        this.executorTaskQueueSize = builder.executorTaskQueueSize;
-        this.sequentialExecutors = new ConcurrentHashMap<>();
+        this.globalConcurrency =
+                builder.globalConcurrency == null ? DEFAULT_GLOBAL_CONCURRENCY : builder.globalConcurrency;
+        this.executorTaskQueueSize =
+                builder.executorTaskQueueSize == null ? DEFAULT_EXECUTOR_QUEUE_SIZE : builder.executorTaskQueueSize;
+        log.fine(() -> "constructed " + this);
     }
 
     /**
@@ -100,8 +102,8 @@ import static java.lang.Math.floorMod;
 
     public static final class Builder {
 
-        private int globalConcurrency = DEFAULT_GLOBAL_CONCURRENCY;
-        private int executorTaskQueueSize = DEFAULT_EXECUTOR_QUEUE_SIZE;
+        private Integer globalConcurrency;
+        private Integer executorTaskQueueSize;
 
         private Builder() {
         }
