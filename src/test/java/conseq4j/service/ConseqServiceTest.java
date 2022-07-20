@@ -43,15 +43,13 @@ import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Log
-class ConseqServiceTest {
+@Log class ConseqServiceTest {
 
     private static final int TASK_COUNT = 100;
 
     private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
 
-    @BeforeAll
-    public static void setLoggingLevel() {
+    @BeforeAll public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
         // .level= ALL
         root.setLevel(TEST_RUN_LOG_LEVEL);
@@ -92,18 +90,15 @@ class ConseqServiceTest {
         return doneTasks;
     }
 
-    @BeforeEach
-    void setUp(TestInfo testInfo) {
+    @BeforeEach void setUp(TestInfo testInfo) {
         log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
     }
 
-    @AfterEach
-    void tearDown(TestInfo testInfo) {
+    @AfterEach void tearDown(TestInfo testInfo) {
         log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test
-    void submitConcurrencyBoundedByThreadPoolSize() {
+    @Test void submitConcurrencyBoundedByThreadPoolSize() {
         int threadPoolSize = TASK_COUNT / 10;
         ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
@@ -113,14 +108,13 @@ class ConseqServiceTest {
 
         final long ranThreadsTotal = totalDoneThreadsOf(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[]{TASK_COUNT, ranThreadsTotal, threadPoolSize});
+                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert threadPoolSize < TASK_COUNT;
         assertEquals(threadPoolSize, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
-    @Test
-    void submitConcurrencyBoundedByTotalTaskCount() {
+    @Test void submitConcurrencyBoundedByTotalTaskCount() {
         int threadPoolSize = TASK_COUNT * 10;
         ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
@@ -130,14 +124,13 @@ class ConseqServiceTest {
 
         final long ranThreadsTotal = totalDoneThreadsOf(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[]{TASK_COUNT, ranThreadsTotal, threadPoolSize});
+                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert TASK_COUNT < threadPoolSize;
         assertEquals(TASK_COUNT, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
-    @Test
-    void executeRunsAllTasksOfSameSequenceKeyInSequence() {
+    @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
         ConseqService conseqService = new ConseqService();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -151,8 +144,7 @@ class ConseqServiceTest {
         assertTrue(Range.closed(1, TASK_COUNT).contains(ranThreadsTotal));
     }
 
-    @Test
-    void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
+    @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
             throws InterruptedException, ExecutionException {
         ConseqService conseqService = new ConseqService();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
@@ -186,16 +178,14 @@ class ConseqServiceTest {
         log.log(Level.INFO, "all executors swept clean in " + Duration.ofNanos(System.nanoTime() - timeStartNanos));
     }
 
-    @Test
-    void returnMinimalFuture() {
+    @Test void returnMinimalFuture() {
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
         assertTrue(result instanceof Future);
         assertFalse(result instanceof CompletableFuture);
     }
 
-    @Test
-    void canCustomizeBackingThreadPool() {
+    @Test void canCustomizeBackingThreadPool() {
         ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
         ConseqService conseqService = new ConseqService(customBackingThreadPool);
 
@@ -203,8 +193,7 @@ class ConseqServiceTest {
         assertEquals(customPoolName, conseqService.getExecutionThreadPoolTypeName());
     }
 
-    @Test
-    void defaultBackingThreadPool() {
+    @Test void defaultBackingThreadPool() {
         ExecutorService expected = ForkJoinPool.commonPool();
         ConseqService defaultConseqService = new ConseqService();
 
