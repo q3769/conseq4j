@@ -187,25 +187,25 @@ public class MessageConsumer {
 Notes:
 
 - The implementation of this style replies on the
-  JDK [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
-  achieve sequential execution of related tasks. Unrelated tasks are executed at a concurrency upper-bounded by the
-  execution thread pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash
-  collision related issues, and may be preferable for simple cases that do not require the syntax/semantic richness that
-  an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) executor has
-  to offer.
+  JDK [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) behind
+  the scenes to achieve sequential execution of related tasks. A thread pool facilitates the overall asynchronous
+  execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread pool size. Compared to
+  the other conseq4j API style, this has the advantage of avoiding hash collision related issues, and may be preferable
+  for simple cases that do not require the syntax/semantic richness that
+  an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
+  offer.
 - Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
   related tasks of the same sequence key could be executed by different threads from the thread pool, albeit in
-  sequential order. This may bring extra performance gain compared to the other API style. For simplicity, the default
-  thread pool that facilitates this style's asynchronous execution is the
+  sequential order. This may bring extra performance gain compared to the other API style. The default thread pool, for
+  simplicity, is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  ; this is by using the default constructor:
+  if the default constructor is used:
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
 
   Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a thread pool
   with a fixed size of 10 threads:
-
   ```
   ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
   ```
