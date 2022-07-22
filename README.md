@@ -196,13 +196,15 @@ Notes:
   offer.
 - Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
   related tasks of the same sequence key could be executed by different threads from the thread pool, albeit in
-  sequential order. This may bring extra performance gain compared to the other API style. The default thread pool, for
-  simplicity, is the
+  sequential order. This may bring extra performance gain compared to the other API style.
+
+  The default thread pool is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  via the default constructor:
+  , via the default constructor:
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
+
   Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a thread pool
   with a fixed size of 10 threads:
   ```
