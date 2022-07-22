@@ -54,7 +54,7 @@ a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/loc
 to safeguard the conseq4j API invocation; it is a client-side activity nonetheless.
 
 Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility
-that further processing of the tasks is executed in the meaningful order and concurrency as promised.
+that further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
