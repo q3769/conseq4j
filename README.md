@@ -43,20 +43,20 @@ implementation 'io.github.q3769:conseq4j:20220715.0.2'
 
 It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be thread-safe.
 In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides no
-guarantee of access order in case of multi-thread racing conditions in client-side task submission.
+guarantee of access order in case of multi-thread racing conditions during client-side task submission.
 
-It is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is imperative,
-the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence
-to begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of a
+It is the client's concern and responsibility that how tasks are submitted to the conseq4j API. If execution order is
+imperative, the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence to
+begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of a
 messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to
-ensure the concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up
+ensure the concurrent caller threads have proper access order to the conseq4j API. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-to safeguard the conseq4j API invocation; it is a client-side activity nonetheless.
+to safeguard the conseq4j invocation; it is a client-side activity nonetheless.
 
 Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility
 that further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
 
-### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
+### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
 This API style provides the client with a sequential executor of type `ExecutorService`. Consider using this style when
 you need the syntax and semantic richness of
@@ -119,7 +119,7 @@ Notes:
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
-  returned by the executor, however, is still cancellable. In general, hash collision may not be an issue for those
+  returned by the executor, though, is still cancellable. In general, hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 
 ### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as a service.
