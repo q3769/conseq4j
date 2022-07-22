@@ -199,7 +199,7 @@ Notes:
   sequential order. This may bring extra performance gain compared to the other API style. The default thread pool, for
   simplicity, is the
   JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  if the default constructor is used:
+  via the default constructor:
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
