@@ -43,7 +43,7 @@ implementation 'io.github.q3769:conseq4j:20220715.0.2'
 
 It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be thread-safe.
 In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides no
-garantee of access order in case of multi-thread racing conditions in client-side task submission.
+guarantee of access order in case of multi-thread racing conditions in client-side task submission.
 
 It is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is imperative,
 the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence
