@@ -7,11 +7,11 @@ short for **con**current **seq**uencer.
 
 ## User stories
 
-1. As a client of the API, I want to summon a thread/executor by a sequence key, so that I can sequentially execute all
-   related tasks with the same sequence key using the same executor while unrelated tasks with different sequence keys
-   can be executed concurrently by different executors.
-2. As a client of the API, I want to asynchronously submit a task for execution together with a sequence key, so that,
-   across multiple task submissions, all related tasks under the same/equal sequence key are executed sequentially and
+1. As a client of the conseq4j API, I want to summon a thread/executor by a sequence key, so that I can sequentially
+   execute all related tasks with the same sequence key using the same executor while unrelated tasks with different
+   sequence keys can be executed concurrently by different executors.
+2. As a client of the conseq4j API, I want to asynchronously submit a task for execution together with a sequence key,
+   so that, across all such submissions, related tasks under the same/equal sequence key are executed sequentially and
    unrelated tasks of different sequence keys are executed concurrently.
 
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
