@@ -23,7 +23,7 @@ Java 8 or better
 
 ## Get it...
 
-In Maven:
+With Maven:
 
 ```
 <dependency>
@@ -33,7 +33,7 @@ In Maven:
 </dependency>
 ```
 
-In Gradle:
+With Gradle:
 
 ```
 implementation 'io.github.q3769:conseq4j:20220715.0.2'
