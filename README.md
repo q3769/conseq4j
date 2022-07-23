@@ -205,8 +205,8 @@ Notes:
   ConcurrentSequencerService conseqService = new ConseqService();
   ```
 
-  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a thread pool
-  with a fixed size of 10 threads:
+  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a thread pool of
+  10 threads:
   ```
   ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
   ```
