@@ -78,23 +78,25 @@ import java.util.logging.Level;
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
      * completion-stages of the {@link CompletableFuture} of the same key; i.e. the "main-line" execution.
      * <p>
-     * A {@link ConcurrentMap} keyed on the task's sequence key is employed. The corresponding value is to hold the
-     * latest main-line stage - or the tail of the FIFO execution queue for the same sequence key if you will. Each
-     * current task always creates a new main-line execution stage which is stacked on top of the previous stage. As an
-     * atomic transaction to this stage stacking, the just-created current main-line stage also replaces the previous
-     * stage as the new value under the same sequence key in the map. The current stage will not start executing before
-     * the previous stage completes, and, will have completed its execution before the next task's main-line stage can
-     * start executing. Such linear progression of the main-line stages ensure sequential execution of tasks under the
-     * same sequence key.
+     * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. Keyed on
+     * the sequence key, the corresponding value is to hold the latest main-line execution stage of the sequence key -
+     * the tail of the FIFO task execution queue for the same sequence key if you will. Each submitted task will create
+     * a new execution stage which is stacked on top of the previous task's execution stage. As part of the same atomic
+     * transaction of the stage stacking, the newly-created execution stage also replaces the previous stage as the new
+     * value under the same sequence key in the map. The new stage will not start executing before the previous
+     * execution stage completes, and, will have completed its execution before the next task's execution stage can
+     * start executing. Such linear progression of the main-line execution stages ensure the sequential-ness of task
+     * execution under the same sequence key.
      * <p>
-     * Outside the main-line progression, a separate cleanup task/stage is stacked upon each main-line stage. After the
-     * main-line stage completes, this cleanup task/stage checks on the completion status of the latest main-line stage
-     * (may not be the same one that triggered this cleanup check) under the same sequence key, and removes the checked
-     * stage from the map if its execution has completed. The cleanup task/stage does not alter the sequential nature of
-     * the main-line stage progression/stacking, so it does not disturb the sequential-ness of the main-line executions.
-     * As each main-line stage after its completion is triggering an "off-of-band" cleanup check, collectively, this
-     * ensures that every main-line stage is checked for completion and removal from the service map at some point of
-     * time; thus, no main-line stage will forever linger in the service map.
+     * Outside the main-line progression, a separate maintenance stage is stacked upon each main-line execution stage.
+     * After the execution stage completes, this maintenance stage checks on the completion status of the latest
+     * main-line execution stage (may not be the same one that triggered this maintenance check) under the same sequence
+     * key, and removes the checked stage from the map if its execution has completed. Never set/served as a value on
+     * the execution map, the maintenance stage does not alter the sequential nature of the main-line stage progression,
+     * so it does not disturb the sequential-ness of the main-line executions. Meanwhile, as each completed main-line
+     * execution is triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every
+     * execution stage ever put on the execution map is eventually checked for completion and removal; i.e. no main-line
+     * execution stage will forever linger in the execution map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
