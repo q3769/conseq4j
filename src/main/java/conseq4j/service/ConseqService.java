@@ -101,18 +101,18 @@ import java.util.logging.Level;
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
-        this.sequentialExecutors.compute(sequenceKey, (k, currentStageExecutor) -> {
-            CompletableFuture<Void> nextStageExecutor =
-                    (currentStageExecutor == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
-                            currentStageExecutor.handleAsync((executionResult, executionException) -> {
-                                if (executionException != null)
-                                    log.log(Level.WARNING, executionException + " occurred in " + currentStageExecutor
+        this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
+            CompletableFuture<Void> nextExecutionStage =
+                    (currentExecutionStage == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
+                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
+                                if (currentException != null)
+                                    log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
                                             + " before executing next " + command);
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-            sweepExecutorWhenComplete(nextStageExecutor, sequenceKey);
-            return nextStageExecutor;
+            sweepExecutorWhenComplete(nextExecutionStage, sequenceKey);
+            return nextExecutionStage;
         });
     }
 
@@ -122,14 +122,12 @@ import java.util.logging.Level;
      * executor under the same sequence key will always be checked and cleaned up if it has not been swept off by
      * earlier sweeps for the same sequence key; thus, no executor can linger forever after its completion.
      *
-     * @param stageExecutor the stageExecutor to check and sweep if its execution is done
-     * @param sequenceKey   the key whose tasks are sequentially executed by the stageExecutor
+     * @param executionStage the executionStage to check and sweep if its execution is done
+     * @param sequenceKey    the key whose tasks are sequentially executed by the executionStage
      */
-    private void sweepExecutorWhenComplete(CompletableFuture<?> stageExecutor, Object sequenceKey) {
-        stageExecutor.handleAsync((executionResult, executionException) -> {
-            new ExecutorSweeper(sequenceKey, this.sequentialExecutors).sweepIfDone();
-            return null;
-        });
+    private void sweepExecutorWhenComplete(CompletableFuture<?> executionStage, Object sequenceKey) {
+        executionStage.whenCompleteAsync((executionResult, executionException) -> new ExecutorSweeper(sequenceKey,
+                this.sequentialExecutors).sweepIfDone());
     }
 
     /**
@@ -139,18 +137,18 @@ import java.util.logging.Level;
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
         FutureHolder<T> resultHolder = new FutureHolder<>();
-        this.sequentialExecutors.compute(sequenceKey, (k, currentStageExecutor) -> {
-            CompletableFuture<T> nextStageExecutor = (currentStageExecutor == null) ?
+        this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
+            CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
                     CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
-                    currentStageExecutor.handleAsync((executionResult, executionException) -> {
-                        if (executionException != null)
-                            log.log(Level.WARNING, executionException + " occurred in " + currentStageExecutor
+                    currentExecutionStage.handleAsync((currentResult, currentException) -> {
+                        if (currentException != null)
+                            log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
                                     + " before executing next " + task);
                         return call(task);
                     }, this.executionThreadPool);
-            resultHolder.setFuture(nextStageExecutor);
-            sweepExecutorWhenComplete(nextStageExecutor, sequenceKey);
-            return nextStageExecutor;
+            resultHolder.setFuture(nextExecutionStage);
+            sweepExecutorWhenComplete(nextExecutionStage, sequenceKey);
+            return nextExecutionStage;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
     }
@@ -169,19 +167,20 @@ import java.util.logging.Level;
         ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
         public void sweepIfDone() {
-            this.sequentialExecutors.compute(this.sequenceKey, (k, executor) -> {
-                if (executor == null) {
-                    log.log(Level.FINE, () -> "executor for sequence key " + this.sequenceKey
+            this.sequentialExecutors.compute(this.sequenceKey, (k, executionStage) -> {
+                if (executionStage == null) {
+                    log.log(Level.FINE, () -> "executionStage for sequence key " + this.sequenceKey
                             + " already swept off of active service map");
                     return null;
                 }
-                boolean done = executor.isDone();
+                boolean done = executionStage.isDone();
                 if (done) {
-                    log.log(Level.FINE, () -> "sweeping executor " + executor + " off of active service map");
+                    log.log(Level.FINE,
+                            () -> "sweeping executionStage " + executionStage + " off of active service map");
                     return null;
                 }
-                log.log(Level.FINE, () -> "keeping executor " + executor + " in active service map");
-                return executor;
+                log.log(Level.FINE, () -> "keeping executionStage " + executionStage + " in active service map");
+                return executionStage;
             });
         }
     }
