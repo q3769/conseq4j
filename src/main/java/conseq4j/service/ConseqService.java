@@ -91,12 +91,12 @@ import java.util.logging.Level;
      * This maintenance stage checks on the completion status of the latest main-line execution stage under the same
      * sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
      * checked execution stage is the tail of the task execution queue, and may or may not be the same stage that
-     * triggered this maintenance check. The maintenance stage is not part of the execution queue; it may clean up and
-     * remove a completed execution from the queue/map, but does not disturb the sequential-ness of the main-line
-     * executions. Meanwhile, as each completed main-line execution is always triggering an "off-of-band"
-     * maintenance/cleanup check, collectively, this ensures that every main-line execution stage ever put on the
-     * execution queue/map is eventually checked for completion and removal; i.e. no stage will forever linger in the
-     * execution map.
+     * triggered this maintenance check. Unlike the execution stage, the maintenance stage is not part of the execution
+     * queue; it may clean up and remove a completed execution stage from the queue/map, but does not disturb the
+     * overall sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution is always
+     * triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every main-line execution
+     * stage ever put on the execution queue/map is eventually checked for completion and removal; i.e. no stage will
+     * forever linger in the execution map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
