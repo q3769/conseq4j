@@ -60,9 +60,9 @@ that further processing of the submitted tasks is executed in the meaningful ord
 
 This API style provides the client with a sequential executor of
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). Consider
-using this style when you need
+using this style when your executor requires
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
-of that JDK API for your executor.
+of that JDK API.
 
 #### API:
 
