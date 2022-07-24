@@ -27,7 +27,6 @@ package conseq4j.service;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.Value;
 import lombok.extern.java.Log;
 import net.jcip.annotations.NotThreadSafe;
 
@@ -161,10 +160,15 @@ import java.util.logging.Level;
         return this.executionThreadPool.getClass().getName();
     }
 
-    @Value private static class ExecutorSweeper {
+    private static final class ExecutorSweeper {
 
-        Object sequenceKey;
-        ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
+        final Object sequenceKey;
+        final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
+
+        private ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
+            this.sequenceKey = sequenceKey;
+            this.sequentialExecutors = sequentialExecutors;
+        }
 
         public void sweepIfDone() {
             this.sequentialExecutors.compute(this.sequenceKey, (k, executionStage) -> {
