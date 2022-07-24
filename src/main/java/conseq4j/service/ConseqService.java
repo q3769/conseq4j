@@ -75,27 +75,28 @@ import java.util.logging.Level;
 
     /**
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
-     * completion-stages of the {@link CompletableFuture} of the same key; i.e. the "main-line" execution.
+     * completion-stages of the {@link CompletableFuture} on the same key; i.e. the "main-line" execution.
      * <p>
-     * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. Keyed on
-     * the sequence key, the corresponding value is to hold the latest main-line execution stage - the tail of the FIFO
-     * task execution queue for the same sequence key if you will. Each submitted task will create a new execution stage
-     * which is stacked on top of the previous task's execution stage. As part of the same atomic transaction of the
-     * stage stacking, the newly-created execution stage also replaces the previous stage as the new value under the
-     * same sequence key in the map. This new stage will not start executing before the previous execution stage
+     * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. Each map
+     * entry represents a FIFO task execution queue of the entry/sequence key. The entry's value is to hold the latest
+     * main-line execution stage - the tail of the FIFO task queue. Each submitted task will create a new execution
+     * stage which is queued behind the previous task's execution stage. As part of the same atomic transaction, the
+     * newly-enqueued execution stage also replaces the previous stage as the new value under the same sequence key in
+     * the map. As the stages are queued, this new stage will not start executing before the previous execution stage
      * completes, and, will have to complete its execution before the next task's execution stage can start executing.
      * Such linear progression of the main-line execution stages ensures the sequential-ness of task execution under the
      * same sequence key.
      * <p>
-     * Outside the main-line progression, a separate maintenance/cleanup stage is stacked upon each main-line execution
-     * stage. After the execution stage completes, this maintenance stage checks on the completion status of the latest
-     * main-line execution stage under the same sequence key (the checked execution stage may or may not be the same one
-     * that triggered this maintenance check), and removes the checked stage from the map if its execution has
-     * completed. Because the maintenance/cleanup stage is never set or serves as a value on the main-line execution map
-     * to replace any execution stage, it does not disturb the sequential-ness of the main-line executions. Meanwhile,
-     * as each completed execution is always triggering an "off-of-band" maintenance/cleanup check, collectively, this
-     * ensures that every main-line execution stage ever put on the execution map is eventually checked for completion
-     * and removal; i.e. no stage will forever linger in the execution map.
+     * A separate maintenance/cleanup stage is set up to run after the completion of each main-line execution stage.
+     * This maintenance stage checks on the completion status of the latest main-line execution stage under the same
+     * sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
+     * checked execution stage is the tail of the task execution queue, and may or may not be the same stage that
+     * triggered this maintenance check. The maintenance/cleanup stage is not part of the execution queue, it may clean
+     * up and remove a completed execution from the queue/map, but does not disturb the sequential-ness of the main-line
+     * executions. Meanwhile, as each completed main-line execution is always triggering an "off-of-band"
+     * maintenance/cleanup check, collectively, this ensures that every main-line execution stage ever put on the
+     * execution queue/map is eventually checked for completion and removal; i.e. no stage will forever linger in the
+     * execution map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
