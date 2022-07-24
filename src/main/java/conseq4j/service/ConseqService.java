@@ -90,12 +90,12 @@ import java.util.logging.Level;
      * Outside the main-line progression, a separate maintenance stage is stacked upon each main-line execution stage.
      * After the execution stage completes, this maintenance stage checks on the completion status of the latest
      * main-line execution stage (may not be the same one that triggered this maintenance check) under the same sequence
-     * key, and removes the checked stage from the map if its execution has completed. Never set/served as a value on
-     * the execution map, the maintenance stage does not alter the sequential nature of the main-line stage progression,
-     * so it does not disturb the sequential-ness of the main-line executions. Meanwhile, as each completed main-line
-     * execution is triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every
-     * execution stage ever put on the execution map is eventually checked for completion and removal; i.e. no main-line
-     * execution stage will forever linger in the execution map.
+     * key, and removes the checked stage from the map if its execution has completed. Because the maintenance/cleanup
+     * stage is never set/served as a value on the main-line execution map to replace any execution stage, it does not
+     * disturb the sequential-ness of the main-line executions. Meanwhile, as each completed execution is always
+     * triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every main-line execution
+     * stage ever put on the execution map is eventually checked for completion and removal; i.e. no stage will forever
+     * linger in the execution map.
      */
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
