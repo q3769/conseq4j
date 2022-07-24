@@ -58,9 +58,11 @@ that further processing of the submitted tasks is executed in the meaningful ord
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
-This API style provides the client with a sequential executor of the JDK
+This API style provides the client with a sequential executor of
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). Consider
-using this style when you need the syntax and semantic richness of a JDK executor.
+using this style when you need
+the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
+of that JDK API for your executor.
 
 #### API:
 
@@ -186,20 +188,20 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of this style replies on the
-  JDK [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) behind
-  the scenes to achieve sequential execution of related tasks. A thread pool facilitates the overall asynchronous
-  execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread pool size. Compared to
-  the other conseq4j API style, this has the advantage of avoiding hash collision related issues, and may be preferable
-  for simple cases that do not require the syntax/semantic richness that
+- The implementation of this style replies on
+  JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
+  behind the scenes to achieve sequential execution of related tasks. A thread pool is employed to facilitate the
+  overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
+  pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash collision related issues,
+  and may be preferable for simple cases that do not require the syntax/semantic richness
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
   offer.
 - Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
   related tasks of the same sequence key could be executed by different threads from the thread pool, albeit in
   sequential order. This may bring extra performance gain compared to the other API style.
 
-  The default thread pool is the
-  JDK [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
+  The default thread pool is
+  JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   , via the default constructor:
   ```
   ConcurrentSequencerService conseqService = new ConseqService();
