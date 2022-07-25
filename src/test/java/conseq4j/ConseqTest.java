@@ -34,6 +34,7 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -66,7 +67,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     private static void awaitAllFutures(List<Future> futures) {
-        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
+        await().with()
+                .pollInterval(10L, TimeUnit.MILLISECONDS)
+                .until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
     private static void awaitAllTasks(List<SpyingTask> tasks) {
