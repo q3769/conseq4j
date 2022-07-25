@@ -212,8 +212,6 @@ import java.util.logging.Level;
         private final Future<V> future;
 
         private MinimalFuture(@NonNull Future<V> future) {
-            if (future instanceof MinimalFuture)
-                throw new IllegalStateException("already a minimalized Future:" + future);
             this.future = future;
         }
 
