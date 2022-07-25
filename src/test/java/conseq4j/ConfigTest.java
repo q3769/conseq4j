@@ -23,8 +23,10 @@
  */
 package conseq4j;
 
+import lombok.extern.java.Log;
 import org.junit.jupiter.api.Test;
 
+import java.util.Random;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
@@ -36,16 +38,19 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /**
  * @author q3769
  */
-class ConfigTest {
+@Log class ConfigTest {
 
     @Test void shouldReturnSameExecutorOnSameName() {
-        UUID sequenceKey = UUID.randomUUID();
-        Conseq target = new Conseq();
+        Conseq sut = new Conseq();
+        UUID sameSequenceKey = UUID.randomUUID();
 
-        Executor e1 = target.getSequentialExecutor(sequenceKey);
-        Executor e2 = target.getSequentialExecutor(sequenceKey);
-
-        assertSame(e1, e2);
+        Executor e = sut.getSequentialExecutor(sameSequenceKey);
+        int randomSummonTimes = 1 + new Random().nextInt(100);
+        for (int i = 0; i < randomSummonTimes; i++) {
+            assertSame(e, sut.getSequentialExecutor(sameSequenceKey));
+        }
+        log.info("summoned back the same executor - " + e + " - for " + (randomSummonTimes + 1)
+                + " times with the same sequence key: " + sameSequenceKey);
     }
 
     @Test void errorOnNonPositiveConcurrency() {
