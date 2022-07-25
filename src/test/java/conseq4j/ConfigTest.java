@@ -45,11 +45,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
         UUID sameSequenceKey = UUID.randomUUID();
 
         Executor e = sut.getSequentialExecutor(sameSequenceKey);
-        int randomSummonTimes = 1 + new Random().nextInt(100);
-        for (int i = 0; i < randomSummonTimes; i++) {
+        int additionalSummonTimes = 1 + new Random().nextInt(100);
+        for (int i = 0; i < additionalSummonTimes; i++) {
             assertSame(e, sut.getSequentialExecutor(sameSequenceKey));
         }
-        log.info("summoned back the same executor - " + e + " - for " + (randomSummonTimes + 1)
+        log.info("summoned back the same executor - " + e + " - for a total of " + (1 + additionalSummonTimes)
                 + " times with the same sequence key: " + sameSequenceKey);
     }
 
