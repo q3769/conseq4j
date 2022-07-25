@@ -69,11 +69,11 @@ import static org.junit.jupiter.api.Assertions.*;
         return result;
     }
 
-    private static int totalDoneThreads(List<SpyingTask> tasks) {
+    private static int totalRunThreadCount(List<SpyingTask> tasks) {
         return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
-    private static long totalDoneThreadsOf(List<Future<SpyingTask>> futures) {
+    private static long totalDoneThreadCount(List<Future<SpyingTask>> futures) {
         return toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
@@ -88,6 +88,10 @@ import static org.junit.jupiter.api.Assertions.*;
         }).collect(toList());
         log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
         return doneTasks;
+    }
+
+    static private void awaitAllDone(List<Future<SpyingTask>> futures) {
+        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
     @BeforeEach void setUp(TestInfo testInfo) {
@@ -106,7 +110,7 @@ import static org.junit.jupiter.api.Assertions.*;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long ranThreadsTotal = totalDoneThreadsOf(futures);
+        final long ranThreadsTotal = totalDoneThreadCount(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert threadPoolSize < TASK_COUNT;
@@ -122,7 +126,7 @@ import static org.junit.jupiter.api.Assertions.*;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long ranThreadsTotal = totalDoneThreadsOf(futures);
+        final long ranThreadsTotal = totalDoneThreadCount(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assert TASK_COUNT < threadPoolSize;
@@ -139,13 +143,12 @@ import static org.junit.jupiter.api.Assertions.*;
 
         assertExecutorsSweptCleanWhenFinished(conseqService);
         assertConsecutiveRuntimes(tasks);
-        int ranThreadsTotal = totalDoneThreads(tasks);
+        int ranThreadsTotal = totalRunThreadCount(tasks);
         log.info(TASK_COUNT + " tasks were run by " + ranThreadsTotal + " threads");
         assertTrue(Range.closed(1, TASK_COUNT).contains(ranThreadsTotal));
     }
 
-    @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution()
-            throws InterruptedException, ExecutionException {
+    @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
         ConseqService conseqService = new ConseqService();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -181,7 +184,7 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test void returnMinimalFuture() {
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
-        assertTrue(result instanceof Future);
+        assert result instanceof Future;
         assertFalse(result instanceof CompletableFuture);
     }
 
@@ -201,39 +204,24 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(expectedPoolName, defaultConseqService.getExecutionThreadPoolTypeName());
     }
 
-    private int normalCompleteCount(List<Future<SpyingTask>> resultFutures)
-            throws ExecutionException, InterruptedException {
-        List<SpyingTask> results = new ArrayList<>();
+    private int normalCompleteCount(List<Future<SpyingTask>> resultFutures) {
+        int normalCompletionCount = 0;
         for (Future<SpyingTask> future : resultFutures) {
             if (future.isCancelled())
                 continue;
             try {
-                results.add(future.get());
-            } catch (RuntimeException e) {
-                log.log(Level.WARNING, "error obtaining result from " + future, e);
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                continue;
             }
+            normalCompletionCount++;
         }
-        log.log(Level.FINE, results.size() + " normal results in " + results);
-        return results.size();
+        return normalCompletionCount;
     }
 
     private int cancelledCount(List<Future<SpyingTask>> futures) {
-        int result = 0;
-        for (Future<SpyingTask> f : futures) {
-            if (f.isCancelled()) {
-                try {
-                    f.get();
-                } catch (InterruptedException e) {
-                    log.log(Level.WARNING, f + " was interrupted", e);
-                } catch (ExecutionException e) {
-                    log.log(Level.WARNING, f + " had execution error", e);
-                } catch (RuntimeException e) {
-                    log.log(Level.WARNING, "run-time error obtaining result from " + f, e);
-                }
-                result++;
-            }
-        }
-        return result;
+        awaitAllDone(futures);
+        return futures.parallelStream().mapToInt(f -> f.isCancelled() ? 1 : 0).sum();
     }
 
     private void assertConsecutiveRuntimes(List<SpyingTask> tasks) {

@@ -27,18 +27,19 @@ import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
-import static java.util.stream.Collectors.toSet;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -65,16 +66,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     private static void awaitAllFutures(List<Future> futures) {
-        futures.forEach(f -> {
-            try {
-                f.get();
-            } catch (ExecutionException ex) {
-                throw new RuntimeException(ex);
-            } catch (InterruptedException e) {
-                log.log(Level.WARNING, "interrupted while awaiting " + f + " to complete", e);
-                Thread.currentThread().interrupt();
-            }
-        });
+        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
+    }
+
+    private static void awaitAllTasks(List<SpyingTask> tasks) {
+        await().until(() -> tasks.parallelStream().allMatch(t -> t.getRunEnd() != SpyingTask.UNSET_TIME_STAMP));
     }
 
     private static List<SpyingTask> createSpyingTasks(int total) {
@@ -85,12 +81,17 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         return result;
     }
 
-    private static void awaitAllTasks(List<SpyingTask> tasks) {
-        for (SpyingTask task : tasks) {
-            await().with()
-                    .pollInterval(10, TimeUnit.MILLISECONDS)
-                    .until(() -> task.getRunEnd() != SpyingTask.UNSET_TIME_STAMP);
-        }
+    static List<SpyingTask> getAll(List<Future<SpyingTask>> futures) {
+        return futures.stream().map(f -> {
+            try {
+                return f.get();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }).collect(toList());
     }
 
     @BeforeEach void setUp(TestInfo testInfo) {
@@ -104,11 +105,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     @Test void concurrencyBoundedByTotalTaskCount() {
         Conseq defaultConseq = new Conseq();
 
-        List<Future<SpyingTask>> futures = new ArrayList<>();
-        createSpyingTasks(TASK_COUNT).forEach(task -> futures.add(
-                defaultConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
+        List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
+                .map(task -> defaultConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task))
+                .collect(toList());
 
-        final long totalRunThreads = toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
@@ -120,18 +121,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assert lowConcurrency < highConcurrency;
 
         Conseq lowConcurrencyService = new Conseq(lowConcurrency);
-        List<Future> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(task -> lowConcurrencyFutures.add(
-                lowConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
+        List<Future> lowConcurrencyFutures = sameTasks.stream()
+                .map(t -> lowConcurrencyService.getSequentialExecutor(UUID.randomUUID())
+                        .submit((Callable<SpyingTask>) t))
+                .collect(toList());
         awaitAllFutures(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         Conseq highConcurrencyService = new Conseq(highConcurrency);
-        List<Future> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
-        sameTasks.forEach(task -> highConcurrencyFutures.add(
-                highConcurrencyService.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task)));
+        List<Future> highConcurrencyFutures = sameTasks.stream()
+                .map(task -> highConcurrencyService.getSequentialExecutor(UUID.randomUUID())
+                        .submit((Callable<SpyingTask>) task))
+                .collect(toList());
         awaitAllFutures(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
@@ -149,11 +152,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
         log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
-        final List<Future<SpyingTask>> futures = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAll(tasks);
+        final List<Future<SpyingTask>> completedFutures =
+                defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAll(tasks);
         log.log(Level.INFO, () -> "Done single sync invoke all " + tasks.size() + " tasks under same sequence key "
                 + sameSequenceKey);
 
-        final List<SpyingTask> doneTasks = toDoneTasks(futures);
+        final List<SpyingTask> doneTasks = getAll(completedFutures);
         assertSingleThread(doneTasks);
     }
 
@@ -185,23 +189,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {
-        Set<String> uniqueThreadNames =
-                tasks.stream().map(SpyingTask::getRunThreadName).filter(Objects::nonNull).collect(toSet());
-        assertEquals(1, uniqueThreadNames.size());
-        log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(),
-                uniqueThreadNames.stream().findFirst().orElseThrow(NoSuchElementException::new) });
-    }
-
-    List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
-        log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
-        final List<SpyingTask> doneTasks = futures.stream().map(f -> {
-            try {
-                return f.get();
-            } catch (InterruptedException | ExecutionException ex) {
-                throw new IllegalStateException(ex);
-            }
-        }).collect(toList());
-        log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
-        return doneTasks;
+        assertEquals(1, tasks.stream().map(SpyingTask::getRunThreadName).distinct().count());
+        log.log(Level.INFO, "{0} tasks executed by single thread {1}",
+                new Object[] { tasks.size(), tasks.stream().findFirst().orElseThrow(NoSuchElementException::new) });
     }
 }
