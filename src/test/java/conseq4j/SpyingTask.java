@@ -44,27 +44,29 @@ import static org.awaitility.Awaitility.await;
     public static final int UNSET_TIME_STAMP = 0;
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
-    volatile long runStart = UNSET_TIME_STAMP;
-    volatile long runEnd = UNSET_TIME_STAMP;
+    volatile long runTimeStartMillis = UNSET_TIME_STAMP;
+    volatile long runTimeEndMillis = UNSET_TIME_STAMP;
     String runThreadName;
 
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
-        this.targetRunDurationMillis = randomIntInclusive(1, MAX_RUN_TIME_MILLIS);
+        this.targetRunDurationMillis = randomIntInclusive();
     }
 
-    private static int randomIntInclusive(int min, int max) {
-        return min + RANDOM.nextInt(max - min + 1);
+    private static int randomIntInclusive() {
+        return 1 + RANDOM.nextInt(SpyingTask.MAX_RUN_TIME_MILLIS);
     }
 
     @Override public void run() {
-        this.runStart = System.currentTimeMillis();
+        this.runTimeStartMillis = System.currentTimeMillis();
         this.runThreadName = Thread.currentThread().getName();
         await().with()
                 .pollInterval(Duration.ofMillis(1))
-                .until(() -> (System.currentTimeMillis() - this.runStart) >= this.targetRunDurationMillis);
-        this.runEnd = System.currentTimeMillis();
-        log.log(Level.FINEST, () -> "End running: " + this + ", took " + (this.runEnd - this.runStart) + " millis");
+                .until(() -> (System.currentTimeMillis() - this.runTimeStartMillis) >= this.targetRunDurationMillis);
+        this.runTimeEndMillis = System.currentTimeMillis();
+        log.log(Level.FINEST,
+                () -> "End running: " + this + ", took " + (this.runTimeEndMillis - this.runTimeStartMillis)
+                        + " millis");
     }
 
     @Override public SpyingTask call() {

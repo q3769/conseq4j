@@ -61,9 +61,9 @@ import static org.junit.jupiter.api.Assertions.*;
         }
     }
 
-    private static List<SpyingTask> createSpyingTasks(int total) {
+    private static List<SpyingTask> createSpyingTasks() {
         List<SpyingTask> result = new ArrayList<>();
-        for (int i = 0; i < total; i++) {
+        for (int i = 0; i < ConseqServiceTest.TASK_COUNT; i++) {
             result.add(new SpyingTask(i));
         }
         return result;
@@ -90,7 +90,7 @@ import static org.junit.jupiter.api.Assertions.*;
         return doneTasks;
     }
 
-    static private void awaitAllDone(List<Future<SpyingTask>> futures) {
+    static private <T> void awaitAllDone(List<Future<T>> futures) {
         await().until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
@@ -106,14 +106,13 @@ import static org.junit.jupiter.api.Assertions.*;
         int threadPoolSize = TASK_COUNT / 10;
         ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
-        List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
+        List<Future<SpyingTask>> futures = createSpyingTasks().stream()
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
         final long ranThreadsTotal = totalDoneThreadCount(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
-        assert threadPoolSize < TASK_COUNT;
         assertEquals(threadPoolSize, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
@@ -122,21 +121,20 @@ import static org.junit.jupiter.api.Assertions.*;
         int threadPoolSize = TASK_COUNT * 10;
         ConseqService conseqService = new ConseqService(Executors.newFixedThreadPool(threadPoolSize));
 
-        List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
+        List<Future<SpyingTask>> futures = createSpyingTasks().stream()
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
         final long ranThreadsTotal = totalDoneThreadCount(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
-        assert TASK_COUNT < threadPoolSize;
         assertEquals(TASK_COUNT, ranThreadsTotal);
         assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
     @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
         ConseqService conseqService = new ConseqService();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
@@ -150,7 +148,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
         ConseqService conseqService = new ConseqService();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
         List<Future<SpyingTask>> resultFutures = new ArrayList<>();
@@ -184,7 +182,6 @@ import static org.junit.jupiter.api.Assertions.*;
     @Test void returnMinimalFuture() {
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
-        assert result instanceof Future;
         assertFalse(result instanceof CompletableFuture);
     }
 
@@ -228,10 +225,10 @@ import static org.junit.jupiter.api.Assertions.*;
         for (int i = 0; i < tasks.size() - 1; i++) {
             SpyingTask current = tasks.get(i);
             SpyingTask next = tasks.get(i + 1);
-            if (current.getRunEnd() > next.getRunStart())
+            if (current.getRunTimeEndMillis() > next.getRunTimeStartMillis())
                 log.log(Level.WARNING,
                         "execution out of order between current task " + current + " and next task " + next);
-            assertFalse(current.getRunEnd() > next.getRunStart());
+            assertFalse(current.getRunTimeEndMillis() > next.getRunTimeStartMillis());
         }
     }
 }

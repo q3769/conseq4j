@@ -66,19 +66,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         }
     }
 
-    private static void awaitAllFutures(List<Future> futures) {
+    private static <T> void awaitAllFutures(List<Future<T>> futures) {
         await().with()
                 .pollInterval(10L, TimeUnit.MILLISECONDS)
                 .until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
     private static void awaitAllTasks(List<SpyingTask> tasks) {
-        await().until(() -> tasks.parallelStream().allMatch(t -> t.getRunEnd() != SpyingTask.UNSET_TIME_STAMP));
+        await().until(
+                () -> tasks.parallelStream().allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
     }
 
-    private static List<SpyingTask> createSpyingTasks(int total) {
+    private static List<SpyingTask> createSpyingTasks() {
         List<SpyingTask> result = new ArrayList<>();
-        for (int i = 0; i < total; i++) {
+        for (int i = 0; i < ConseqTest.TASK_COUNT; i++) {
             result.add(new SpyingTask(i));
         }
         return result;
@@ -108,7 +109,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     @Test void concurrencyBoundedByTotalTaskCount() {
         Conseq defaultConseq = new Conseq();
 
-        List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
+        List<Future<SpyingTask>> futures = createSpyingTasks().stream()
                 .map(task -> defaultConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task))
                 .collect(toList());
 
@@ -118,14 +119,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     @Test void higherConcurrencyRendersBetterThroughput() {
-        List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> sameTasks = createSpyingTasks();
         int lowConcurrency = 2;
         int highConcurrency = lowConcurrency * 10;
-        assert lowConcurrency < highConcurrency;
 
         Conseq lowConcurrencyService = new Conseq(lowConcurrency);
         long lowConcurrencyStart = System.nanoTime();
-        List<Future> lowConcurrencyFutures = sameTasks.stream()
+        List<Future<SpyingTask>> lowConcurrencyFutures = sameTasks.stream()
                 .map(t -> lowConcurrencyService.getSequentialExecutor(UUID.randomUUID())
                         .submit((Callable<SpyingTask>) t))
                 .collect(toList());
@@ -134,7 +134,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
         Conseq highConcurrencyService = new Conseq(highConcurrency);
         long highConcurrencyStart = System.nanoTime();
-        List<Future> highConcurrencyFutures = sameTasks.stream()
+        List<Future<SpyingTask>> highConcurrencyFutures = sameTasks.stream()
                 .map(task -> highConcurrencyService.getSequentialExecutor(UUID.randomUUID())
                         .submit((Callable<SpyingTask>) task))
                 .collect(toList());
@@ -150,7 +150,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         Conseq defaultConseq = new Conseq();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
         log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
@@ -166,7 +166,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         Conseq defaultConseq = new Conseq();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
         log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
@@ -182,7 +182,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() {
         Conseq defaultConseq = new Conseq();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
         tasks.forEach(task -> defaultConseq.getSequentialExecutor(sameSequenceKey).execute(task));
