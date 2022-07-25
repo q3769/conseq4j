@@ -28,22 +28,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Main API of concurrent sequencer, exposing a sequential executor of type {@link ExecutorService}
  * <p>
- * It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be
- * thread-safe. In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in
- * that it provides no garantee of access order in case of multi-thread racing conditions in client-side task
- * submission.
- * <p>
- * It is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is
- * imperative, the client - either single or multi-threaded, has to ensure that tasks are submitted in proper sequence
- * to begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of
- * a messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client
- * needs to ensure the concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting
- * up a <a
- * href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-">fair
- * lock</a> to safeguard the conseq4j API invocation; it is a client-side activity nonetheless.
- * <p>
- * Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and
- * responsibility that further processing of the tasks is executed in the meaningful order and concurrency as promised.
+ * See javadoc of {@link conseq4j.service.ConcurrentSequencerService} regarding thread-safety.
  *
  * @author Qingtian Wang
  */
@@ -53,7 +38,9 @@ public interface ConcurrentSequencer {
      * @param sequenceKey an {@link java.lang.Object} whose hash code is used to locate and summon the corresponding
      *                    sequential executor.
      * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this
-     *         sequence key in the same order as they are submitted
+     *         sequence key in the same order as they are submitted. Note that the returned executor is not thread-safe
+     *         in that it provides no "fairness" guarantee of access order; when submitting task(s) to the returned
+     *         executor, the client has to ensure the proper submission sequence to begin with.
      */
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
