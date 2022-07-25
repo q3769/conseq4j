@@ -29,21 +29,21 @@ With Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220715.0.4</version>
+    <version>20220725.0.0</version>
 </dependency>
 ```
 
 With Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220715.0.4'
+implementation 'io.github.q3769:conseq4j:20220725.0.0'
 ```
 
 ## Use it...
 
 It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be thread-safe.
-In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides no
-guarantee of access order in case of multi-thread racing conditions during client-side task submissions.
+In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides
+no "fairness" guarantee of access order in case of multi-thread racing conditions during client-side task submissions.
 
 When using the conseq4j API, it is the client's concern and responsibility that how tasks are submitted. I.e. the
 client, either single or multi-threaded, has to ensure that tasks are submitted in proper sequence to conseq4j to begin
@@ -84,7 +84,15 @@ public interface ConcurrentSequencer {
 ```
 public class MessageConsumer {
 
-    private ConcurrentSequencer conseq = Conseq.newBuilder().globalConcurrency(10).build();
+    /**
+     * Default conseq has unbounded (Integer.MAX_VLUE) global concurrency.
+     * 
+     * Or to limit the global concurrency to 10, for example:
+     * <code>
+     * private ConcurrentSequencer conseq = new Conseq(10);
+     * </code>
+     */
+    private ConcurrentSequencer conseq = new Conseq(); 
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
@@ -156,14 +164,15 @@ public interface ConcurrentSequencerService {
 ```
 public class MessageConsumer {
 
-    private ConcurrentSequencerService conseqService = new ConseqService();
-        
-    /* 
-     * Or, to use a custom thread pool of size 10, for example, you could do: 
-     *
+    /**
+     * Default service uses JDK's ForkJoinPooll#commonPool to facilitate async execution.
+     * 
+     * Or to provide a custom thread pool of size 10, for example:
+     * <code>
      * private ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
-     *
+     * </code>
      */
+    private ConcurrentSequencerService conseqService = new ConseqService();
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;

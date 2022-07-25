@@ -28,8 +28,10 @@ import lombok.extern.java.Log;
 import net.jcip.annotations.NotThreadSafe;
 
 import java.util.Objects;
-import java.util.concurrent.*;
-import java.util.logging.Level;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static java.lang.Math.floorMod;
 
@@ -45,97 +47,33 @@ import static java.lang.Math.floorMod;
      * Default global concurrency is set to {@code Integer.MAX_VALUE}
      */
     public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
-    /**
-     * Default task queue size for an executor set to {@code Integer.MAX_VALUE}
-     */
-    public static final int DEFAULT_EXECUTOR_QUEUE_SIZE = Integer.MAX_VALUE;
-    private static final int SINGLE_THREAD_COUNT = 1;
-    private static final long KEEP_ALIVE_SAME_THREAD = 0L;
+
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
-    private final int executorTaskQueueSize;
 
-    private Conseq(Builder builder) {
-        this.globalConcurrency =
-                builder.globalConcurrency == null ? DEFAULT_GLOBAL_CONCURRENCY : builder.globalConcurrency;
-        this.executorTaskQueueSize =
-                builder.executorTaskQueueSize == null ? DEFAULT_EXECUTOR_QUEUE_SIZE : builder.executorTaskQueueSize;
+    public Conseq() {
+        this(DEFAULT_GLOBAL_CONCURRENCY);
+    }
+
+    public Conseq(int globalConcurrency) {
+        if (globalConcurrency <= 0)
+            throw new IllegalArgumentException(
+                    "expecting positive global concurrency, but given: " + globalConcurrency);
+        this.globalConcurrency = globalConcurrency;
         log.fine(() -> "constructed " + this);
-    }
-
-    /**
-     * <p>To get a new fluent builder.</p>
-     *
-     * @return a new {@link conseq4j.Conseq.Builder} instance.
-     */
-    public static Builder newBuilder() {
-        return new Builder();
-    }
-
-    private static ThreadPoolExecutor newSingleThreadExecutor(int executorTaskQueueSize) {
-        return new ThreadPoolExecutor(SINGLE_THREAD_COUNT, SINGLE_THREAD_COUNT, KEEP_ALIVE_SAME_THREAD,
-                TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>(executorTaskQueueSize));
     }
 
     /**
      * @return a single-thread executor that does not support any shutdown action
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.sequentialExecutors.compute(bucketOf(sequenceKey), (bucket, executor) -> {
-            if (executor != null) {
-                return executor;
-            }
-            return new ShutdownDisabledExecutorService(newSequentialExecutorService());
-        });
-    }
-
-    private ExecutorService newSequentialExecutorService() {
-        if (this.executorTaskQueueSize == DEFAULT_EXECUTOR_QUEUE_SIZE) {
-            return Executors.newSingleThreadExecutor();
-        }
-        return newSingleThreadExecutor(this.executorTaskQueueSize);
+        return this.sequentialExecutors.compute(bucketOf(sequenceKey),
+                (bucket, executor) -> executor != null ? executor :
+                        new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
     private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hash(sequenceKey), this.globalConcurrency);
     }
 
-    public static final class Builder {
-
-        private Integer globalConcurrency;
-        private Integer executorTaskQueueSize;
-
-        private Builder() {
-        }
-
-        /**
-         * @param globalConcurrency max global concurrency i.e. the max number of sequential executors.
-         */
-        public Builder globalConcurrency(int globalConcurrency) {
-            if (globalConcurrency <= 0)
-                throw new IllegalArgumentException(
-                        "global concurrency has to be greater than zero, but given: " + globalConcurrency);
-            this.globalConcurrency = globalConcurrency;
-            return this;
-        }
-
-        /**
-         * @param executorTaskQueueSize max task queue capacity for each sequential executor.
-         */
-        public Builder executorTaskQueueSize(int executorTaskQueueSize) {
-            if (executorTaskQueueSize <= 0)
-                throw new IllegalArgumentException(
-                        "executor task queue size has to be greater than zero, but given: " + executorTaskQueueSize);
-            else
-                log.log(Level.WARNING,
-                        "may not be a good idea to limit the size of an executor''s task queue; at runtime any excessive task beyond the given queue size {0} will be rejected unless you set up custom handler. consider using the default/unbounded size instead",
-                        executorTaskQueueSize);
-            this.executorTaskQueueSize = executorTaskQueueSize;
-            return this;
-        }
-
-        public Conseq build() {
-            return new Conseq(this);
-        }
-    }
 }

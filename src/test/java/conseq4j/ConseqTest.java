@@ -28,7 +28,10 @@ import org.junit.jupiter.api.*;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -37,7 +40,8 @@ import java.util.logging.Logger;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * @author Qingtian Wang
@@ -98,7 +102,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void concurrencyBoundedByTotalTaskCount() {
-        Conseq defaultConseq = Conseq.newBuilder().build();
+        Conseq defaultConseq = new Conseq();
 
         List<Future<SpyingTask>> futures = new ArrayList<>();
         createSpyingTasks(TASK_COUNT).forEach(task -> futures.add(
@@ -115,7 +119,7 @@ import static org.junit.jupiter.api.Assertions.*;
         int highConcurrency = lowConcurrency * 10;
         assert lowConcurrency < highConcurrency;
 
-        Conseq lowConcurrencyService = Conseq.newBuilder().globalConcurrency(lowConcurrency).build();
+        Conseq lowConcurrencyService = new Conseq(lowConcurrency);
         List<Future> lowConcurrencyFutures = new ArrayList<>();
         long lowConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> lowConcurrencyFutures.add(
@@ -123,7 +127,7 @@ import static org.junit.jupiter.api.Assertions.*;
         awaitAllFutures(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        Conseq highConcurrencyService = Conseq.newBuilder().globalConcurrency(highConcurrency).build();
+        Conseq highConcurrencyService = new Conseq(highConcurrency);
         List<Future> highConcurrencyFutures = new ArrayList<>();
         long highConcurrencyStart = System.nanoTime();
         sameTasks.forEach(task -> highConcurrencyFutures.add(
@@ -139,7 +143,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        Conseq defaultConseq = Conseq.newBuilder().build();
+        Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -154,7 +158,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
-        Conseq defaultConseq = Conseq.newBuilder().build();
+        Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -170,7 +174,7 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() {
-        Conseq defaultConseq = Conseq.newBuilder().build();
+        Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -178,23 +182,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
         awaitAllTasks(tasks);
         assertSingleThread(tasks);
-    }
-
-    @Test void excessiveTasksOverTaskQueueCapacityWillBeRejected() {
-        int taskQueueSizeLessThanTaskCount = TASK_COUNT / 2;
-        assert taskQueueSizeLessThanTaskCount < TASK_COUNT;
-        Conseq taskQueueCapacityLimited =
-                Conseq.newBuilder().executorTaskQueueSize(taskQueueSizeLessThanTaskCount).build();
-        List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
-        UUID sameSequenceKey = UUID.randomUUID();
-
-        try {
-            tasks.forEach(task -> taskQueueCapacityLimited.getSequentialExecutor(sameSequenceKey).execute(task));
-        } catch (RejectedExecutionException e) {
-            log.log(Level.INFO, "expected rejection error by test", e);
-            return;
-        }
-        fail();
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {

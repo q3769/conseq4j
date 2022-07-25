@@ -28,10 +28,8 @@ import org.junit.jupiter.api.Test;
 import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
+import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -42,7 +40,7 @@ class ConfigTest {
 
     @Test void shouldReturnSameExecutorOnSameName() {
         UUID sequenceKey = UUID.randomUUID();
-        Conseq target = Conseq.newBuilder().build();
+        Conseq target = new Conseq();
 
         Executor e1 = target.getSequentialExecutor(sequenceKey);
         Executor e2 = target.getSequentialExecutor(sequenceKey);
@@ -53,27 +51,12 @@ class ConfigTest {
     @Test void errorOnNonPositiveConcurrency() {
         int errors = 0;
         try {
-            Conseq.newBuilder().globalConcurrency(0);
+            new Conseq(0);
         } catch (IllegalArgumentException e) {
             errors++;
         }
         try {
-            Conseq.newBuilder().globalConcurrency(-999);
-        } catch (IllegalArgumentException e) {
-            errors++;
-        }
-        assertEquals(2, errors);
-    }
-
-    @Test void errorOnNonPositiveTaskQueueSize() {
-        int errors = 0;
-        try {
-            Conseq.newBuilder().executorTaskQueueSize(0);
-        } catch (IllegalArgumentException e) {
-            errors++;
-        }
-        try {
-            Conseq.newBuilder().executorTaskQueueSize(-999);
+            new Conseq(-999);
         } catch (IllegalArgumentException e) {
             errors++;
         }
@@ -81,15 +64,12 @@ class ConfigTest {
     }
 
     @Test void shutdownUnsupported() {
-        Conseq target = Conseq.newBuilder().build();
+        Conseq target = new Conseq();
         final ExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
         sequentialExecutor.execute(() -> {
-            try {
-                TimeUnit.SECONDS.sleep(1L);
-            } catch (InterruptedException ex) {
-                Logger.getLogger(ConfigTest.class.getName()).log(Level.SEVERE, null, ex);
-                Thread.currentThread().interrupt();
-            }
+            long runDurationMillis = 100L;
+            long startTimeMillis = System.currentTimeMillis();
+            await().until(() -> System.currentTimeMillis() - startTimeMillis >= runDurationMillis);
         });
 
         int errors = 0;
