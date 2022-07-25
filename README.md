@@ -45,11 +45,11 @@ It may seem counter-intuitive for a concurrent API, but the implementation of co
 In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides no
 guarantee of access order in case of multi-thread racing conditions during client-side task submissions.
 
-It is the client's concern and responsibility that how tasks are submitted to the conseq4j API. If execution order is
-imperative, the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence to
-begin with. Fortunately often times, that is naturally the case, e.g., when the client is under the management of a
-messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to
-ensure the concurrent caller threads have proper access order to the conseq4j API. This can be as trivial as setting up
+When using the conseq4j API, it is the client's concern and responsibility that how tasks are submitted. I.e. the
+client, either single or multi-threaded, has to ensure that tasks are submitted in proper sequence to conseq4j to begin
+with. Fortunately often times, that is naturally the case, e.g. when the client is under the management of a messaging
+provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to ensure the
+concurrent caller threads have proper access order to the conseq4j API. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 to safeguard the conseq4j invocation; it is a client-side activity nonetheless.
 
