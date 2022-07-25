@@ -58,11 +58,11 @@ that further processing of the submitted tasks is executed in the meaningful ord
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
-This API style provides the client with a sequential executor of
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). Consider
-using this style when your executor requires
+This API style provides a sequential task executor of JDK
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) for the
+given sequence key by the client. Consider using this style when your executor requires
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
-of that JDK API.
+of the JDK API.
 
 #### API:
 
