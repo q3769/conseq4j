@@ -79,7 +79,7 @@ import java.util.logging.Level;
      * <p>
      * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. In a way,
      * each map entry represents a FIFO task execution queue of the entry's (sequence) key. The entry's value is to hold
-     * the latest main-line execution stage - the tail of the FIFO task queue. Each submitted task will create a new
+     * the latest main-line execution stage - the head of the FIFO task queue. Each submitted task will create a new
      * execution stage which is queued behind the previous task's execution stage. As part of the same atomic
      * transaction, the newly-enqueued execution stage also replaces the previous stage as the new value under the same
      * sequence key in the map. As the stages are queued, this new stage will not start executing before the previous
@@ -90,7 +90,7 @@ import java.util.logging.Level;
      * A separate maintenance/cleanup stage is set up to run after the completion of each main-line execution stage.
      * This maintenance stage checks on the completion status of the latest main-line execution stage under the same
      * sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
-     * checked execution stage is the tail of the task execution queue, and may or may not be the same stage that
+     * checked execution stage is the head of the task execution queue, and may or may not be the same stage that
      * triggered this maintenance check. Unlike the execution stage, the maintenance stage is not part of the execution
      * queue; it may clean up and remove a completed execution stage from the queue/map, but does not disturb the
      * overall sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution is always
