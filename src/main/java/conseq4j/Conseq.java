@@ -56,8 +56,8 @@ import static java.lang.Math.floorMod;
     }
 
     /**
-     * @param globalConcurrency total number of "buckets"/executors i.e. max number of unrelated tasks that can be
-     *                          concurrently processed at any given time
+     * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
+     *                          concurrently executed at any given time
      */
     public Conseq(int globalConcurrency) {
         if (globalConcurrency <= 0)
