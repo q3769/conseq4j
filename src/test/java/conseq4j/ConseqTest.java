@@ -107,10 +107,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     @Test void concurrencyBoundedByTotalTaskCount() {
-        Conseq defaultConseq = new Conseq();
+        Conseq withHigherConcurrencyThanTaskCount = new Conseq(TASK_COUNT * 2);
 
         List<Future<SpyingTask>> futures = createSpyingTasks().stream()
-                .map(task -> defaultConseq.getSequentialExecutor(UUID.randomUUID()).submit((Callable<SpyingTask>) task))
+                .map(task -> withHigherConcurrencyThanTaskCount.getSequentialExecutor(UUID.randomUUID())
+                        .submit((Callable<SpyingTask>) task))
                 .collect(toList());
 
         final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();

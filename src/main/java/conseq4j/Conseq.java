@@ -43,10 +43,7 @@ import static java.lang.Math.floorMod;
 
 @NotThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
-    /**
-     * Default global concurrency is set to {@code Integer.MAX_VALUE}
-     */
-    public static final int DEFAULT_GLOBAL_CONCURRENCY = Integer.MAX_VALUE;
+    private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors();
 
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;

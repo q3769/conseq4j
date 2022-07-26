@@ -29,14 +29,14 @@ With Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220725.0.0</version>
+    <version>20220726.0.0</version>
 </dependency>
 ```
 
 With Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220725.0.0'
+implementation 'io.github.q3769:conseq4j:20220726.0.0'
 ```
 
 ## Use it...
@@ -85,9 +85,9 @@ public interface ConcurrentSequencer {
 public class MessageConsumer {
 
     /**
-     * Default conseq has unbounded (Integer.MAX_VLUE) global concurrency.
+     * Default conseq's global concurrency is java.lang.Runtime.availableProcessors.
      * 
-     * Or to limit the global concurrency to 10, for example:
+     * Or to set the global concurrency to 10, for example:
      * <code>
      * private ConcurrentSequencer conseq = new Conseq(10);
      * </code>
