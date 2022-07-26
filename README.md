@@ -85,7 +85,7 @@ public interface ConcurrentSequencer {
 public class MessageConsumer {
 
     /**
-     * Default conseq's global concurrency is java.lang.Runtime.availableProcessors.
+     * Default conseq's global concurrency is (java.lang.Runtime.availableProcessors + 1).
      * 
      * Or to set the global concurrency to 10, for example:
      * <code>
