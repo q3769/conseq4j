@@ -131,6 +131,19 @@ Notes:
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, though, is still cancellable. In general, hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
+- The default global concurrency is 1 plus the
+  JVM's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
+  via the default constructor:
+  ```
+  ConcurrentSequencer conseq = new Conseq();
+  ```
+
+  Alternatively, the global concurrency can be customized using a constructor argument, as in the following example.
+  This may become more useful when the application is deployed using containers, where the `availableProcessors`
+  reported to the Java Runtime may not well account for the container's CPU resource.
+  ```
+  ConcurrentSequencer conseq = new Conseq(10);
+  ```
 
 ### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as a service.
 
