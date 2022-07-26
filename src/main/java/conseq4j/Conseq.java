@@ -43,15 +43,22 @@ import static java.lang.Math.floorMod;
 
 @NotThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
-    private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors();
+    private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
 
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
 
+    /**
+     * Default constructor sets default global concurrency
+     */
     public Conseq() {
         this(DEFAULT_GLOBAL_CONCURRENCY);
     }
 
+    /**
+     * @param globalConcurrency total number of "buckets"/executors i.e. max number of unrelated tasks that can be
+     *                          concurrently processed at any given time
+     */
     public Conseq(int globalConcurrency) {
         if (globalConcurrency <= 0)
             throw new IllegalArgumentException(
