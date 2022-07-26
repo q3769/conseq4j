@@ -85,7 +85,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         return result;
     }
 
-    static List<SpyingTask> getAll(List<Future<SpyingTask>> futures) {
+    static <T> List<T> getAll(List<Future<T>> futures) {
         return futures.stream().map(f -> {
             try {
                 return f.get();

@@ -74,12 +74,12 @@ import static org.junit.jupiter.api.Assertions.*;
     }
 
     private static long totalDoneThreadCount(List<Future<SpyingTask>> futures) {
-        return toDoneTasks(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
-    static List<SpyingTask> toDoneTasks(List<Future<SpyingTask>> futures) {
+    static <T> List<T> getAll(List<Future<T>> futures) {
         log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
-        final List<SpyingTask> doneTasks = futures.stream().map(f -> {
+        final List<T> doneTasks = futures.stream().map(f -> {
             try {
                 return f.get();
             } catch (InterruptedException | ExecutionException ex) {
