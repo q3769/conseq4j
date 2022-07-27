@@ -43,6 +43,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
+    public static final boolean FAIR_ON_CONTENTION = true;
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
@@ -70,9 +71,8 @@ import static java.lang.Math.floorMod;
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                k -> new SerialExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()),
-                        true));
+        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey), k -> new ShutdownDisabledExecutorService(
+                new SerialExecutorService(Executors.newSingleThreadExecutor(), FAIR_ON_CONTENTION)));
     }
 
     private int bucketOf(Object sequenceKey) {
