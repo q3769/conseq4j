@@ -68,12 +68,12 @@ import static java.lang.Math.floorMod;
     }
 
     /**
-     * @return a single-thread executor that does not support any shutdown action. The executor's task queue is is a
+     * @return a single-thread executor that does not support any shutdown action. The executor's task queue is a
      *         {@link java.util.concurrent.LinkedBlockingQueue} as in {@link Executors#newSingleThreadExecutor()}. Size
-     *         unbounded, the producer side of task queue never blocks on enqueue operations; single-threaded on the
-     *         consumer side, it has no thread contention on the dequeue operations, either. Thus, the returned
-     *         sequential executor provides "fairness" on access order in general, in addition to the usual
-     *         thread-safety afforded by a {@link java.util.concurrent.BlockingQueue}.
+     *         unbounded, the task queue never blocks on enqueue operations on the producer side; single-threaded on the
+     *         consumer side, the task queue has no thread contention on the dequeue operations, either. That enables
+     *         the returned sequential executor to provide "fairness" on access order in general, in addition to the
+     *         usual thread-safety afforded by a {@link java.util.concurrent.BlockingQueue}.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
