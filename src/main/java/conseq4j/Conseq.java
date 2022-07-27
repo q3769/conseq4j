@@ -25,7 +25,7 @@ package conseq4j;
 
 import lombok.ToString;
 import lombok.extern.java.Log;
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
@@ -41,7 +41,7 @@ import static java.lang.Math.floorMod;
  * @author Qingtian Wang
  */
 
-@NotThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
+@ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
 
@@ -68,12 +68,16 @@ import static java.lang.Math.floorMod;
     }
 
     /**
-     * @return a single-thread executor that does not support any shutdown action
+     * @return a single-thread executor that does not support any shutdown action. The executor's task queue is is a
+     *         {@link java.util.concurrent.LinkedBlockingQueue} as in {@link Executors#newSingleThreadExecutor()}. Size
+     *         unbounded, the producer side of task queue never blocks on enqueue operations; single-threaded on the
+     *         consumer side, it has no thread contention on the dequeue operations, either. Thus, the returned
+     *         sequential executor provides "fairness" on access order in general, in addition to the usual
+     *         thread-safety afforded by a {@link java.util.concurrent.BlockingQueue}.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.sequentialExecutors.compute(bucketOf(sequenceKey),
-                (bucket, executor) -> executor != null ? executor :
-                        new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
+        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
+                k -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
     private int bucketOf(Object sequenceKey) {

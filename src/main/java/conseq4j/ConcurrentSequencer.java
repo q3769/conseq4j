@@ -38,9 +38,7 @@ public interface ConcurrentSequencer {
      * @param sequenceKey an {@link java.lang.Object} whose hash code is used to locate and summon the corresponding
      *                    sequential executor.
      * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this
-     *         sequence key in the same order as they are submitted. Note that the returned executor is not thread-safe
-     *         in that it provides no "fairness" guarantee of access order; when submitting task(s) to the returned
-     *         executor, the client has to ensure the proper submission sequence to begin with.
+     *         sequence key in the same order as they are submitted.
      */
     ExecutorService getSequentialExecutor(Object sequenceKey);
 }
