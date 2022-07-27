@@ -30,7 +30,7 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class SerialExecutorService implements ExecutorService {
+final class SerialExecutorService implements ExecutorService {
 
     private final ExecutorService workService;
     private final Lock lock;
@@ -77,6 +77,7 @@ class SerialExecutorService implements ExecutorService {
     }
 
     @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+        lock.lock();
         try {
             return workService.awaitTermination(timeout, unit);
         } finally {
@@ -85,6 +86,7 @@ class SerialExecutorService implements ExecutorService {
     }
 
     @Override public <T> Future<T> submit(Callable<T> task) {
+        lock.lock();
         try {
             return workService.submit(task);
         } finally {
@@ -93,6 +95,7 @@ class SerialExecutorService implements ExecutorService {
     }
 
     @Override public <T> Future<T> submit(Runnable task, T result) {
+        lock.lock();
         try {
             return workService.submit(task, result);
         } finally {
@@ -101,6 +104,7 @@ class SerialExecutorService implements ExecutorService {
     }
 
     @Override public Future<?> submit(Runnable task) {
+        lock.lock();
         try {
             return workService.submit(task);
         } finally {
@@ -110,6 +114,7 @@ class SerialExecutorService implements ExecutorService {
 
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
+        lock.lock();
         try {
             return workService.invokeAll(tasks);
         } finally {
@@ -119,6 +124,7 @@ class SerialExecutorService implements ExecutorService {
 
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
+        lock.lock();
         try {
             return workService.invokeAll(tasks, timeout, unit);
         } finally {
@@ -128,6 +134,7 @@ class SerialExecutorService implements ExecutorService {
 
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {
+        lock.lock();
         try {
             return workService.invokeAny(tasks);
         } finally {
@@ -137,6 +144,7 @@ class SerialExecutorService implements ExecutorService {
 
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
+        lock.lock();
         try {
             return workService.invokeAny(tasks, timeout, unit);
         } finally {
@@ -145,6 +153,7 @@ class SerialExecutorService implements ExecutorService {
     }
 
     @Override public void execute(Runnable command) {
+        lock.lock();
         try {
             workService.execute(command);
         } finally {
