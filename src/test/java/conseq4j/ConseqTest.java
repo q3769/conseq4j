@@ -186,7 +186,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     void assertSingleThread(List<SpyingTask> tasks) {
         assertEquals(1, tasks.stream().map(SpyingTask::getRunThreadName).distinct().count());
-        log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(),
+        log.log(Level.INFO, "{0} tasks executed by single thread: {1}", new Object[] { tasks.size(),
                 tasks.stream().findFirst().orElseThrow(NoSuchElementException::new).getRunThreadName() });
     }
 }

@@ -24,6 +24,10 @@
 
 package conseq4j;
 
+import lombok.NonNull;
+import lombok.ToString;
+import lombok.extern.java.Log;
+
 import java.util.Collection;
 import java.util.Iterator;
 import java.util.concurrent.BlockingQueue;
@@ -31,20 +35,21 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
+@Log @ToString class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
 
-    private final BlockingQueue<E> decorated;
+    private final BlockingQueue<E> workQueue;
     private final Lock enqueueLock;
 
-    SerialEnqueueBlockingQueue(BlockingQueue<E> decorated, boolean fair) {
-        this.decorated = decorated;
+    SerialEnqueueBlockingQueue(@NonNull BlockingQueue<E> workQueue, boolean fair) {
+        this.workQueue = workQueue;
         this.enqueueLock = new ReentrantLock(fair);
+        log.fine(() -> "constructed " + this);
     }
 
     @Override public boolean add(E e) {
         enqueueLock.lock();
         try {
-            return decorated.add(e);
+            return workQueue.add(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -53,7 +58,7 @@ class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
     @Override public boolean offer(E e) {
         enqueueLock.lock();
         try {
-            return decorated.offer(e);
+            return workQueue.offer(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -62,7 +67,7 @@ class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
     @Override public void put(E e) throws InterruptedException {
         enqueueLock.lock();
         try {
-            decorated.put(e);
+            workQueue.put(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -71,94 +76,94 @@ class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
     @Override public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
         enqueueLock.lock();
         try {
-            return decorated.offer(e, timeout, unit);
+            return workQueue.offer(e, timeout, unit);
         } finally {
             enqueueLock.unlock();
         }
     }
 
     @Override public E take() throws InterruptedException {
-        return decorated.take();
+        return workQueue.take();
     }
 
     @Override public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        return decorated.poll(timeout, unit);
+        return workQueue.poll(timeout, unit);
     }
 
     @Override public int remainingCapacity() {
-        return decorated.remainingCapacity();
+        return workQueue.remainingCapacity();
     }
 
     @Override public boolean remove(Object o) {
-        return decorated.remove(o);
+        return workQueue.remove(o);
     }
 
     @Override public boolean contains(Object o) {
-        return decorated.contains(o);
+        return workQueue.contains(o);
     }
 
     @Override public int drainTo(Collection<? super E> c) {
-        return decorated.drainTo(c);
+        return workQueue.drainTo(c);
     }
 
     @Override public int drainTo(Collection<? super E> c, int maxElements) {
-        return decorated.drainTo(c, maxElements);
+        return workQueue.drainTo(c, maxElements);
     }
 
     @Override public E remove() {
-        return decorated.remove();
+        return workQueue.remove();
     }
 
     @Override public E poll() {
-        return decorated.poll();
+        return workQueue.poll();
     }
 
     @Override public E element() {
-        return decorated.element();
+        return workQueue.element();
     }
 
     @Override public E peek() {
-        return decorated.peek();
+        return workQueue.peek();
     }
 
     @Override public int size() {
-        return decorated.size();
+        return workQueue.size();
     }
 
     @Override public boolean isEmpty() {
-        return decorated.isEmpty();
+        return workQueue.isEmpty();
     }
 
     @Override public Iterator<E> iterator() {
-        return decorated.iterator();
+        return workQueue.iterator();
     }
 
     @Override public Object[] toArray() {
-        return decorated.toArray();
+        return workQueue.toArray();
     }
 
     @Override public <T> T[] toArray(T[] a) {
-        return decorated.toArray(a);
+        return workQueue.toArray(a);
     }
 
     @Override public boolean containsAll(Collection<?> c) {
-        return decorated.containsAll(c);
+        return workQueue.containsAll(c);
     }
 
     @Override public boolean addAll(Collection<? extends E> c) {
-        return decorated.addAll(c);
+        return workQueue.addAll(c);
     }
 
     @Override public boolean removeAll(Collection<?> c) {
-        return decorated.removeAll(c);
+        return workQueue.removeAll(c);
     }
 
     @Override public boolean retainAll(Collection<?> c) {
-        return decorated.retainAll(c);
+        return workQueue.retainAll(c);
     }
 
     @Override public void clear() {
-        decorated.clear();
+        workQueue.clear();
     }
 
 }
