@@ -29,32 +29,35 @@ With Maven:
 <dependency>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20220726.0.1</version>
+    <version>20220727.0.0</version>
 </dependency>
 ```
 
 With Gradle:
 
 ```
-implementation 'io.github.q3769:conseq4j:20220726.0.1'
+implementation 'io.github.q3769:conseq4j:20220727.0.0'
 ```
 
 ## Use it...
 
-It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be thread-safe.
-In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in that it provides
-no "fairness" guarantee of access order in case of multi-thread racing conditions during client-side task submissions.
+The conseq4j implementation is thread-safe. In the context of concurrency and sequencing, though, thread-safety goes
+beyond the simple concerns of data value corruption into that of data access order among multiple threads. For example,
+if multiple tasks are submitted concurrently by different threads at exactly the same moment, then by definition, there
+is no order sequence among those tasks no matter they are related tasks of the same sequence key or not; it is
+considered "safe" to execute such tasks in any order. Meanwhile, "fair" execution order is required on those tasks
+that are submitted in proper sequence by the calling thread(s).
 
-When using the conseq4j API, it is the client's concern and responsibility that how tasks are submitted. I.e. the
-client, either single or multi-threaded, has to ensure that tasks are submitted in proper sequence to conseq4j to begin
-with. Fortunately often times, that is naturally the case, e.g. when the client is under the management of a messaging
+It is the API client's responsibility and concern how tasks are submitted to conseq4j. As execution order is imperative,
+the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence to begin with.
+Fortunately often times, that is naturally the case: e.g. when the client is under the management of a messaging
 provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to ensure the
-concurrent caller threads have proper access order to the conseq4j API. This can be as trivial as setting up
+concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-to safeguard the conseq4j invocation; it is a client-side activity nonetheless.
+to sequence the submission of related tasks; it is a client-side activity nonetheless.
 
-Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility
-that further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
+Once proper submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility that
+further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
