@@ -40,15 +40,15 @@ import java.util.concurrent.*;
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
             "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
 
-    private final ExecutorService executorService;
+    private final ExecutorService delegate;
 
     /**
      * <p>Constructor for ShutdownDisallowedExecutorService.</p>
      *
-     * @param executorService the delegate {@link ExecutorService} to run the submitted task(s).
+     * @param delegate the delegate {@link ExecutorService} to run the submitted task(s).
      */
-    ShutdownDisabledExecutorService(ExecutorService executorService) {
-        this.executorService = executorService;
+    ShutdownDisabledExecutorService(ExecutorService delegate) {
+        this.delegate = delegate;
     }
 
     /**
@@ -71,42 +71,42 @@ import java.util.concurrent.*;
      * {@inheritDoc}
      */
     @Override public boolean isShutdown() {
-        return this.executorService.isShutdown();
+        return this.delegate.isShutdown();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public boolean isTerminated() {
-        return this.executorService.isTerminated();
+        return this.delegate.isTerminated();
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        return this.executorService.awaitTermination(timeout, unit);
+        return this.delegate.awaitTermination(timeout, unit);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public <T> Future<T> submit(Callable<T> task) {
-        return this.executorService.submit(task);
+        return this.delegate.submit(task);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public <T> Future<T> submit(Runnable task, T result) {
-        return this.executorService.submit(task, result);
+        return this.delegate.submit(task, result);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public Future<?> submit(Runnable task) {
-        return this.executorService.submit(task);
+        return this.delegate.submit(task);
     }
 
     /**
@@ -114,7 +114,7 @@ import java.util.concurrent.*;
      */
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
-        return this.executorService.invokeAll(tasks);
+        return this.delegate.invokeAll(tasks);
     }
 
     /**
@@ -122,7 +122,7 @@ import java.util.concurrent.*;
      */
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
-        return this.executorService.invokeAll(tasks, timeout, unit);
+        return this.delegate.invokeAll(tasks, timeout, unit);
     }
 
     /**
@@ -130,7 +130,7 @@ import java.util.concurrent.*;
      */
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {
-        return this.executorService.invokeAny(tasks);
+        return this.delegate.invokeAny(tasks);
     }
 
     /**
@@ -138,14 +138,14 @@ import java.util.concurrent.*;
      */
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-        return this.executorService.invokeAny(tasks, timeout, unit);
+        return this.delegate.invokeAny(tasks, timeout, unit);
     }
 
     /**
      * {@inheritDoc}
      */
     @Override public void execute(Runnable command) {
-        this.executorService.execute(command);
+        this.delegate.execute(command);
     }
 
 }

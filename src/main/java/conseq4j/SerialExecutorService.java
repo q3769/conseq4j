@@ -32,18 +32,18 @@ import java.util.concurrent.locks.ReentrantLock;
 
 final class SerialExecutorService implements ExecutorService {
 
-    private final ExecutorService workService;
+    private final ExecutorService delegate;
     private final Lock lock;
 
-    SerialExecutorService(ExecutorService workService, boolean fair) {
-        this.workService = workService;
+    SerialExecutorService(ExecutorService delegate, boolean fair) {
+        this.delegate = delegate;
         this.lock = new ReentrantLock(fair);
     }
 
     @Override public void shutdown() {
         lock.lock();
         try {
-            workService.shutdown();
+            delegate.shutdown();
         } finally {
             lock.unlock();
         }
@@ -52,7 +52,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public List<Runnable> shutdownNow() {
         lock.lock();
         try {
-            return workService.shutdownNow();
+            return delegate.shutdownNow();
         } finally {
             lock.unlock();
         }
@@ -61,7 +61,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public boolean isShutdown() {
         lock.lock();
         try {
-            return workService.isShutdown();
+            return delegate.isShutdown();
         } finally {
             lock.unlock();
         }
@@ -70,7 +70,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public boolean isTerminated() {
         lock.lock();
         try {
-            return workService.isTerminated();
+            return delegate.isTerminated();
         } finally {
             lock.unlock();
         }
@@ -79,7 +79,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         lock.lock();
         try {
-            return workService.awaitTermination(timeout, unit);
+            return delegate.awaitTermination(timeout, unit);
         } finally {
             lock.unlock();
         }
@@ -88,7 +88,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public <T> Future<T> submit(Callable<T> task) {
         lock.lock();
         try {
-            return workService.submit(task);
+            return delegate.submit(task);
         } finally {
             lock.unlock();
         }
@@ -97,7 +97,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public <T> Future<T> submit(Runnable task, T result) {
         lock.lock();
         try {
-            return workService.submit(task, result);
+            return delegate.submit(task, result);
         } finally {
             lock.unlock();
         }
@@ -106,7 +106,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public Future<?> submit(Runnable task) {
         lock.lock();
         try {
-            return workService.submit(task);
+            return delegate.submit(task);
         } finally {
             lock.unlock();
         }
@@ -116,7 +116,7 @@ final class SerialExecutorService implements ExecutorService {
             throws InterruptedException {
         lock.lock();
         try {
-            return workService.invokeAll(tasks);
+            return delegate.invokeAll(tasks);
         } finally {
             lock.unlock();
         }
@@ -126,7 +126,7 @@ final class SerialExecutorService implements ExecutorService {
             throws InterruptedException {
         lock.lock();
         try {
-            return workService.invokeAll(tasks, timeout, unit);
+            return delegate.invokeAll(tasks, timeout, unit);
         } finally {
             lock.unlock();
         }
@@ -136,7 +136,7 @@ final class SerialExecutorService implements ExecutorService {
             throws InterruptedException, ExecutionException {
         lock.lock();
         try {
-            return workService.invokeAny(tasks);
+            return delegate.invokeAny(tasks);
         } finally {
             lock.unlock();
         }
@@ -146,7 +146,7 @@ final class SerialExecutorService implements ExecutorService {
             throws InterruptedException, ExecutionException, TimeoutException {
         lock.lock();
         try {
-            return workService.invokeAny(tasks, timeout, unit);
+            return delegate.invokeAny(tasks, timeout, unit);
         } finally {
             lock.unlock();
         }
@@ -155,7 +155,7 @@ final class SerialExecutorService implements ExecutorService {
     @Override public void execute(Runnable command) {
         lock.lock();
         try {
-            workService.execute(command);
+            delegate.execute(command);
         } finally {
             lock.unlock();
         }

@@ -37,11 +37,11 @@ import java.util.concurrent.locks.ReentrantLock;
 
 @Log @ToString final class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
 
-    private final BlockingQueue<E> workQueue;
+    private final BlockingQueue<E> delegate;
     private final Lock enqueueLock;
 
-    SerialEnqueueBlockingQueue(@NonNull BlockingQueue<E> workQueue, boolean fair) {
-        this.workQueue = workQueue;
+    SerialEnqueueBlockingQueue(@NonNull BlockingQueue<E> delegate, boolean fair) {
+        this.delegate = delegate;
         this.enqueueLock = new ReentrantLock(fair);
         log.fine(() -> "constructed " + this);
     }
@@ -49,7 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @Override public boolean add(E e) {
         enqueueLock.lock();
         try {
-            return workQueue.add(e);
+            return delegate.add(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -58,7 +58,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @Override public boolean offer(E e) {
         enqueueLock.lock();
         try {
-            return workQueue.offer(e);
+            return delegate.offer(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -67,7 +67,7 @@ import java.util.concurrent.locks.ReentrantLock;
     @Override public void put(E e) throws InterruptedException {
         enqueueLock.lock();
         try {
-            workQueue.put(e);
+            delegate.put(e);
         } finally {
             enqueueLock.unlock();
         }
@@ -76,94 +76,94 @@ import java.util.concurrent.locks.ReentrantLock;
     @Override public boolean offer(E e, long timeout, TimeUnit unit) throws InterruptedException {
         enqueueLock.lock();
         try {
-            return workQueue.offer(e, timeout, unit);
+            return delegate.offer(e, timeout, unit);
         } finally {
             enqueueLock.unlock();
         }
     }
 
     @Override public E take() throws InterruptedException {
-        return workQueue.take();
+        return delegate.take();
     }
 
     @Override public E poll(long timeout, TimeUnit unit) throws InterruptedException {
-        return workQueue.poll(timeout, unit);
+        return delegate.poll(timeout, unit);
     }
 
     @Override public int remainingCapacity() {
-        return workQueue.remainingCapacity();
+        return delegate.remainingCapacity();
     }
 
     @Override public boolean remove(Object o) {
-        return workQueue.remove(o);
+        return delegate.remove(o);
     }
 
     @Override public boolean contains(Object o) {
-        return workQueue.contains(o);
+        return delegate.contains(o);
     }
 
     @Override public int drainTo(Collection<? super E> c) {
-        return workQueue.drainTo(c);
+        return delegate.drainTo(c);
     }
 
     @Override public int drainTo(Collection<? super E> c, int maxElements) {
-        return workQueue.drainTo(c, maxElements);
+        return delegate.drainTo(c, maxElements);
     }
 
     @Override public E remove() {
-        return workQueue.remove();
+        return delegate.remove();
     }
 
     @Override public E poll() {
-        return workQueue.poll();
+        return delegate.poll();
     }
 
     @Override public E element() {
-        return workQueue.element();
+        return delegate.element();
     }
 
     @Override public E peek() {
-        return workQueue.peek();
+        return delegate.peek();
     }
 
     @Override public int size() {
-        return workQueue.size();
+        return delegate.size();
     }
 
     @Override public boolean isEmpty() {
-        return workQueue.isEmpty();
+        return delegate.isEmpty();
     }
 
     @Override public Iterator<E> iterator() {
-        return workQueue.iterator();
+        return delegate.iterator();
     }
 
     @Override public Object[] toArray() {
-        return workQueue.toArray();
+        return delegate.toArray();
     }
 
     @Override public <T> T[] toArray(T[] a) {
-        return workQueue.toArray(a);
+        return delegate.toArray(a);
     }
 
     @Override public boolean containsAll(Collection<?> c) {
-        return workQueue.containsAll(c);
+        return delegate.containsAll(c);
     }
 
     @Override public boolean addAll(Collection<? extends E> c) {
-        return workQueue.addAll(c);
+        return delegate.addAll(c);
     }
 
     @Override public boolean removeAll(Collection<?> c) {
-        return workQueue.removeAll(c);
+        return delegate.removeAll(c);
     }
 
     @Override public boolean retainAll(Collection<?> c) {
-        return workQueue.retainAll(c);
+        return delegate.retainAll(c);
     }
 
     @Override public void clear() {
-        workQueue.clear();
+        delegate.clear();
     }
 
 }
