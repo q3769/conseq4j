@@ -154,12 +154,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start single sync invoke all " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
         final List<Future<SpyingTask>> completedFutures =
                 defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAll(tasks);
-        log.log(Level.INFO, () -> "Done single sync invoke all " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
 
         final List<SpyingTask> doneTasks = getAll(completedFutures);
         assertSingleThread(doneTasks);
@@ -170,11 +166,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         List<SpyingTask> tasks = createSpyingTasks();
         UUID sameSequenceKey = UUID.randomUUID();
 
-        log.log(Level.INFO, () -> "Start single sync invoke any in " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
         SpyingTask doneTask = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAny(tasks);
-        log.log(Level.INFO, () -> "Done single sync invoke any in " + tasks.size() + " tasks under same sequence key "
-                + sameSequenceKey);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
         log.log(Level.INFO, "Chosen task sequence : {0}", scheduledSequence);
@@ -194,7 +186,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     void assertSingleThread(List<SpyingTask> tasks) {
         assertEquals(1, tasks.stream().map(SpyingTask::getRunThreadName).distinct().count());
-        log.log(Level.INFO, "{0} tasks executed by single thread {1}",
-                new Object[] { tasks.size(), tasks.stream().findFirst().orElseThrow(NoSuchElementException::new) });
+        log.log(Level.INFO, "{0} tasks executed by single thread {1}", new Object[] { tasks.size(),
+                tasks.stream().findFirst().orElseThrow(NoSuchElementException::new).getRunThreadName() });
     }
 }

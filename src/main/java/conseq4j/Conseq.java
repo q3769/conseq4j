@@ -28,10 +28,7 @@ import lombok.extern.java.Log;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static java.lang.Math.floorMod;
 
@@ -44,7 +41,6 @@ import static java.lang.Math.floorMod;
 @ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
-
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
 
@@ -67,17 +63,22 @@ import static java.lang.Math.floorMod;
         log.fine(() -> "constructed " + this);
     }
 
+    private static ExecutorService newFairSingleThreadExecutor() {
+        return new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS,
+                new SerialEnqueueBlockingQueue<>(new LinkedBlockingQueue<>(), true));
+    }
+
     /**
      * @return a single-thread executor that does not support any shutdown action. The executor's task queue is a
-     *         {@link java.util.concurrent.LinkedBlockingQueue} as in {@link Executors#newSingleThreadExecutor()}. Size
-     *         unbounded, the task queue never blocks on enqueue operations on the producer side; single-threaded on the
-     *         consumer side, the task queue has no thread contention on the dequeue operations, either. That enables
-     *         the returned sequential executor to provide execution "fairness" in that, under contention, tasks
-     *         submitted first are favored to execute first.
+     *         {@link java.util.concurrent.LinkedBlockingQueue} as in {@link Executors#newSingleThreadExecutor()}. On
+     *         producer side, under contention, enqueue operations are synchronized with "fairness" - longest-waiting
+     *         element gets enqueued first; single-threaded on the consumer side, the task queue has no thread
+     *         contention on the dequeue operations. This enables the returned sequential executor to provide execution
+     *         "fairness" in that, under contention, tasks submitted first are favored to execute first.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                k -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
+                k -> new ShutdownDisabledExecutorService(newFairSingleThreadExecutor()));
     }
 
     private int bucketOf(Object sequenceKey) {
