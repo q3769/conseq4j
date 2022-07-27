@@ -52,7 +52,7 @@ It is the API client's responsibility and concern how tasks are submitted to con
 the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence to begin with.
 Fortunately often times, that is naturally the case: e.g. when the client is under the management of a messaging
 provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to ensure the
-concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up
+concurrent caller threads submit tasks in proper sequence to conseq4j. This can be as trivial as setting up
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 to sequence the submission of related tasks; it is a client-side activity nonetheless.
 
