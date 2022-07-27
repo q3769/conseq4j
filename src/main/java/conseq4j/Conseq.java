@@ -72,8 +72,8 @@ import static java.lang.Math.floorMod;
      *         {@link java.util.concurrent.LinkedBlockingQueue} as in {@link Executors#newSingleThreadExecutor()}. Size
      *         unbounded, the task queue never blocks on enqueue operations on the producer side; single-threaded on the
      *         consumer side, the task queue has no thread contention on the dequeue operations, either. That enables
-     *         the returned sequential executor to provide "fairness" on access order in general, in addition to the
-     *         usual thread-safety afforded by a {@link java.util.concurrent.BlockingQueue}.
+     *         the returned sequential executor to provide execution "fairness" in that, under contention, tasks
+     *         submitted first are favored to execute first.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
