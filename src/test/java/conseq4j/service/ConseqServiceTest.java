@@ -29,11 +29,13 @@ import conseq4j.SpyingTask;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -114,7 +116,6 @@ import static org.junit.jupiter.api.Assertions.*;
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assertEquals(threadPoolSize, ranThreadsTotal);
-        assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
     @Test void submitConcurrencyBoundedByTotalTaskCount() {
@@ -129,7 +130,6 @@ import static org.junit.jupiter.api.Assertions.*;
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
                 new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
         assertEquals(TASK_COUNT, ranThreadsTotal);
-        assertExecutorsSweptCleanWhenFinished(conseqService);
     }
 
     @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
@@ -139,7 +139,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
 
-        assertExecutorsSweptCleanWhenFinished(conseqService);
         assertConsecutiveRuntimes(tasks);
         int ranThreadsTotal = totalRunThreadCount(tasks);
         log.info(TASK_COUNT + " tasks were run by " + ranThreadsTotal + " threads");
@@ -170,35 +169,12 @@ import static org.junit.jupiter.api.Assertions.*;
         int normalCompleteCount = normalCompleteCount(resultFutures);
         assertEquals(1, cancelledCount);
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
-        assertExecutorsSweptCleanWhenFinished(conseqService);
-    }
-
-    private void assertExecutorsSweptCleanWhenFinished(ConseqService conseqService) {
-        long timeStartNanos = System.nanoTime();
-        await().with().pollInterval(20, TimeUnit.MILLISECONDS).until(() -> conseqService.getActiveExecutorCount() == 0);
-        log.log(Level.INFO, "all executors swept clean in " + Duration.ofNanos(System.nanoTime() - timeStartNanos));
     }
 
     @Test void returnMinimalFuture() {
         Future<SpyingTask> result = new ConseqService().submit(new SpyingTask(1), UUID.randomUUID());
 
         assertFalse(result instanceof CompletableFuture);
-    }
-
-    @Test void canCustomizeBackingThreadPool() {
-        ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
-        ConseqService conseqService = new ConseqService(customBackingThreadPool);
-
-        String customPoolName = customBackingThreadPool.getClass().getName();
-        assertEquals(customPoolName, conseqService.getExecutionThreadPoolTypeName());
-    }
-
-    @Test void defaultBackingThreadPool() {
-        ExecutorService expected = ForkJoinPool.commonPool();
-        ConseqService defaultConseqService = new ConseqService();
-
-        String expectedPoolName = expected.getClass().getName();
-        assertEquals(expectedPoolName, defaultConseqService.getExecutionThreadPoolTypeName());
     }
 
     private int normalCompleteCount(List<Future<SpyingTask>> resultFutures) {
