@@ -35,7 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-@Log @ToString class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
+@Log @ToString final class SerialEnqueueBlockingQueue<E> implements BlockingQueue<E> {
 
     private final BlockingQueue<E> workQueue;
     private final Lock enqueueLock;

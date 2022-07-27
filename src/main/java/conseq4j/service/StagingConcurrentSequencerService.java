@@ -38,7 +38,7 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString public final class StagingConcurrentSequencerService implements ConcurrentSequencerService {
+@ThreadSafe @Log @ToString final class StagingConcurrentSequencerService implements ConcurrentSequencerService {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
 
@@ -50,14 +50,14 @@ import java.util.logging.Level;
      * Default constructor sets the global execution thread pool to be the default JDK
      * {@link ForkJoinPool#commonPool()}.
      */
-    public StagingConcurrentSequencerService() {
+    StagingConcurrentSequencerService() {
         this(null);
     }
 
     /**
      * @param executionThreadPool the custom thread pool to facilitate the global async execution
      */
-    public StagingConcurrentSequencerService(ExecutorService executionThreadPool) {
+    StagingConcurrentSequencerService(ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool == null ? DEFAULT_THREAD_POOL : executionThreadPool;
         log.fine(() -> "constructed " + this);
     }
