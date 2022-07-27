@@ -28,10 +28,12 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.java.Log;
-import net.jcip.annotations.NotThreadSafe;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
 import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.logging.Level;
 
 /**
@@ -40,13 +42,16 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@NotThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
+@ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
+    private static final boolean FAIR = true;
 
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
+
+    private final Lock fairLock = new ReentrantLock(FAIR);
 
     /**
      * Default constructor sets the global execution thread pool to be the default JDK
@@ -101,6 +106,15 @@ import java.util.logging.Level;
     @Override public void execute(Runnable command, Object sequenceKey) {
         Objects.requireNonNull(command, "Runnable command cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
+        this.fairLock.lock();
+        try {
+            doExecute(command, sequenceKey);
+        } finally {
+            this.fairLock.unlock();
+        }
+    }
+
+    private void doExecute(Runnable command, Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
             CompletableFuture<Void> nextExecutionStage =
                     (currentExecutionStage == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
@@ -136,6 +150,15 @@ import java.util.logging.Level;
     @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
         Objects.requireNonNull(task, "Callable task cannot be NULL");
         Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
+        this.fairLock.lock();
+        try {
+            return doSubmit(task, sequenceKey);
+        } finally {
+            this.fairLock.unlock();
+        }
+    }
+
+    private <T> MinimalFuture<T> doSubmit(Callable<T> task, Object sequenceKey) {
         FutureHolder<T> resultHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
             CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?

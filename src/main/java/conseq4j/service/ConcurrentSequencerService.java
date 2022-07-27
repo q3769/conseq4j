@@ -31,10 +31,12 @@ import java.util.concurrent.Future;
  * Main API of concurrent sequencer service, bypassing the intermediate
  * executor/{@link java.util.concurrent.ExecutorService} interface.
  * <p>
- * It may seem counter-intuitive for a concurrent API, but the implementation of conseq4j does not have to be
- * thread-safe. In fact, for simplicity and separation of concerns, the default implementation is not thread-safe in
- * that it provides no "fairness" guarantee of access order in case of multi-thread racing conditions during client-side
- * task submissions.
+ * The conseq4j implementation is thread-safe. In the context of concurrency and sequencing, though, thread-safety goes
+ * beyond simple data corruption concerns into that of data access order among multiple threads. For example, if
+ * multiple tasks are submitted concurrently by different threads at exactly the same moment, then by definition, there
+ * is no sequence among those tasks to be preserved no matter they are related tasks of the same sequence key or not; it
+ * is considered "safe" to execute those tasks in any order. Meanwhile, "fair" execution order is required on related
+ * tasks as they are submitted in proper sequence.
  * <p>
  * It is the API client's responsibility and concern how tasks are submitted to conseq4j. As execution order is
  * imperative, the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence
@@ -43,10 +45,10 @@ import java.util.concurrent.Future;
  * to ensure the concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up a
  * <a
  * href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-">fair
- * lock</a> to safeguard the conseq4j API invocation; it is a client-side activity nonetheless.
+ * lock</a> to sequence related task submission; it is a client-side activity nonetheless.
  * <p>
- * Once the proper task submission sequence is ensured by the API client, it is then conseq4j's concern and
- * responsibility that further processing of the tasks is executed in the meaningful order and concurrency as promised.
+ * Once proper submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility that
+ * further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
  *
  * @author Qingtian Wang
  */
