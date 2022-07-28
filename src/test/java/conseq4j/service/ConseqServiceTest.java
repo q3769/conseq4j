@@ -165,8 +165,8 @@ import static org.junit.jupiter.api.Assertions.*;
             resultFutures.add(taskFuture);
         }
 
-        int cancelledCount = cancelledCount(resultFutures);
-        int normalCompleteCount = normalCompleteCount(resultFutures);
+        int cancelledCount = cancellationCount(resultFutures);
+        int normalCompleteCount = normalCompletionCount(resultFutures);
         assertEquals(1, cancelledCount);
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
     }
@@ -177,7 +177,7 @@ import static org.junit.jupiter.api.Assertions.*;
         assertFalse(result instanceof CompletableFuture);
     }
 
-    private int normalCompleteCount(List<Future<SpyingTask>> resultFutures) {
+    private int normalCompletionCount(List<Future<SpyingTask>> resultFutures) {
         int normalCompletionCount = 0;
         for (Future<SpyingTask> future : resultFutures) {
             if (future.isCancelled())
@@ -192,7 +192,7 @@ import static org.junit.jupiter.api.Assertions.*;
         return normalCompletionCount;
     }
 
-    private int cancelledCount(List<Future<SpyingTask>> futures) {
+    private int cancellationCount(List<Future<SpyingTask>> futures) {
         awaitAllDone(futures);
         return futures.parallelStream().mapToInt(f -> f.isCancelled() ? 1 : 0).sum();
     }
