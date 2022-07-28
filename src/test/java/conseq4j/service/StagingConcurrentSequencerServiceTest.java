@@ -26,10 +26,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
             }, UUID.randomUUID());
         }
 
-        Duration maxRunAndCleanupDuration = Duration.ofSeconds(2);
-        long singleThreadRunDurationMillis = taskCount * averageRunDurationMillis;
-        assertTrue(maxRunAndCleanupDuration.toMillis() < singleThreadRunDurationMillis);
-        await().atMost(maxRunAndCleanupDuration).until(() -> sut.getActiveExecutorCount() == 0);
+        Duration estimatedMaxActualRunAndCleanupDuration = Duration.ofSeconds(2);
+        long sequentialRunDurationMillis = taskCount * averageRunDurationMillis;
+        assertTrue(estimatedMaxActualRunAndCleanupDuration.toMillis() < sequentialRunDurationMillis);
+        await().atMost(estimatedMaxActualRunAndCleanupDuration).until(() -> sut.getActiveExecutorCount() == 0);
     }
 
     @Test void canCustomizeBackingThreadPool() {

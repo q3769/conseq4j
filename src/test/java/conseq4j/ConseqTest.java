@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
     private static final int TASK_COUNT = 100;
 
-    private static final Level TEST_RUN_LOG_LEVEL = Level.FINE;
+    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
 
     @BeforeAll public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
@@ -99,11 +99,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     @BeforeEach void setUp(TestInfo testInfo) {
-        log.info(String.format("================================== start test: %s", testInfo.getDisplayName()));
+        log.info(String.format("===== start test: %s", testInfo.getDisplayName()));
     }
 
     @AfterEach void tearDown(TestInfo testInfo) {
-        log.info(String.format("================================== done test: %s", testInfo.getDisplayName()));
+        log.info(String.format("##### done test: %s", testInfo.getDisplayName()));
     }
 
     @Test void concurrencyBoundedByTotalTaskCount() {
