@@ -71,11 +71,11 @@ import static org.junit.jupiter.api.Assertions.*;
         return result;
     }
 
-    private static int totalRunThreadCount(List<SpyingTask> tasks) {
+    private static int actualExecutionThreadCount(List<SpyingTask> tasks) {
         return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
-    private static long totalDoneThreadCount(List<Future<SpyingTask>> futures) {
+    private static long actualThreadCountToComplete(List<Future<SpyingTask>> futures) {
         return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
@@ -112,10 +112,10 @@ import static org.junit.jupiter.api.Assertions.*;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long ranThreadsTotal = totalDoneThreadCount(futures);
+        final long actualThreadCount = actualThreadCountToComplete(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
-        assertEquals(threadPoolSize, ranThreadsTotal);
+                new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
+        assertEquals(threadPoolSize, actualThreadCount);
     }
 
     @Test void submitConcurrencyBoundedByTotalTaskCount() {
@@ -126,10 +126,10 @@ import static org.junit.jupiter.api.Assertions.*;
                 .map(task -> conseqService.submit(task, UUID.randomUUID()))
                 .collect(toList());
 
-        final long ranThreadsTotal = totalDoneThreadCount(futures);
+        final long actualThreadCount = actualThreadCountToComplete(futures);
         log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
-                new Object[] { TASK_COUNT, ranThreadsTotal, threadPoolSize });
-        assertEquals(TASK_COUNT, ranThreadsTotal);
+                new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
+        assertEquals(TASK_COUNT, actualThreadCount);
     }
 
     @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
@@ -140,9 +140,9 @@ import static org.junit.jupiter.api.Assertions.*;
         tasks.forEach(task -> conseqService.execute(task, sameSequenceKey));
 
         assertConsecutiveRuntimes(tasks);
-        int ranThreadsTotal = totalRunThreadCount(tasks);
-        log.info(TASK_COUNT + " tasks were run by " + ranThreadsTotal + " threads");
-        assertTrue(Range.closed(1, TASK_COUNT).contains(ranThreadsTotal));
+        int actualThreadCount = actualExecutionThreadCount(tasks);
+        log.info(TASK_COUNT + " tasks were run by " + actualThreadCount + " threads");
+        assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
     @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
