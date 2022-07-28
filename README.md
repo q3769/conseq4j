@@ -41,23 +41,25 @@ implementation 'io.github.q3769:conseq4j:20220727.0.2'
 
 ## Use it...
 
-The conseq4j implementation is thread-safe. In the context of concurrency and sequencing, though, thread-safety goes
-beyond the simple concerns of data value corruption into that of data access order among multiple threads. For example,
-if multiple tasks are submitted concurrently by different threads at exactly the same moment, then by definition, there
-is no order sequence among those tasks no matter they are related tasks of the same sequence key or not; it is
-considered "safe" to execute such tasks in any order. Meanwhile, "fair" execution order is required on those tasks
-that are submitted in proper sequence by the calling thread(s).
+The conseq4j implementation is thread-safe in the sense that the API client could submit tasks concurrently using
+multiple threads. However, it is worthwhile to clarify the effect of client-side multi-threading. In the context of
+concurrency and sequencing, thread-safety goes beyond the simple concerns of data value corruption into that of data
+access order among multiple threads.
 
-It is the API client's responsibility and concern how tasks are submitted to conseq4j. As execution order is imperative,
-the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence to begin with.
-Fortunately often times, that is naturally the case: e.g. when the client is under the management of a messaging
-provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs to ensure the
-concurrent caller threads submit tasks in proper sequence to conseq4j. This can be as trivial as setting up
-a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-to sequence the submission of related tasks; it is a client-side activity nonetheless.
+First, it is the API client's responsibility and concern how tasks are submitted to conseq4j. If execution order is
+imperative, the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately often times,
+that is naturally the case: e.g. when the client is under the management of a messaging provider running a single caller
+thread. Otherwise, if the caller is multi-threaded during task submission, effectively, it means the execution order
+does not matter - regardless of the sequence keys; it is considered "safe" to execute in any order, which renders the
+API moot in terms of sequencing. The reason is that the conseq4j API - or the JDK for that matter - has no guarantee on
+how the concurrent submission threads are actually scheduled; by definition, there is no much thing as sequence for
+concurrently submitted tasks by different threads.
 
-Once proper submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility that
-further processing of the submitted tasks is executed in the meaningful order and concurrency as promised.
+Once a definitive submission sequence is ensured by the API client, it is then conseq4j's concern and responsibility
+that further processing of the submitted tasks is executed in the meaningful order and concurrency as promised. After
+the tasks have been submitted in whatever way they are scheduled, conseq4j guarantees "fair" execution in the same
+submission order on related tasks of the same sequence key, where the earliest-submitted task gets executed first;
+meanwhile, unrelated tasks can be executed concurrently by different threads.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 

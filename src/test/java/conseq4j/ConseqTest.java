@@ -34,14 +34,12 @@ import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import static java.util.stream.Collectors.toList;
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -64,17 +62,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
                 handler.setLevel(TEST_RUN_LOG_LEVEL);
             }
         }
-    }
-
-    private static <T> void awaitAllFutures(List<Future<T>> futures) {
-        await().with()
-                .pollInterval(10L, TimeUnit.MILLISECONDS)
-                .until(() -> futures.parallelStream().allMatch(Future::isDone));
-    }
-
-    private static void awaitAllTasks(List<SpyingTask> tasks) {
-        await().until(
-                () -> tasks.parallelStream().allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
     }
 
     private static List<SpyingTask> createSpyingTasks() {
@@ -130,7 +117,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
                 .map(t -> lowConcurrencyService.getSequentialExecutor(UUID.randomUUID())
                         .submit((Callable<SpyingTask>) t))
                 .collect(toList());
-        awaitAllFutures(lowConcurrencyFutures);
+        TestUtils.awaitAll(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         Conseq highConcurrencyService = new Conseq(highConcurrency);
@@ -139,7 +126,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
                 .map(task -> highConcurrencyService.getSequentialExecutor(UUID.randomUUID())
                         .submit((Callable<SpyingTask>) task))
                 .collect(toList());
-        awaitAllFutures(highConcurrencyFutures);
+        TestUtils.awaitAll(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
         log.log(Level.INFO, "low concurrency: {0}, run time: {1}",
@@ -180,7 +167,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
         tasks.forEach(task -> defaultConseq.getSequentialExecutor(sameSequenceKey).execute(task));
 
-        awaitAllTasks(tasks);
+        TestUtils.awaitDone(tasks);
         assertSingleThread(tasks);
     }
 

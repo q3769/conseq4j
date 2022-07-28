@@ -1,9 +1,11 @@
 package conseq4j.service;
 
+import conseq4j.SpyingTask;
+import conseq4j.TestUtils;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
+import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -11,25 +13,28 @@ import java.util.concurrent.ForkJoinPool;
 
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @Log class StagingConcurrentSequencerServiceTest {
 
-    @Test void noStageLingers() {
+    @Test void noStageLingersOnSameSequenceKey() {
         StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
-        int taskCount = 5;
-        long averageRunDurationMillis = 1000L;
-        for (int i = 0; i < taskCount; i++) {
-            sut.execute(() -> {
-                long start = System.currentTimeMillis();
-                await().until(() -> System.currentTimeMillis() - start >= averageRunDurationMillis);
-            }, UUID.randomUUID());
-        }
+        UUID sameSequenceKey = UUID.randomUUID();
+        List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
-        Duration estimatedMaxActualRunAndCleanupDuration = Duration.ofSeconds(2);
-        long sequentialRunDurationMillis = taskCount * averageRunDurationMillis;
-        assertTrue(estimatedMaxActualRunAndCleanupDuration.toMillis() < sequentialRunDurationMillis);
-        await().atMost(estimatedMaxActualRunAndCleanupDuration).until(() -> sut.getActiveExecutorCount() == 0);
+        tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
+        TestUtils.awaitDone(tasks);
+
+        await().until(() -> sut.getActiveExecutorCount() == 0);
+    }
+
+    @Test void noStageLingersOnRandomSequenceKeys() {
+        StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
+        List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
+
+        tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
+        TestUtils.awaitDone(tasks);
+
+        await().until(() -> sut.getActiveExecutorCount() == 0);
     }
 
     @Test void canCustomizeBackingThreadPool() {
