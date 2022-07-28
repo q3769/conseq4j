@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
  */
 @ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
-    public static final boolean FAIR = true;
+    public static final boolean FAIR_ON_CONTENTION = true;
     private final ConcurrentSequencerService delegate;
 
     public ConseqService() {
@@ -50,7 +50,7 @@ import java.util.concurrent.Future;
 
     public ConseqService(ExecutorService executionThreadPool) {
         delegate = new SerializedConcurrentSequencerService(new StagingConcurrentSequencerService(executionThreadPool),
-                FAIR);
+                FAIR_ON_CONTENTION);
         log.fine(() -> "constructed " + this);
     }
 
