@@ -24,6 +24,7 @@
 
 package conseq4j.service;
 
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import net.jcip.annotations.ThreadSafe;
@@ -53,11 +54,11 @@ import java.util.concurrent.Future;
         log.fine(() -> "constructed " + this);
     }
 
-    @Override public void execute(Runnable command, Object sequenceKey) {
+    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         delegate.execute(command, sequenceKey);
     }
 
-    @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
+    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         return delegate.submit(task, sequenceKey);
     }
 

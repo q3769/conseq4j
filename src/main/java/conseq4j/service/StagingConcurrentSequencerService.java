@@ -25,11 +25,11 @@
 package conseq4j.service;
 
 import lombok.Data;
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.java.Log;
 import net.jcip.annotations.ThreadSafe;
 
-import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.logging.Level;
 
@@ -96,9 +96,7 @@ import java.util.logging.Level;
      * stage ever put on the execution queue/map is eventually checked for completion and removal; i.e. no stage will
      * forever linger in the execution map.
      */
-    @Override public void execute(Runnable command, Object sequenceKey) {
-        Objects.requireNonNull(command, "Runnable command cannot be NULL");
-        Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
+    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
             CompletableFuture<Void> nextExecutionStage =
                     (currentExecutionStage == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
@@ -131,9 +129,7 @@ import java.util.logging.Level;
     /**
      * @see StagingConcurrentSequencerService#execute(Runnable, Object)
      */
-    @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
-        Objects.requireNonNull(task, "Callable task cannot be NULL");
-        Objects.requireNonNull(sequenceKey, "sequence key cannot be NULL");
+    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         FutureHolder<T> resultHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
             CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?

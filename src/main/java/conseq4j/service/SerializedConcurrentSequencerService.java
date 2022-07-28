@@ -22,7 +22,7 @@ final class SerializedConcurrentSequencerService implements ConcurrentSequencerS
         this.lock = new ReentrantLock(fair);
     }
 
-    @Override public void execute(Runnable command, Object sequenceKey) {
+    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         lock.lock();
         try {
             delegate.execute(command, sequenceKey);
@@ -31,7 +31,7 @@ final class SerializedConcurrentSequencerService implements ConcurrentSequencerS
         }
     }
 
-    @Override public <T> Future<T> submit(Callable<T> task, Object sequenceKey) {
+    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         lock.lock();
         try {
             return delegate.submit(task, sequenceKey);
