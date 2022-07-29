@@ -69,7 +69,7 @@ meaningful order and concurrency as promised. Whatever way the tasks have been s
 guarantees "fair" execution order: Related tasks of the same sequence key are sequentially executed in the same order as
 submitted - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
-### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
+### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
 This API style provides a sequential task executor of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) for the
@@ -158,7 +158,7 @@ Notes:
   ConcurrentSequencer conseq = new Conseq(10);
   ```
 
-### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as a service.
+### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as a service.
 
 This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. Prefer using
 this style when you do not require the full-blown syntax and semantic support of a
