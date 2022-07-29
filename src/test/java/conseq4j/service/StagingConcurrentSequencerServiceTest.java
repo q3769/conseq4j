@@ -40,7 +40,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @Log class StagingConcurrentSequencerServiceTest {
 
-    @Test void noStageLingersOnSameSequenceKey() {
+    @Test void noExecutorLingersOnSameSequenceKey() {
         StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
         UUID sameSequenceKey = UUID.randomUUID();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
@@ -51,7 +51,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
         await().until(() -> sut.getActiveExecutorCount() == 0);
     }
 
-    @Test void noStageLingersOnRandomSequenceKeys() {
+    @Test void noExecutorLingersOnRandomSequenceKeys() {
         StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 

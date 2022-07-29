@@ -76,25 +76,26 @@ import java.util.logging.Level;
      * completion-stages of the {@link CompletableFuture} on the same key; i.e. the "main-line" execution.
      * <p>
      * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. In a way,
-     * each map entry represents a FIFO task execution queue of the entry's (sequence) key. The entry's value is to hold
-     * the most recently added main-line execution stage - the tail of the FIFO task queue. Each submitted task will
-     * create a new execution stage which is queued behind the previous task's execution stage. As part of the same
-     * atomic transaction, the newly-enqueued execution stage also replaces the previous stage as the new value under
-     * the same sequence key in the map. As the stages are queued, this new stage will not start executing before the
-     * previous execution stage completes, and, will have to complete its execution before the next task's execution
-     * stage can start executing. Such linear progression of the main-line execution stages ensures the sequential-ness
-     * of task execution under the same sequence key.
+     * each map entry represents a sequential executor for all the tasks under the same sequence/entry key; the entry's
+     * value is to hold the most recently added main-line task (execution stage) i.e. the tail of the FIFO task queue
+     * for the same sequence key. Each submitted task will create a new corresponding main-line execution stage which is
+     * queued behind the previous task's execution stage. As part of the same atomic transaction, the newly-created
+     * execution stage, as the tail of the FIFO task queue, also replaces the previous execution stage as the new value
+     * under the same sequence key in the executor map. As the stages are queued, this new stage will not start
+     * executing before the previous execution stage completes, and, will have to end executing before the next task's
+     * execution stage can start executing. Such linear progression of the main-line execution stages ensures the
+     * sequential-ness of task execution under the same sequence key.
      * <p>
-     * A separate maintenance/cleanup stage is set up to run after the completion of each main-line execution stage.
-     * This maintenance stage checks on the completion status of the most recent main-line execution stage under the
-     * same sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
-     * checked execution stage is the tail of the task execution queue, and may or may not be the same stage that
-     * triggered this maintenance check. Unlike the execution stage, the maintenance stage is not part of the execution
-     * queue; it may clean up and remove a completed execution stage from the map, but does not disturb the overall
-     * sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution is always
-     * triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every main-line execution
-     * stage ever put on the execution queue map is eventually checked for completion and removal; i.e. no stage will
-     * forever linger in the map.
+     * A separate maintenance/cleanup stage is set up to run after the completion of each main-line execution stage in
+     * the FIFO task queue. This maintenance stage checks on the completion status of the most recent main-line
+     * execution stage under the same sequence key, and removes the checked stage (thus the entire executor entry) from
+     * the executor map if the execution has completed. The checked execution stage is the tail of the task queue, and
+     * may or may not be the same stage that triggered this maintenance check. Unlike the execution stage, the
+     * maintenance stage is not part of the main-line execution task queue; it may clean up and remove a completed
+     * execution stage from the map, but does not disturb the overall sequential-ness of the main-line executions.
+     * Meanwhile, as each completed main-line execution is always triggering an "off-of-band" maintenance/cleanup check,
+     * collectively, this ensures that every main-line execution stage ever put on the executor map is eventually
+     * checked for completion and removal; i.e. no executor entry will forever linger in the map.
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
