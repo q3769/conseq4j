@@ -77,24 +77,24 @@ import java.util.logging.Level;
      * <p>
      * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. In a way,
      * each map entry represents a FIFO task execution queue of the entry's (sequence) key. The entry's value is to hold
-     * the latest main-line execution stage - the head of the FIFO task queue. Each submitted task will create a new
-     * execution stage which is queued behind the previous task's execution stage. As part of the same atomic
-     * transaction, the newly-enqueued execution stage also replaces the previous stage as the new value under the same
-     * sequence key in the map. As the stages are queued, this new stage will not start executing before the previous
-     * execution stage completes, and, will have to complete its execution before the next task's execution stage can
-     * start executing. Such linear progression of the main-line execution stages ensures the sequential-ness of task
-     * execution under the same sequence key.
+     * the most recently added main-line execution stage - the tail of the FIFO task queue. Each submitted task will
+     * create a new execution stage which is queued behind the previous task's execution stage. As part of the same
+     * atomic transaction, the newly-enqueued execution stage also replaces the previous stage as the new value under
+     * the same sequence key in the map. As the stages are queued, this new stage will not start executing before the
+     * previous execution stage completes, and, will have to complete its execution before the next task's execution
+     * stage can start executing. Such linear progression of the main-line execution stages ensures the sequential-ness
+     * of task execution under the same sequence key.
      * <p>
      * A separate maintenance/cleanup stage is set up to run after the completion of each main-line execution stage.
-     * This maintenance stage checks on the completion status of the latest main-line execution stage under the same
-     * sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
-     * checked execution stage is the head of the task execution queue, and may or may not be the same stage that
+     * This maintenance stage checks on the completion status of the most recent main-line execution stage under the
+     * same sequence key, and removes the checked stage from the execution queue map if the execution has completed. The
+     * checked execution stage is the tail of the task execution queue, and may or may not be the same stage that
      * triggered this maintenance check. Unlike the execution stage, the maintenance stage is not part of the execution
-     * queue; it may clean up and remove a completed execution stage from the queue/map, but does not disturb the
-     * overall sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution is always
+     * queue; it may clean up and remove a completed execution stage from the map, but does not disturb the overall
+     * sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution is always
      * triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every main-line execution
-     * stage ever put on the execution queue/map is eventually checked for completion and removal; i.e. no stage will
-     * forever linger in the execution map.
+     * stage ever put on the execution queue map is eventually checked for completion and removal; i.e. no stage will
+     * forever linger in the map.
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
@@ -107,7 +107,7 @@ import java.util.logging.Level;
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-            sweepExecutorWhenComplete(nextExecutionStage, sequenceKey);
+            deregisterTaskQueueWhenComplete(nextExecutionStage, sequenceKey);
             return nextExecutionStage;
         });
     }
@@ -121,8 +121,8 @@ import java.util.logging.Level;
      * @param executionStage the executionStage to check and sweep if its execution is done
      * @param sequenceKey    the key whose tasks are sequentially executed by the executionStage
      */
-    private void sweepExecutorWhenComplete(CompletableFuture<?> executionStage, Object sequenceKey) {
-        executionStage.whenCompleteAsync((executionResult, executionException) -> new ExecutorSweeper(sequenceKey,
+    private void deregisterTaskQueueWhenComplete(CompletableFuture<?> executionStage, Object sequenceKey) {
+        executionStage.whenCompleteAsync((executionResult, executionException) -> new TaskQueueSweeper(sequenceKey,
                 this.sequentialExecutors).sweepIfDone());
     }
 
@@ -141,7 +141,7 @@ import java.util.logging.Level;
                         return call(task);
                     }, this.executionThreadPool);
             resultHolder.setFuture(nextExecutionStage);
-            sweepExecutorWhenComplete(nextExecutionStage, sequenceKey);
+            deregisterTaskQueueWhenComplete(nextExecutionStage, sequenceKey);
             return nextExecutionStage;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
@@ -155,31 +155,30 @@ import java.util.logging.Level;
         return this.executionThreadPool.getClass().getName();
     }
 
-    private static final class ExecutorSweeper {
+    private static final class TaskQueueSweeper {
 
         final Object sequenceKey;
         final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
-        private ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
+        private TaskQueueSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
             this.sequenceKey = sequenceKey;
             this.sequentialExecutors = sequentialExecutors;
         }
 
         public void sweepIfDone() {
-            this.sequentialExecutors.compute(this.sequenceKey, (k, executionStage) -> {
-                if (executionStage == null) {
-                    log.log(Level.FINE, () -> "executionStage for sequence key " + this.sequenceKey
+            this.sequentialExecutors.compute(this.sequenceKey, (k, currentTail) -> {
+                if (currentTail == null) {
+                    log.log(Level.FINE, () -> "task queue for sequence key " + this.sequenceKey
                             + " already swept off of active service map");
                     return null;
                 }
-                boolean done = executionStage.isDone();
+                boolean done = currentTail.isDone();
                 if (done) {
-                    log.log(Level.FINE,
-                            () -> "sweeping executionStage " + executionStage + " off of active service map");
+                    log.log(Level.FINE, () -> "sweeping tail stage " + currentTail + " off of active service map");
                     return null;
                 }
-                log.log(Level.FINE, () -> "keeping executionStage " + executionStage + " in active service map");
-                return executionStage;
+                log.log(Level.FINE, () -> "keeping tail stage " + currentTail + " in active service map");
+                return currentTail;
             });
         }
     }
