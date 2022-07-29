@@ -117,7 +117,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
     }
 
     @Test void provideConcurrencyAmongDifferentSequenceKeys() {
-        List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
+        List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT / 2);
         UUID sameSequenceKey = UUID.randomUUID();
         ConseqService sut = new ConseqService();
 
