@@ -175,12 +175,13 @@ import java.util.logging.Level;
                 }
                 boolean done = tailTask.isDone();
                 if (done) {
-                    log.log(Level.FINER, () -> "sweeping tail stage " + tailTask + " for sequence key " + k
-                            + " off of executor map");
+                    log.log(Level.FINER,
+                            () -> "sweeping executor with tail stage " + tailTask + " for sequence key " + k
+                                    + " off of executor map");
                     return null;
                 }
-                log.log(Level.FINER,
-                        () -> "keeping tail stage " + tailTask + " for sequence key " + k + " in executor map");
+                log.log(Level.FINER, () -> "keeping executor with tail stage " + tailTask + " for sequence key " + k
+                        + " in executor map");
                 return tailTask;
             });
         }
