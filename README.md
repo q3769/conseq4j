@@ -59,7 +59,7 @@ Otherwise, if the caller is multi-threaded during task submission, effectively, 
 matter; it is considered "safe" to execute the concurrently-submitted tasks in any order regardless of the sequence
 keys, which renders the API moot in terms of sequencing. The reason is that the conseq4j API - or the JDK for that
 matter - has no guarantee on how the concurrent submission threads are actually scheduled; by definition, there is no
-much thing as sequence for concurrently submitted tasks from different threads.
+much thing as sequence among concurrently submitted tasks from different threads.
 
 Once a definitive submission sequence is set up by the API client, most likely via some form of synchronization (such
 as a managed single caller thread or
