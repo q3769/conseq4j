@@ -168,7 +168,7 @@ import java.util.logging.Level;
         public void sweepIfDone() {
             this.sequentialExecutors.compute(this.sequenceKey, (k, currentTail) -> {
                 if (currentTail == null) {
-                    log.log(Level.FINE, () -> "task queue for sequence key " + this.sequenceKey
+                    log.log(Level.FINE, () -> "tail task stage for sequence key " + this.sequenceKey
                             + " already swept off of active service map");
                     return null;
                 }
