@@ -43,8 +43,10 @@ implementation 'io.github.q3769:conseq4j:20220727.0.6'
 
 ### TL;DR:
 
-conseq4j's task intake is asynchronous and non-blocking; so use a single-thread or synchronized client to submit the
-tasks, and leave the rest to conseq4j.
+It is sensible for the API client to ensure task submission sequence via some form of synchronization, such as a managed
+single caller thread or
+a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
+, and let conseq4j provide reasonable sequencing and concurrency while executing the submitted tasks.
 
 ### The long version on usage:
 
@@ -67,10 +69,7 @@ meaningful order and concurrency as promised. Whatever way the tasks have been s
 guarantees "fair" execution order: Related tasks of the same sequence key are sequentially executed in the same order as
 submitted - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
-In other words, it is sensible for the API client to ensure submission sequence via some form of synchronization, such
-as a managed single caller thread or
-a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-, and let conseq4j provide reasonable sequencing and concurrency.
+In other words, see the TL;DR above.
 
 ### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
