@@ -43,7 +43,7 @@ implementation 'io.github.q3769:conseq4j:20220727.0.6'
 
 ### TL;DR:
 
-conseq4j's task submission is asynchronous and non-blocking; so use a single-thread or synchronized client to submit
+conseq4j's task intake is asynchronous and non-blocking; so use a single-thread or synchronized client to submit the
 tasks, and leave the rest to conseq4j.
 
 ### The long version on usage:
