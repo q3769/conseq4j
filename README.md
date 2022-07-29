@@ -46,7 +46,8 @@ implementation 'io.github.q3769:conseq4j:20220727.0.6'
 It is sensible for the API client to ensure task submission sequence via some form of synchronization, such as a managed
 single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-, and let conseq4j provide reasonable sequencing and concurrency while executing the submitted tasks.
+, and let the conseq4j API do its job of providing reasonable sequencing and concurrency while executing the submitted
+tasks.
 
 ### The long version on usage:
 
