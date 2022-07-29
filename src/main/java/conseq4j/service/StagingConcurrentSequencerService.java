@@ -120,7 +120,7 @@ import java.util.logging.Level;
      * earlier sweeps for the same sequence key; thus, no executor can linger forever after its completion.
      *
      * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
-     *                    executor's tail task in  queue is done at the time of checking
+     *                    executor's tail task in queue is done at the time of checking
      * @param sequenceKey the key whose tasks are sequentially executed
      */
     private void sweepExecutorIfTailTaskDone(CompletableFuture<?> triggerTask, Object sequenceKey) {
