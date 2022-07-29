@@ -103,11 +103,11 @@ import java.util.logging.Level;
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null)
                                     log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                            + " before executing next " + command);
+                                            + " before executing next command: " + command);
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-            deregisterTaskQueueWhenComplete(nextExecutionStage, sequenceKey);
+            sweepExecutorIfTailExecutionStageComplete(nextExecutionStage, sequenceKey);
             return nextExecutionStage;
         });
     }
@@ -121,8 +121,8 @@ import java.util.logging.Level;
      * @param executionStage the executionStage to check and sweep if its execution is done
      * @param sequenceKey    the key whose tasks are sequentially executed by the executionStage
      */
-    private void deregisterTaskQueueWhenComplete(CompletableFuture<?> executionStage, Object sequenceKey) {
-        executionStage.whenCompleteAsync((executionResult, executionException) -> new TaskQueueSweeper(sequenceKey,
+    private void sweepExecutorIfTailExecutionStageComplete(CompletableFuture<?> executionStage, Object sequenceKey) {
+        executionStage.whenCompleteAsync((executionResult, executionException) -> new ExecutorSweeper(sequenceKey,
                 this.sequentialExecutors).sweepIfDone());
     }
 
@@ -137,11 +137,11 @@ import java.util.logging.Level;
                     currentExecutionStage.handleAsync((currentResult, currentException) -> {
                         if (currentException != null)
                             log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                    + " before executing next " + task);
+                                    + " before executing next task: " + task);
                         return call(task);
                     }, this.executionThreadPool);
             resultHolder.setFuture(nextExecutionStage);
-            deregisterTaskQueueWhenComplete(nextExecutionStage, sequenceKey);
+            sweepExecutorIfTailExecutionStageComplete(nextExecutionStage, sequenceKey);
             return nextExecutionStage;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
@@ -155,30 +155,32 @@ import java.util.logging.Level;
         return this.executionThreadPool.getClass().getName();
     }
 
-    private static final class TaskQueueSweeper {
+    private static final class ExecutorSweeper {
 
         final Object sequenceKey;
         final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
-        private TaskQueueSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
+        private ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
             this.sequenceKey = sequenceKey;
             this.sequentialExecutors = sequentialExecutors;
         }
 
         public void sweepIfDone() {
-            this.sequentialExecutors.compute(this.sequenceKey, (k, currentTail) -> {
-                if (currentTail == null) {
-                    log.log(Level.FINE, () -> "tail task stage for sequence key " + this.sequenceKey
-                            + " already swept off of active service map");
+            this.sequentialExecutors.compute(this.sequenceKey, (k, currentStage) -> {
+                if (currentStage == null) {
+                    log.log(Level.FINER,
+                            () -> "tail task stage for sequence key " + k + " already swept off of executor map");
                     return null;
                 }
-                boolean done = currentTail.isDone();
+                boolean done = currentStage.isDone();
                 if (done) {
-                    log.log(Level.FINE, () -> "sweeping tail stage " + currentTail + " off of active service map");
+                    log.log(Level.FINER, () -> "sweeping tail stage " + currentStage + " for sequence key " + k
+                            + " off of executor map");
                     return null;
                 }
-                log.log(Level.FINE, () -> "keeping tail stage " + currentTail + " in active service map");
-                return currentTail;
+                log.log(Level.FINER,
+                        () -> "keeping tail stage " + currentStage + " for sequence key " + k + " in executor map");
+                return currentStage;
             });
         }
     }
