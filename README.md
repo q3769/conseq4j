@@ -58,11 +58,10 @@ concurrently submitted tasks by different threads.
 Once a definitive submission sequence is ensured by the API client, most likely via some form of synchronization (such
 as a managed single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-))
-, it is then the conseq4j API's concern and responsibility that further processing of the submitted tasks is executed in
-the meaningful order and concurrency as promised. Whatever way the tasks have been scheduled and submitted, conseq4j
-guarantees "fair" execution, in the same submission order, of related tasks with the same sequence key, where the
-earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed concurrently by different
-threads.
+, it is then conseq4j's concern and responsibility that further processing of the submitted tasks is executed in the
+meaningful order and concurrency as promised. Whatever way the tasks have been scheduled and submitted, conseq4j
+guarantees "fair" execution: Related tasks of the same sequence key are executed in the same submission order of
+sequence - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
