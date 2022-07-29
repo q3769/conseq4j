@@ -218,7 +218,7 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of this style replies on
+- The implementation of this style relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
   behind the scenes to achieve sequential execution of related tasks. A thread pool is employed to facilitate the
   overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
