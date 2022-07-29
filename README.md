@@ -60,7 +60,7 @@ client has to ensure that tasks are submitted in proper sequence to begin with. 
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
 Otherwise, if the caller is multi-threading during task submission, then it means the execution order does not matter;
 it is considered "safe" to execute the concurrently-submitted tasks in any order regardless of the sequence keys, which
-renders the API moot in terms of sequencing. The reason is that the conseq4j API, or even the JDK for that matter, has
+renders the sequencing part of the API moot. The reason is that the conseq4j API, or even the JDK for that matter, has
 no guarantee on how the concurrent submission threads are actually scheduled; by definition, there is no much thing as
 sequence among concurrently submitted tasks from different threads.
 
