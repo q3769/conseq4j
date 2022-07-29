@@ -41,6 +41,12 @@ implementation 'io.github.q3769:conseq4j:20220727.0.4'
 
 ## Use it...
 
+### TL;DR
+
+Use a single-thread client to submit tasks, as in the code samples, and leave the rest to conseq4j.
+
+### The long version on usage:
+
 The conseq4j implementation is thread-safe in the sense that the API client could submit tasks concurrently using
 multiple threads. However, it is worthwhile to clarify the effect of client-side multi-threading. In the context of
 concurrency and sequencing, thread-safety goes beyond the simple concerns of data value corruption into that of data
