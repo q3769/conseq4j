@@ -88,14 +88,14 @@ import java.util.logging.Level;
      * <p>
      * A separate maintenance/cleanup stage is set up to run after the completion of each main-line task/stage. This
      * maintenance stage checks on the completion status of the most recent main-line task/stage under the same sequence
-     * key, and removes the checked stage (thus the entire executor entry) from the executor map if the task/stage is
-     * done. The checked task/stage is the tail of the task queue, and may or may not be the same stage that triggered
-     * this maintenance check. Unlike the main-line task/stage, the maintenance stage is not part of the main-line
-     * execution task queue; it may clean up and remove a completed main-line task/stage from the map, but does not
+     * key, and removes the entire executor entry from the executor map if the checked task/stage is done. While the
+     * checked task/stage is the tail of the task queue, it may or may not be the same stage that triggered this
+     * maintenance check. Unlike the main-line task/stage, the maintenance stage is not part of the main-line execution
+     * task queue; it may remove a completed main-line task/stage (and the entire executor) from the map, but does not
      * disturb the overall sequential-ness of the main-line executions. Meanwhile, as each completed main-line execution
      * is always triggering an "off-of-band" maintenance/cleanup check, collectively, this ensures that every main-line
-     * task/stage ever put on the executor map is eventually checked for completion and removal; i.e. no executor entry
-     * will forever linger in the map.
+     * task/stage ever put on the executor map is eventually checked for completion and removal; i.e. no entry will
+     * forever linger in the executor map.
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
