@@ -34,16 +34,15 @@ import java.util.concurrent.Future;
  * The conseq4j implementation is thread-safe. In the context of concurrency and sequencing, though, thread-safety goes
  * beyond simple data corruption concerns into that of data access order among multiple threads. For example, if
  * multiple tasks are submitted concurrently by different threads at exactly the same moment, then by definition, there
- * is no sequence among those tasks to be preserved no matter they are related tasks of the same sequence key or not; it
- * is considered "safe" to execute those tasks in any order. Meanwhile, "fair" execution order is required on related
- * tasks as they are submitted in proper sequence.
+ * is no such thing as sequence among those tasks to be preserved no matter they are related tasks of the same sequence
+ * key or not; it is considered "safe" to execute those tasks in any order, which renders the API moot in terms of
+ * sequencing. Meanwhile, "fair" execution order is required on related tasks as they are submitted in proper sequence.
  * <p>
  * It is the API client's responsibility and concern how tasks are submitted to conseq4j. As execution order is
- * imperative, the client - either single or multi-threaded - has to ensure that tasks are submitted in proper sequence
- * to begin with. Fortunately often times, that is naturally the case, e.g. when the client is under the management of a
- * messaging provider running a single caller thread. Otherwise, if the caller is multi-threaded, then the client needs
- * to ensure the concurrent caller threads have proper access order to conseq4j. This can be as trivial as setting up a
- * <a
+ * imperative, the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately often
+ * times, that is naturally the case e.g. when the client is under the management of a messaging provider running a
+ * single caller thread. Otherwise, the client would need to ensure proper access order to conseq4j by some form of
+ * synchronization. This can be as trivial as setting up a <a
  * href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-">fair
  * lock</a> to sequence related task submission; it is a client-side activity nonetheless.
  * <p>
