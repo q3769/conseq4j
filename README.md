@@ -71,9 +71,9 @@ submitted - the earliest-submitted task gets executed first; meanwhile, unrelate
 
 ### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
-This API style provides a sequential task executor of JDK
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) for the
-given sequence key by the client. Consider using this style when your executor requires
+This API style provides a sequential executor of JDK
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) for all the
+tasks under the given sequence key. Consider using this style when your executor requires
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
 of the JDK API.
 
@@ -228,7 +228,7 @@ Notes:
   behind the scenes to achieve sequential execution of related tasks. A thread pool is employed to facilitate the
   overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
   pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash collision related issues,
-  and may be preferable for simple cases that do not require the syntax/semantic richness
+  and may be preferable for simple cases that do not require the syntax and semantic richness
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
   offer.
 - Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
