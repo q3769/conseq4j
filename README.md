@@ -43,11 +43,10 @@ implementation 'io.github.q3769:conseq4j:20220727.0.7'
 
 ### TL;DR:
 
-It is sensible for the API client to ensure task submission sequence via some form of synchronization, such as a managed
-single caller thread or
+It is sensible for the API client to establish the task submission sequence via some form of synchronization, such as a
+managed single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-, and let the conseq4j API do its job of providing reasonable sequencing and concurrency while executing the submitted
-tasks.
+, and let the conseq4j API do its job of providing reasonable execution sequencing and concurrency.
 
 ### The long version on usage:
 
@@ -58,12 +57,14 @@ letting conseq4j handle the concurrency.
 First, it is the API client's responsibility and concern how tasks are submitted. If execution order is imperative, the
 client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately often times, that is
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
-Otherwise, if the caller is multi-threading during task submission, then it means the execution order does not matter;
-it is considered "safe" to execute the concurrently-submitted tasks in any order regardless of the sequence keys, which
-renders the sequencing part of the API moot. In the sheer context of threading, by definition, there is no such thing as
-sequence among tasks that are concurrently submitted from different threads.
+Otherwise, however, if the caller is multi-threaded when submitting tasks, then organically there is no such thing as
+sequence among the tasks that are concurrently submitted from different threads. The client has to coordinate the
+submission sequence, which may not be trivial as Java does not provide a strong guarantee on thread scheduling. Multiple
+threads of the same priority and arrival time, for example, could be scheduled to run in arbitrary order. The sequencing
+capability of the conseq4j API will be rendered moot if the client cannot provide definitive submission order in the
+first place.
 
-Once a submission sequence is established by the API client, it is then conseq4j's concern and responsibility that
+Once some submission sequence is established by the API client, it is then conseq4j's concern and responsibility that
 further processing of the submitted tasks is executed in the meaningful order and concurrency as promised. Whatever way
 the tasks have been scheduled and submitted, conseq4j guarantees "fair" execution order: Related tasks of the same
 sequence key are sequentially executed in the same order as submitted - the earliest-submitted task gets executed first;
