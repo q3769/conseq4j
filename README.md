@@ -65,10 +65,9 @@ order in the first place.
 
 Second, once whatever submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further processing of the submitted tasks is executed in the meaningful order and concurrency as
-promised. Even though having no control over how task submissions are scheduled, nonetheless on the already-submitted
-tasks, conseq4j does guarantee a "fair" execution order: Related tasks of the same sequence key are sequentially
-executed in the same order as submitted - the earliest-submitted task gets executed first; meanwhile, unrelated tasks
-can be executed in parallel.
+promised. Although conseq4j has no control over how task submissions are scheduled, it does guarantee a "fair" execution
+order on the already-submitted tasks: Related tasks of the same sequence key are sequentially executed in the same order
+as submitted - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
 In other words, see the TL;DR above.
 
