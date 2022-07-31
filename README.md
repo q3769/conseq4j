@@ -63,10 +63,10 @@ multithreading client to establish definitive submission order as Java does not 
 scheduling. The sequencing capability of the conseq4j API will be rendered moot if there is no definitive submission
 order in the first place.
 
-Once some submission sequence is established by the API client, it is then conseq4j's concern and responsibility that
-further processing of the submitted tasks is executed in the meaningful order and concurrency as promised. Although
-having no control or guarantee over how task submissions are scheduled, conseq4j does guarantee "fair" execution order
-after tasks are submitted to it: Related tasks of the same sequence key are sequentially executed in the same order as
+Second, once whatever submission sequence is established by the API client, it is then conseq4j's concern and
+responsibility that further processing of the submitted tasks is executed in the meaningful order and concurrency as
+promised. Although having no control over how task submissions are scheduled, conseq4j does guarantee a "fair" execution
+order after tasks are submitted: Related tasks of the same sequence key are sequentially executed in the same order as
 submitted - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
 In other words, see the TL;DR above.
