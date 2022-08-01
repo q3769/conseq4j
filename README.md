@@ -144,7 +144,7 @@ Notes:
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
-  returned by the executor, though, is still cancellable. In general, hash collision may not be an issue for those
+  returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 - The default global concurrency is 1 plus the
   JVM's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
