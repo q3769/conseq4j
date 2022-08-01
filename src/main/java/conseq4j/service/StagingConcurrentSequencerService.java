@@ -169,8 +169,7 @@ import java.util.logging.Level;
 
         public void sweepIfTailTaskDone() {
             this.sequentialExecutors.computeIfPresent(this.sequenceKey, (k, tailTask) -> {
-                boolean done = tailTask.isDone();
-                if (done) {
+                if (tailTask.isDone()) {
                     log.log(Level.FINER,
                             () -> "sweeping executor with tail stage " + tailTask + " for sequence key " + k
                                     + " off of executor map");
