@@ -47,7 +47,7 @@ import java.util.concurrent.*;
      *
      * @param delegate the delegate {@link ExecutorService} to run the submitted task(s).
      */
-    ShutdownDisabledExecutorService(ExecutorService delegate) {
+    public ShutdownDisabledExecutorService(ExecutorService delegate) {
         this.delegate = delegate;
     }
 

@@ -35,7 +35,7 @@ final class SerialExecutorService implements ExecutorService {
     private final ExecutorService delegate;
     private final Lock lock;
 
-    SerialExecutorService(ExecutorService delegate, boolean fair) {
+    public SerialExecutorService(ExecutorService delegate, boolean fair) {
         this.delegate = delegate;
         this.lock = new ReentrantLock(fair);
     }
