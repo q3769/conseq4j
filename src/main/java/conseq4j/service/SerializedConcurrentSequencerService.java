@@ -41,7 +41,7 @@ final class SerializedConcurrentSequencerService implements ConcurrentSequencerS
     private final ConcurrentSequencerService delegate;
     private final Lock lock;
 
-    SerializedConcurrentSequencerService(@NonNull ConcurrentSequencerService delegate, boolean fair) {
+    public SerializedConcurrentSequencerService(@NonNull ConcurrentSequencerService delegate, boolean fair) {
         this.delegate = delegate;
         this.lock = new ReentrantLock(fair);
     }

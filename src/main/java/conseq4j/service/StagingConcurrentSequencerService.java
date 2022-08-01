@@ -50,14 +50,14 @@ import java.util.logging.Level;
      * Default constructor sets the global execution thread pool to be the default JDK
      * {@link ForkJoinPool#commonPool()}.
      */
-    StagingConcurrentSequencerService() {
+    public StagingConcurrentSequencerService() {
         this(null);
     }
 
     /**
      * @param executionThreadPool the custom thread pool to facilitate the global async execution
      */
-    StagingConcurrentSequencerService(ExecutorService executionThreadPool) {
+    public StagingConcurrentSequencerService(ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool == null ? DEFAULT_THREAD_POOL : executionThreadPool;
         log.fine(() -> "constructed " + this);
     }
