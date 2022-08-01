@@ -72,7 +72,7 @@ import static java.lang.Math.floorMod;
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey), k -> new ShutdownDisabledExecutorService(
-                new SerialExecutorService(Executors.newSingleThreadExecutor(), FAIR_ON_CONTENTION)));
+                new SynchronizingExecutorService(Executors.newSingleThreadExecutor(), FAIR_ON_CONTENTION)));
     }
 
     private int bucketOf(Object sequenceKey) {

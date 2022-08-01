@@ -49,8 +49,9 @@ import java.util.concurrent.Future;
     }
 
     public ConseqService(ExecutorService executionThreadPool) {
-        delegate = new SerializedConcurrentSequencerService(new StagingConcurrentSequencerService(executionThreadPool),
-                FAIR_ON_CONTENTION);
+        delegate =
+                new SynchronizingConcurrentSequencerService(new StagingConcurrentSequencerService(executionThreadPool),
+                        FAIR_ON_CONTENTION);
         log.fine(() -> "constructed " + this);
     }
 

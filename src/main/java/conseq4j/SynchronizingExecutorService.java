@@ -30,12 +30,18 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-final class SerialExecutorService implements ExecutorService {
+/**
+ * Synchronizing calls to the decorated {@link ExecutorService} delegate. This is just in case the calling API client is
+ * un-synchronized/multithreaded, which is not recommended. Performance-wise this should not be a problem because,
+ * although synchronized, no call will be blocking on the task's execution; only the submission portion of the call is
+ * blocking with a fairness option as with {@link ReentrantLock#ReentrantLock(boolean)}.
+ */
+final class SynchronizingExecutorService implements ExecutorService {
 
     private final ExecutorService delegate;
     private final Lock lock;
 
-    public SerialExecutorService(ExecutorService delegate, boolean fair) {
+    public SynchronizingExecutorService(ExecutorService delegate, boolean fair) {
         this.delegate = delegate;
         this.lock = new ReentrantLock(fair);
     }
