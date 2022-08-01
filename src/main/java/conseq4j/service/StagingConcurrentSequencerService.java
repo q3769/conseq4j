@@ -159,10 +159,10 @@ import java.util.logging.Level;
 
     private static final class ExecutorSweeper {
 
-        final Object sequenceKey;
-        final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
+        private final Object sequenceKey;
+        private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
-        private ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
+        public ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
             this.sequenceKey = sequenceKey;
             this.sequentialExecutors = sequentialExecutors;
         }
