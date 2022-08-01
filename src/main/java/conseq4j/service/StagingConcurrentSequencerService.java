@@ -168,12 +168,7 @@ import java.util.logging.Level;
         }
 
         public void sweepIfTailTaskDone() {
-            this.sequentialExecutors.compute(this.sequenceKey, (k, tailTask) -> {
-                if (tailTask == null) {
-                    log.log(Level.FINER, () -> "executor for sequence key " + this.sequenceKey
-                            + " already swept off of executor map");
-                    return null;
-                }
+            this.sequentialExecutors.computeIfPresent(this.sequenceKey, (k, tailTask) -> {
                 boolean done = tailTask.isDone();
                 if (done) {
                     log.log(Level.FINER,

@@ -32,9 +32,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Serializes calls to the wrapped service, with possible fairness option. Note that, although calls are synchronized,
- * the caller thread most likely does not wait and block on the worker thread's execution; this depends on the wrapped
- * service's implementation.
+ * Serializes calls to the wrapped service, with possible fairness option. Note that, although calls are synchronized by
+ * a lock, they should be quick because the caller thread does not wait and block on the worker thread's execution, as
+ * in the implementation of the delegate {@link StagingConcurrentSequencerService}.
  */
 final class SerializedConcurrentSequencerService implements ConcurrentSequencerService {
 
