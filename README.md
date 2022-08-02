@@ -55,13 +55,13 @@ multiple threads. However, it is worthwhile to clarify the effect of using clien
 letting conseq4j handle the concurrency.
 
 First, it is the API client's responsibility and concern how tasks are submitted. If execution order is imperative, the
-client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately often times, that is
+client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
-Otherwise, however, if the client is multi-threaded when submitting tasks, then organically there is no such thing as
-sequence among the tasks that are concurrently submitted from different threads. It may not be trivial for the
-multithreading client to establish a definitive submission order as Java does not provide a strong guarantee on thread
-scheduling. The sequencing capability of the conseq4j API will be rendered moot if there is no definitive submission
-order in the first place.
+Otherwise, however, if the client is multithreaded, then organically there is no such thing as sequence among tasks
+submitted by different threads. The only sequence that matters to conseq4j is the actual order in which the tasks are
+submitted to it. While multithreading, though, it may not be trivial for the client to establish a definitive submission
+order since Java does not provide a strong guarantee on thread scheduling. As a result of lacking definitive submission
+order in the first place, the sequencing capability of the conseq4j will be rendered moot.
 
 Second, once whatever submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further processing of the submitted tasks is executed in the meaningful order and concurrency as
