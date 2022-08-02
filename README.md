@@ -62,8 +62,8 @@ submitted by different threads. If the client does not take specific measures to
 submission threads, the tasks would be submitted in undefined order. The only sequence that matters to conseq4j is the
 actual order in which the tasks are submitted to it. While multithreading, though, it may not be trivial for the client
 to establish a definitive submission order since Java does not provide a strong guarantee on thread scheduling. As a
-result of lacking definitive submission order in the first place, the sequencing capability of the conseq4j will be
-rendered moot.
+result of lacking definitive submission order in the first place, the sequencing capability of conseq4j will be rendered
+moot.
 
 Second, once whatever submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further processing of the submitted tasks is executed in the meaningful order and concurrency as
