@@ -51,8 +51,8 @@ a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/loc
 ### The long version on usage:
 
 The conseq4j implementation is thread-safe, in the sense that the API client could submit tasks concurrently using
-multiple threads. However, it is worthwhile to clarify the effect of using client-side multithreading rather than
-letting conseq4j handle the concurrency.
+multiple threads. However, it is worthwhile to clarify the effect of using client-side multithreading, rather than the
+conseq4j API, to achieve concurrency.
 
 First, it is the API client's responsibility and concern how tasks are submitted. If execution order is imperative, the
 client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
