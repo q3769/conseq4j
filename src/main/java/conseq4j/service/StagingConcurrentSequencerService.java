@@ -108,24 +108,36 @@ import java.util.logging.Level;
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-            sweepExecutorIfTailTaskDone(nextExecutionStage, sequenceKey);
+            sweepExecutorIfTailTaskDone(sequenceKey, nextExecutionStage);
             return nextExecutionStage;
         });
     }
 
     /**
      * The thread pool to conduct the sweeping maintenance is the default {@link ForkJoinPool#commonPool()}, and cannot
-     * be customized. The executor sweeper runs after the completion of the stage's execution. This ensures this stage
-     * executor under the same sequence key will always be checked and cleaned up if it has not been swept off by
-     * earlier sweeps for the same sequence key; thus, no executor can linger forever after its completion.
+     * be customized. The check and possible sweep is triggered by the completion of each main-line stage's execution.
+     * This ensures the executor under the same sequence key will always be checked and removed from the map if it has
+     * not been by an earlier check-and-sweep; thus, no executor can linger forever in the map after its completion.
      *
+     * @param sequenceKey the key whose tasks are sequentially executed
      * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
      *                    executor's tail task in queue is done at the time of checking
-     * @param sequenceKey the key whose tasks are sequentially executed
      */
-    private void sweepExecutorIfTailTaskDone(CompletableFuture<?> triggerTask, Object sequenceKey) {
-        triggerTask.whenCompleteAsync((executionResult, executionException) -> new ExecutorSweeper(sequenceKey,
-                this.sequentialExecutors).sweepIfTailTaskDone());
+    private void sweepExecutorIfTailTaskDone(Object sequenceKey, CompletableFuture<?> triggerTask) {
+        triggerTask.whenCompleteAsync(
+                (executionResult, executionException) -> sequentialExecutors.computeIfPresent(sequenceKey,
+                        (k, tailTask) -> {
+                            if (tailTask.isDone()) {
+                                log.log(Level.FINER,
+                                        () -> "sweeping executor with tail stage " + tailTask + " for sequence key " + k
+                                                + " off of executor map");
+                                return null;
+                            }
+                            log.log(Level.FINER,
+                                    () -> "keeping executor with tail stage " + tailTask + " for sequence key " + k
+                                            + " in executor map");
+                            return tailTask;
+                        }));
     }
 
     /**
@@ -143,7 +155,7 @@ import java.util.logging.Level;
                         return call(task);
                     }, this.executionThreadPool);
             resultHolder.setFuture(nextExecutionStage);
-            sweepExecutorIfTailTaskDone(nextExecutionStage, sequenceKey);
+            sweepExecutorIfTailTaskDone(sequenceKey, nextExecutionStage);
             return nextExecutionStage;
         });
         return new MinimalFuture<>(resultHolder.getFuture());
@@ -155,31 +167,6 @@ import java.util.logging.Level;
 
     String getExecutionThreadPoolTypeName() {
         return this.executionThreadPool.getClass().getName();
-    }
-
-    private static final class ExecutorSweeper {
-
-        private final Object sequenceKey;
-        private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
-
-        public ExecutorSweeper(Object sequenceKey, ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors) {
-            this.sequenceKey = sequenceKey;
-            this.sequentialExecutors = sequentialExecutors;
-        }
-
-        public void sweepIfTailTaskDone() {
-            this.sequentialExecutors.computeIfPresent(this.sequenceKey, (k, tailTask) -> {
-                if (tailTask.isDone()) {
-                    log.log(Level.FINER,
-                            () -> "sweeping executor with tail stage " + tailTask + " for sequence key " + k
-                                    + " off of executor map");
-                    return null;
-                }
-                log.log(Level.FINER, () -> "keeping executor with tail stage " + tailTask + " for sequence key " + k
-                        + " in executor map");
-                return tailTask;
-            });
-        }
     }
 
     private static class UncheckedExecutionException extends RuntimeException {
