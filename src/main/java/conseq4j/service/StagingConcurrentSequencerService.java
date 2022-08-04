@@ -116,8 +116,8 @@ import java.util.logging.Level;
     /**
      * The thread pool to conduct the sweeping maintenance is the default {@link ForkJoinPool#commonPool()}, and cannot
      * be customized. The check and possible sweep is triggered by the completion of each main-line stage's execution.
-     * This ensures the executor under the same sequence key will always be checked and removed from the map if it has
-     * not been by an earlier check-and-sweep; thus, no executor can linger forever in the map after its completion.
+     * This ensures the executor under the same sequence key will always be checked and removed from the executor map at
+     * some point in time, and no executor - after its completion - can linger in the map forever.
      *
      * @param sequenceKey the key whose tasks are sequentially executed
      * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
