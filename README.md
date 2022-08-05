@@ -50,9 +50,11 @@ a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/loc
 
 ### The long version on usage:
 
-The conseq4j implementation is thread-safe, in the sense that the API client could submit tasks concurrently using
-multiple threads. However, it is worthwhile to clarify the effect of using client-side multithreading, rather than the
-conseq4j API, to achieve concurrency.
+The conseq4j implementation is thread-safe per the task submission order. However, it is not recommended that the API
+client submit tasks concurrently using multiple threads. In the context of sequencing and concurrency, thread-safeness
+goes beyond the concern of data corruption on individual tasks into that of the execution order across multiple related
+tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of the conseq4j API, to
+achieve concurrency.
 
 First, it is the API client's responsibility and concern how tasks are submitted. If execution order is imperative, the
 client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
@@ -60,9 +62,9 @@ naturally the case e.g. when the client is under the management of a messaging p
 Otherwise, however, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
 submitted by different threads. If the client does not take specific measures to ensure the scheduling order among the
 submission threads, then by definition of concurrency, such submitted tasks are considered "safe" to execute in any
-order. During multithreading, though, it may not be trivial for the client to secure a consistent submission order
-since Java does not provide a strong guarantee on thread scheduling. Without definitive task submission order in the 
-first place, the sequencing capability of conseq4j will be rendered moot.
+order. During multithreading, though, it may not be trivial for the client to control the submission order among the
+concurrent threads, as Java does not provide a strong guarantee on thread scheduling. Without definitive task submission
+order in the first place, the sequencing capability of conseq4j will be rendered moot.
 
 Second, when a certain submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further processing of the submitted tasks is executed in the meaningful order and concurrency as
