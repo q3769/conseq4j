@@ -71,8 +71,9 @@ import static java.lang.Math.floorMod;
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
-        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey), k -> new ShutdownDisabledExecutorService(
-                new SynchronizingExecutorService(Executors.newSingleThreadExecutor(), FAIR_ON_CONTENTION)));
+        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
+                bucket -> new ShutdownDisabledExecutorService(
+                        new SynchronizingExecutorService(Executors.newSingleThreadExecutor(), FAIR_ON_CONTENTION)));
     }
 
     private int bucketOf(Object sequenceKey) {

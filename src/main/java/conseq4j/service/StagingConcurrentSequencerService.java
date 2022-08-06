@@ -98,7 +98,7 @@ import java.util.logging.Level;
      * will forever linger in the executor map.
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
+        this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
             CompletableFuture<Void> nextExecutionStage =
                     (currentExecutionStage == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
@@ -125,17 +125,17 @@ import java.util.logging.Level;
      */
     private void sweepExecutorIfTailTaskDone(Object sequenceKey, CompletableFuture<?> triggerTask) {
         triggerTask.whenCompleteAsync(
-                (executionResult, executionException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                        (k, tailTask) -> {
+                (whateverResult, whateverException) -> sequentialExecutors.computeIfPresent(sequenceKey,
+                        (sameSequenceKey, tailTask) -> {
                             if (tailTask.isDone()) {
                                 log.log(Level.FINER,
-                                        () -> "sweeping executor with tail stage " + tailTask + " for sequence key " + k
-                                                + " off of executor map");
+                                        () -> "sweeping executor with tail stage " + tailTask + " for sequence key "
+                                                + sameSequenceKey + " off of executor map");
                                 return null;
                             }
                             log.log(Level.FINER,
-                                    () -> "keeping executor with tail stage " + tailTask + " for sequence key " + k
-                                            + " in executor map");
+                                    () -> "keeping executor with tail stage " + tailTask + " for sequence key "
+                                            + sameSequenceKey + " in executor map");
                             return tailTask;
                         }));
     }
@@ -145,7 +145,7 @@ import java.util.logging.Level;
      */
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         FutureHolder<T> resultHolder = new FutureHolder<>();
-        this.sequentialExecutors.compute(sequenceKey, (k, currentExecutionStage) -> {
+        this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
             CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
                     CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
                     currentExecutionStage.handleAsync((currentResult, currentException) -> {
