@@ -62,7 +62,7 @@ naturally the case e.g. when the client is under the management of a messaging p
 Otherwise, however, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
 submitted by different threads. If the client does not take specific measures to ensure the scheduling order among the
 submission threads, then by definition of concurrency, such submitted tasks are considered "safe" to execute in any
-order. During multithreading, though, it may not be trivial for the client to control the submission order among the
+order. With multithreading, though, it may not be trivial for the client to control the submission order among the
 concurrent threads, as Java does not provide a strong guarantee on thread scheduling. Without definitive task submission
 order in the first place, the sequencing capability of conseq4j will be rendered moot.
 
