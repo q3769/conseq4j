@@ -52,7 +52,7 @@ as proper sequencing, while executing the submitted tasks.
 
 The conseq4j implementation is thread-safe per its given sequence of submitted tasks. However, it is not recommended
 that the API client use concurrent threads for task submission. In the context of sequencing and concurrency,
-thread-safeness goes beyond the concern of data corruption on individual tasks, into that of the execution order across
+thread-safety goes beyond the concern of data corruption on individual tasks, into that of the execution order across
 multiple related tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of the
 conseq4j API, to achieve concurrency.
 
