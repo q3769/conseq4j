@@ -32,11 +32,11 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Serializes calls to the wrapped service, with possible fairness option as with
- * {@link ReentrantLock#ReentrantLock(boolean)}. This is just in case the calling API client is
- * un-synchronized/multithreaded, which is not recommended. Performance-wise this should not be a problem because,
- * although synchronized, no call will be blocking on the task's execution; only the submission portion of the call is
- * blocking.
+ * Synchronizes calls to the wrapped service, with fairness option being true as in
+ * {@link ReentrantLock#ReentrantLock(boolean)}. The fair synchronization setup ensures the tasks are submitted for
+ * execution in the same order as they came in from the API client. Performance-wise the synchronization should not be a
+ * problem because, although synchronized, no call will be blocking on the task's execution; only the submission portion
+ * of the call is blocking.
  */
 final class SynchronizingConcurrentSequencerService implements ConcurrentSequencerService {
 
