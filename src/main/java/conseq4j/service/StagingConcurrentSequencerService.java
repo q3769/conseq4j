@@ -75,27 +75,26 @@ import java.util.logging.Level;
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly processing the
      * completion-stages of the {@link CompletableFuture} on the same key; i.e. the "main-line" execution.
      * <p>
-     * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending task execution stages. In a way,
-     * each map entry represents an active sequential executor in-service for all the tasks under the same
-     * sequence/entry key; the entry's value is to hold the most recently added execution task (completion stage) i.e.
-     * the tail of the FIFO task queue of the active executor. With this executor map, an active executor can be located
-     * by its sequence key in case further tasks/stages of the same key need to be queued while previous tasks are
-     * pending execution. Otherwise, if there are no pending tasks (active executor) for this sequence key, a new
-     * entry/executor will be created. Each submitted task will create a new corresponding main-line completion stage
-     * which is either the head (and tail) of a new FIFO task queue of a new executor or queued behind the previous
-     * task's completion stage. In case of the latter, within the same atomic transaction, the newly-created completion
-     * stage, as the tail of the FIFO task queue, also replaces the previous stage as the new value under the same
-     * sequence key in the map. As the stages are queued, this new stage will not start executing before the previous
-     * stage completes, and, will have to end executing before the next task's completion stage can start executing.
-     * Such linear progression of the main-line tasks/stages ensures the sequential-ness of task execution under the
-     * same sequence key.
+     * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending tasks. Each map entry represents
+     * an active sequential executor in-service for all the tasks under the same sequence/entry key; the entry's value
+     * is to hold the most recently added task (completion stage) i.e. the tail of the FIFO task queue of the active
+     * executor. With this executor map, an active executor can be located by its sequence key so that further
+     * tasks/stages of the same key can be queued behind other pending task(s) of the same executor. If there are no
+     * pending tasks (active executor) for the submitted task's sequence key, a new entry/executor will be created in
+     * the map. Each submitted task will create a new corresponding main-line completion stage which is either the head
+     * (and tail) of a new executor's task queue, or the tail of an existing executor's task queue. In case of the
+     * latter, within the same atomic transaction, the newly-created completion stage, as the tail of the existing task
+     * queue, also replaces the previous stage as the new map value under the same sequence key. This new stage will not
+     * start executing before the previous stage completes, and, will have to end executing before the next task's
+     * completion stage can start executing. Such linear progression of the main-line tasks/stages ensures the
+     * sequential-ness of task execution under the same sequence key.
      * <p>
      * A separate maintenance/cleanup stage is set up to run after the completion of each main-line task/stage. This
      * maintenance stage will sweep the executor entry off of the map if all tasks of the executor are completed. It
      * ensures that every executor ever put on the map is eventually removed after all its tasks are done executing;
      * i.e. no entry will forever linger in the executor map. Unlike a main-line task/stage, a maintenance stage is
-     * never put inside the executor's task queue; it may remove a completed main-line task/stage (and the entire
-     * executor entry) from the map, but does not disturb the overall sequential-ness of the main-line executions.
+     * never put in a task queue or the executor map, and has no effect on the overall sequential-ness of the main-line
+     * executions.
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
