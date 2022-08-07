@@ -31,15 +31,13 @@ import java.util.concurrent.Future;
  * Main API of concurrent sequencer service, bypassing the intermediate executor
  * ({@link java.util.concurrent.ExecutorService}) interface.
  * <p>
- * The conseq4j implementation should be thread-safe per its given order of task submissions. In the context of
+ * A public implementation of conseq4j should be thread-safe per its given order of task submissions. In the context of
  * concurrency and sequencing, thread-safety goes beyond the concerns of data corruption of individual tasks, into that
  * of execution order across multiple tasks. Once a certain submission sequence is established by the API client, it is
  * conseq4j's concern and responsibility that further execution of the submitted tasks is in the meaningful order and
- * concurrency as promised.
- * <p>
- * A public implementation is required to provide a "fair" execution order on already-submitted tasks: Related tasks of
- * the same sequence key should be executed sequentially in the same order as submitted - the earliest-submitted task
- * gets executed first; unrelated tasks should be executed in parallel.
+ * concurrency as promised. The implementation is required to provide a "fair" execution order on already-submitted
+ * tasks: Related tasks of the same sequence key should be executed sequentially in the same order as submitted - the
+ * earliest-submitted task gets executed first; unrelated tasks should be executed in parallel.
  *
  * @author Qingtian Wang
  */
