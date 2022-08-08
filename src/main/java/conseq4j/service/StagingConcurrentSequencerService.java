@@ -93,6 +93,10 @@ import java.util.logging.Level;
      * i.e. no entry will forever linger in the executor map. Unlike a main-line task/stage, a maintenance stage is
      * never put in a task queue or the executor map, and has no effect on the overall sequential-ness of the main-line
      * executions.
+     *
+     * @param command     the command to run as part of the sequential series of the sequence key
+     * @param sequenceKey the key that the command should be queued behind such that all commands of the same key are
+     *                    sequentially executed
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
@@ -136,10 +140,13 @@ import java.util.logging.Level;
     }
 
     /**
+     * @param task        the task to call for result
+     * @param sequenceKey the key under which this task should be sequenced
+     * @return future result of the task
      * @see StagingConcurrentSequencerService#execute(Runnable, Object)
      */
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        FutureHolder<T> resultHolder = new FutureHolder<>();
+        FutureHolder<T> taskFutureHolder = new FutureHolder<>();
         this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
             CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
                     CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
@@ -149,11 +156,11 @@ import java.util.logging.Level;
                                     + " before executing next task: " + task);
                         return call(task);
                     }, this.executionThreadPool);
-            resultHolder.setFuture(nextExecutionStage);
+            taskFutureHolder.setFuture(nextExecutionStage);
             sweepExecutorIfAllTasksComplete(sequenceKey, nextExecutionStage);
             return nextExecutionStage;
         });
-        return new MinimalFuture<>(resultHolder.getFuture());
+        return new MinimalFuture<>(taskFutureHolder.getFuture());
     }
 
     int getActiveExecutorCount() {
