@@ -68,9 +68,10 @@ order in the first place, the sequencing capability of conseq4j will be rendered
 
 Second, when a certain submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further execution of the submitted tasks is in the meaningful order and concurrency as promised.
-Although conseq4j has no control over how task submissions are scheduled, it does guarantee a "fair" execution order on
-the already-submitted tasks: Related tasks of the same sequence key are sequentially executed in the same submission
-order - the earliest-submitted task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
+Although having no control over how task submissions are scheduled, conseq4j does guarantee a "fair" execution order on
+the client-submitted tasks as they are received by conseq4j: Related tasks of the same sequence key are sequentially
+executed in the same submit/receive order - the earliest-submitted/received task gets executed first; meanwhile,
+unrelated tasks can be executed in parallel.
 
 In other words, see the TL;DR above.
 
