@@ -99,19 +99,17 @@ import java.util.logging.Level;
      *                    sequentially executed
      */
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
-            CompletableFuture<Void> nextExecutionStage =
-                    (currentExecutionStage == null) ? CompletableFuture.runAsync(command, this.executionThreadPool) :
-                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                                if (currentException != null)
-                                    log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                            + " before executing next command: " + command);
-                                command.run();
-                                return null;
-                            }, this.executionThreadPool);
-            sweepExecutorIfAllTasksComplete(sequenceKey, nextExecutionStage);
-            return nextExecutionStage;
-        });
+        CompletableFuture<?> commandStage = this.sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
+                        CompletableFuture.runAsync(command, this.executionThreadPool) :
+                        currentExecutionStage.handleAsync((currentResult, currentException) -> {
+                            if (currentException != null)
+                                log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
+                                        + " before executing next command: " + command);
+                            command.run();
+                            return null;
+                        }, this.executionThreadPool));
+        sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
     }
 
     /**
@@ -140,26 +138,27 @@ import java.util.logging.Level;
     }
 
     /**
-     * @param task        the task to call for result
+     * @param task        the task to call with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
      * @return future result of the task
      * @see StagingConcurrentSequencerService#execute(Runnable, Object)
      */
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         FutureHolder<T> taskFutureHolder = new FutureHolder<>();
-        this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
-            CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
-                    CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
-                    currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                        if (currentException != null)
-                            log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                    + " before executing next task: " + task);
-                        return call(task);
-                    }, this.executionThreadPool);
-            taskFutureHolder.setFuture(nextExecutionStage);
-            sweepExecutorIfAllTasksComplete(sequenceKey, nextExecutionStage);
-            return nextExecutionStage;
-        });
+        CompletableFuture<?> taskStage =
+                this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
+                    CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
+                            CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
+                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
+                                if (currentException != null)
+                                    log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
+                                            + " before executing next task: " + task);
+                                return call(task);
+                            }, this.executionThreadPool);
+                    taskFutureHolder.setFuture(nextExecutionStage);
+                    return nextExecutionStage;
+                });
+        sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
         return new MinimalFuture<>(taskFutureHolder.getFuture());
     }
 
