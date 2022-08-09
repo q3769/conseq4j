@@ -43,6 +43,9 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
 
+    /**
+     * Earliest submission gets executed first
+     */
     public static final boolean FAIR_ON_CONTENTION = true;
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();

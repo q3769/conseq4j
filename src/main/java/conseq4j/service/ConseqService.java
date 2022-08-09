@@ -31,6 +31,7 @@ import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 /**
@@ -41,13 +42,22 @@ import java.util.concurrent.Future;
  */
 @ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
+    /**
+     * Earliest submission gets executed first
+     */
     public static final boolean FAIR_ON_CONTENTION = true;
     private final ConcurrentSequencerService delegate;
 
+    /**
+     * Default service uses {@link ForkJoinPool#commonPool()} as async facility.
+     */
     public ConseqService() {
         this(null);
     }
 
+    /**
+     * @param executionThreadPool custom thread pool to facilitate async execution of the service
+     */
     public ConseqService(ExecutorService executionThreadPool) {
         delegate =
                 new SynchronizingConcurrentSequencerService(new StagingConcurrentSequencerService(executionThreadPool),
