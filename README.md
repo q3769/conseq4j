@@ -173,7 +173,7 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 #### API:
 
 ```
-public interface ConcurrentSequenceingExecutor {
+public interface ConcurrentSequencingExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key
@@ -201,10 +201,10 @@ public class MessageConsumer {
      * 
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
-     * private ConcurrentSequenceingExecutor conseqExecutor = new ConseqExectuor(Executors.newFixedThreadPool(10));
+     * private ConcurrentSequencingExecutor conseqExecutor = new ConseqExectuor(Executors.newFixedThreadPool(10));
      * </code>
      */
-    private ConcurrentSequenceingExecutor conseqExecutor = new ConseqExectuor();
+    private ConcurrentSequencingExecutor conseqExecutor = new ConseqExectuor();
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
