@@ -151,7 +151,9 @@ Notes:
   returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 - The default global concurrency is 1 plus the
-  JVM's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
+  JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--)
+  ,
   via the default constructor:
   ```
   ConcurrentSequencer conseq = new Conseq();
