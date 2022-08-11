@@ -36,134 +36,137 @@ import java.util.concurrent.locks.ReentrantLock;
  * although synchronized, no call will be blocking on the task's execution; only the submission portion of the call is
  * blocking with a fairness option as with {@link ReentrantLock#ReentrantLock(boolean)}.
  */
-final class SynchronizingExecutorService implements ExecutorService {
+final class FairSynchronizingExecutorService implements ExecutorService {
 
+    /**
+     * Earliest submission gets executed first
+     */
+    public static final boolean FAIR_ON_CONTENTION = true;
     private final ExecutorService delegate;
-    private final Lock lock;
+    private final Lock fairLock = new ReentrantLock(FAIR_ON_CONTENTION);
 
-    public SynchronizingExecutorService(ExecutorService delegate, boolean fair) {
+    public FairSynchronizingExecutorService(ExecutorService delegate) {
         this.delegate = delegate;
-        this.lock = new ReentrantLock(fair);
     }
 
     @Override public void shutdown() {
-        lock.lock();
+        fairLock.lock();
         try {
             delegate.shutdown();
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public List<Runnable> shutdownNow() {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.shutdownNow();
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public boolean isShutdown() {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.isShutdown();
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public boolean isTerminated() {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.isTerminated();
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.awaitTermination(timeout, unit);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> Future<T> submit(Callable<T> task) {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.submit(task);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> Future<T> submit(Runnable task, T result) {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.submit(task, result);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public Future<?> submit(Runnable task) {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.submit(task);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
             throws InterruptedException {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.invokeAll(tasks);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.invokeAll(tasks, timeout, unit);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
             throws InterruptedException, ExecutionException {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.invokeAny(tasks);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.invokeAny(tasks, timeout, unit);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public void execute(Runnable command) {
-        lock.lock();
+        fairLock.lock();
         try {
             delegate.execute(command);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 }

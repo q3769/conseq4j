@@ -45,27 +45,27 @@ final class FairSynchronizingExecutor implements ConcurrentSequencingExecutor {
      */
     public static final boolean FAIR_ON_CONTENTION = true;
     private final ConcurrentSequencingExecutor delegate;
-    private final Lock lock = new ReentrantLock(FAIR_ON_CONTENTION);
+    private final Lock fairLock = new ReentrantLock(FAIR_ON_CONTENTION);
 
     public FairSynchronizingExecutor(@NonNull ConcurrentSequencingExecutor delegate) {
         this.delegate = delegate;
     }
 
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        lock.lock();
+        fairLock.lock();
         try {
             delegate.execute(command, sequenceKey);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        lock.lock();
+        fairLock.lock();
         try {
             return delegate.submit(task, sequenceKey);
         } finally {
-            lock.unlock();
+            fairLock.unlock();
         }
     }
 }
