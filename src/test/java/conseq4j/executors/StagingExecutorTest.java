@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j.executors;
 
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
@@ -38,10 +38,10 @@ import java.util.concurrent.ForkJoinPool;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Log class StagingConcurrentSequencerServiceTest {
+@Log class StagingExecutorTest {
 
     @Test void noExecutorLingersOnSameSequenceKey() {
-        StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
+        StagingExecutor sut = new StagingExecutor();
         UUID sameSequenceKey = UUID.randomUUID();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     }
 
     @Test void noExecutorLingersOnRandomSequenceKeys() {
-        StagingConcurrentSequencerService sut = new StagingConcurrentSequencerService();
+        StagingExecutor sut = new StagingExecutor();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
@@ -63,19 +63,18 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
     @Test void canCustomizeBackingThreadPool() {
         ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
-        StagingConcurrentSequencerService conseqService =
-                new StagingConcurrentSequencerService(customBackingThreadPool);
+        StagingExecutor sut = new StagingExecutor(customBackingThreadPool);
 
         String customPoolName = customBackingThreadPool.getClass().getName();
-        assertEquals(customPoolName, conseqService.getExecutionThreadPoolTypeName());
+        assertEquals(customPoolName, sut.getExecutionThreadPoolTypeName());
     }
 
     @Test void defaultBackingThreadPool() {
         ExecutorService expected = ForkJoinPool.commonPool();
-        StagingConcurrentSequencerService defaultConseqService = new StagingConcurrentSequencerService();
+        StagingExecutor sut = new StagingExecutor();
 
         String expectedPoolName = expected.getClass().getName();
-        assertEquals(expectedPoolName, defaultConseqService.getExecutionThreadPoolTypeName());
+        assertEquals(expectedPoolName, sut.getExecutionThreadPoolTypeName());
     }
 
 }

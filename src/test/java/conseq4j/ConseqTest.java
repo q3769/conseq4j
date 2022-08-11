@@ -23,7 +23,6 @@
  */
 package conseq4j;
 
-import conseq4j.service.ConseqService;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 
@@ -39,7 +38,8 @@ import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static conseq4j.TestUtils.*;
+import static conseq4j.TestUtils.createSpyingTasks;
+import static conseq4j.TestUtils.getAll;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -114,25 +114,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         log.log(Level.INFO, "high concurrency: {0}, run time: {1}",
                 new Object[] { highConcurrency, Duration.ofNanos(highConcurrencyTime) });
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
-    }
-
-    @Test void provideConcurrencyAmongDifferentSequenceKeys() {
-        List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT / 2);
-        UUID sameSequenceKey = UUID.randomUUID();
-        ConseqService sut = new ConseqService();
-
-        long sameKeyStartTimeMillis = System.currentTimeMillis();
-        sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
-        awaitDone(sameTasks);
-        long sameKeyEndTimeMillis = System.currentTimeMillis();
-        long differentKeysStartTimeMillis = System.currentTimeMillis();
-        sameTasks.forEach(t -> sut.execute(t, UUID.randomUUID()));
-        awaitDone(sameTasks);
-        long differentKeysEndTimeMillis = System.currentTimeMillis();
-
-        long runtimeConcurrent = differentKeysEndTimeMillis - differentKeysStartTimeMillis;
-        long runtimeSequential = sameKeyEndTimeMillis - sameKeyStartTimeMillis;
-        assertTrue(runtimeConcurrent < runtimeSequential);
     }
 
     @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {

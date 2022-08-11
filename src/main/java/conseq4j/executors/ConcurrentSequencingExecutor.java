@@ -22,13 +22,13 @@
  * SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j.executors;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
- * Main API of concurrent sequencer service, bypassing the intermediate executor
+ * Main API of concurrent sequencer executor, bypassing the intermediate executor
  * ({@link java.util.concurrent.ExecutorService}) interface.
  * <p>
  * A public implementation of conseq4j should be thread-safe per its given order of task submissions. In the context of
@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
  *
  * @author Qingtian Wang
  */
-public interface ConcurrentSequencerService {
+public interface ConcurrentSequencingExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j.executors;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -38,7 +38,7 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString final class StagingConcurrentSequencerService implements ConcurrentSequencerService {
+@ThreadSafe @Log @ToString final class StagingExecutor implements ConcurrentSequencingExecutor {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
 
@@ -50,14 +50,14 @@ import java.util.logging.Level;
      * Default constructor sets the global execution thread pool to be the default JDK
      * {@link ForkJoinPool#commonPool()}.
      */
-    public StagingConcurrentSequencerService() {
+    public StagingExecutor() {
         this(null);
     }
 
     /**
      * @param executionThreadPool the custom thread pool to facilitate the global async execution
      */
-    public StagingConcurrentSequencerService(ExecutorService executionThreadPool) {
+    public StagingExecutor(ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool == null ? DEFAULT_THREAD_POOL : executionThreadPool;
         log.fine(() -> "constructed " + this);
     }
@@ -76,7 +76,7 @@ import java.util.logging.Level;
      * completion-stages of the {@link CompletableFuture} on the same key; i.e. the "main-line" execution.
      * <p>
      * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending tasks. Each map entry represents
-     * an active sequential executor in-service for all the tasks under the same sequence/entry key; the entry's value
+     * an active sequential executor in-executors for all the tasks under the same sequence/entry key; the entry's value
      * is to hold the most recently added task (completion stage), i.e. the tail of the FIFO task queue of the active
      * executor. With this executor map, an active executor can be located by its sequence key so that further
      * tasks/stages of the same key can be queued behind the previous task(s) of the same executor. If no active
@@ -141,7 +141,7 @@ import java.util.logging.Level;
      * @param task        the task to call with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
      * @return future result of the task
-     * @see StagingConcurrentSequencerService#execute(Runnable, Object)
+     * @see StagingExecutor#execute(Runnable, Object)
      */
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         FutureHolder<T> taskFutureHolder = new FutureHolder<>();

@@ -23,12 +23,14 @@
  */
 package conseq4j;
 
+import conseq4j.executors.ConcurrentSequencingExecutor;
+
 import java.util.concurrent.ExecutorService;
 
 /**
  * Main API of concurrent sequencer, exposing a sequential executor of type {@link ExecutorService}
  * <p>
- * See javadoc of {@link conseq4j.service.ConcurrentSequencerService} regarding thread-safety.
+ * See javadoc of {@link ConcurrentSequencingExecutor} regarding thread-safety.
  *
  * @author Qingtian Wang
  */

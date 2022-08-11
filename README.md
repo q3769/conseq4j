@@ -164,7 +164,7 @@ Notes:
   ConcurrentSequencer conseq = new Conseq(10);
   ```
 
-### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as a service.
+### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service.
 
 This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. Prefer using
 this style when you do not require the full-blown syntax and semantic support of a
@@ -173,7 +173,7 @@ JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concur
 #### API:
 
 ```
-public interface ConcurrentSequencerService {
+public interface ConcurrentSequenceingExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key
@@ -201,10 +201,10 @@ public class MessageConsumer {
      * 
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
-     * private ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
+     * private ConcurrentSequenceingExecutor conseqExecutor = new ConseqExectuor(Executors.newFixedThreadPool(10));
      * </code>
      */
-    private ConcurrentSequencerService conseqService = new ConseqService();
+    private ConcurrentSequenceingExecutor conseqExecutor = new ConseqExectuor();
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
@@ -220,7 +220,7 @@ public class MessageConsumer {
      * {@link CompletableFuture}'s completion stages.
      */
     public void onMessage(Message shoppingEvent) {       
-        conseqService.execute(
+        conseqExecutor.execute(
                 () -> shoppingEventProcessor.process(shoppingEvent), 
                 shoppingEvent.getShoppingCartId());
     }
@@ -245,13 +245,13 @@ Notes:
   JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
   , via the default constructor:
   ```
-  ConcurrentSequencerService conseqService = new ConseqService();
+  ConcurrentSequencingExecutor conseqExecutor = new ConseqExecutor();
   ```
 
   Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a customized
   thread pool of 10 threads:
   ```
-  ConcurrentSequencerService conseqService = new ConseqService(Executors.newFixedThreadPool(10));
+  ConcurrentSequencingExecutor conseqExecutor = new ConseqExecutor(Executors.newFixedThreadPool(10));
   ```
 
 ## Full disclosure - Asynchronous Conundrum

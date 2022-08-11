@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j.executors;
 
 import lombok.NonNull;
 

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.service;
+package conseq4j.executors;
 
 import lombok.NonNull;
 import lombok.ToString;
@@ -35,28 +35,27 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 /**
- * The default implementation of the {@link ConcurrentSequencerService} API. Task submission calls are thread-safe
+ * The default implementation of the {@link ConcurrentSequencingExecutor} API. Task submission calls are thread-safe
  * (synchronized) and fair under contention.
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
+@ThreadSafe @Log @ToString public final class ConseqExecutor implements ConcurrentSequencingExecutor {
 
-    private final ConcurrentSequencerService delegate;
+    private final ConcurrentSequencingExecutor delegate;
 
     /**
-     * Default service uses {@link ForkJoinPool#commonPool()} as async facility.
+     * Default executors uses {@link ForkJoinPool#commonPool()} as async facility.
      */
-    public ConseqService() {
+    public ConseqExecutor() {
         this(null);
     }
 
     /**
-     * @param executionThreadPool custom thread pool to facilitate async execution of the service
+     * @param executionThreadPool custom thread pool to facilitate async execution of the executors
      */
-    public ConseqService(ExecutorService executionThreadPool) {
-        delegate = new FairSynchronizingConcurrentSequencerService(
-                new StagingConcurrentSequencerService(executionThreadPool));
+    public ConseqExecutor(ExecutorService executionThreadPool) {
+        delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
         log.fine(() -> "constructed " + this);
     }
 
