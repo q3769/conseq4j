@@ -33,19 +33,22 @@ import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * Synchronizes calls to the wrapped service, with fairness option being true as in
- * {@link ReentrantLock#ReentrantLock(boolean)}. The fair synchronization setup ensures the tasks are executed in the
- * same order as they are received from the API client's submission. Performance-wise the synchronization should not be
- * a problem because, although synchronized, no call should be blocking on the task's actual execution which happens on
- * a different thread; only the submission portion of the call is blocking on the calling thread.
+ * {@link ReentrantLock#ReentrantLock(boolean)}. The fairness setup ensures the tasks are executed in the same order as
+ * they are received from the API client's submission. Performance-wise the synchronization should not be a problem
+ * because, although synchronized, no call should be blocking on the task's actual execution which happens on a
+ * different thread; only the submission portion of the call is blocking on the calling thread.
  */
-final class SynchronizingConcurrentSequencerService implements ConcurrentSequencerService {
+final class FairSynchronizingConcurrentSequencerService implements ConcurrentSequencerService {
 
+    /**
+     * Earliest-submitted task gets executed first
+     */
+    public static final boolean FAIR_ON_CONTENTION = true;
     private final ConcurrentSequencerService delegate;
-    private final Lock lock;
+    private final Lock lock = new ReentrantLock(FAIR_ON_CONTENTION);
 
-    public SynchronizingConcurrentSequencerService(@NonNull ConcurrentSequencerService delegate, boolean fair) {
+    public FairSynchronizingConcurrentSequencerService(@NonNull ConcurrentSequencerService delegate) {
         this.delegate = delegate;
-        this.lock = new ReentrantLock(fair);
     }
 
     @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {

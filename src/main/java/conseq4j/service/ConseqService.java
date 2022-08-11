@@ -42,10 +42,6 @@ import java.util.concurrent.Future;
  */
 @ThreadSafe @Log @ToString public final class ConseqService implements ConcurrentSequencerService {
 
-    /**
-     * Earliest submission gets executed first
-     */
-    public static final boolean FAIR_ON_CONTENTION = true;
     private final ConcurrentSequencerService delegate;
 
     /**
@@ -59,9 +55,8 @@ import java.util.concurrent.Future;
      * @param executionThreadPool custom thread pool to facilitate async execution of the service
      */
     public ConseqService(ExecutorService executionThreadPool) {
-        delegate =
-                new SynchronizingConcurrentSequencerService(new StagingConcurrentSequencerService(executionThreadPool),
-                        FAIR_ON_CONTENTION);
+        delegate = new FairSynchronizingConcurrentSequencerService(
+                new StagingConcurrentSequencerService(executionThreadPool));
         log.fine(() -> "constructed " + this);
     }
 
