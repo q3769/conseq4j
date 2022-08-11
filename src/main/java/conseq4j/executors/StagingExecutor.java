@@ -28,7 +28,6 @@ import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.extern.java.Log;
-import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.*;
 import java.util.logging.Level;
@@ -38,7 +37,7 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString final class StagingExecutor implements ConcurrentSequencingExecutor {
+@Log @ToString final class StagingExecutor implements ConcurrentSequencingExecutor {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
 
