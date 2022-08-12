@@ -253,7 +253,7 @@ Notes:
   Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a customized
   thread pool of 10 threads:
   ```
-  ConcurrentSequencingExecutor conseqExecutor = new ConseqExecutor(Executors.newFixedThreadPool(10));
+  ConcurrentSequencingExecutor conseqExecutor = new ConseqExecutor(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
 
 ## Full disclosure - Asynchronous Conundrum
