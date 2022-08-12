@@ -159,9 +159,9 @@ Notes:
   ConcurrentSequencer conseq = new Conseq();
   ```
 
-  Alternatively, the global concurrency can be customized using a constructor argument, as in the following example.
-  This may become more useful when the application is deployed using containers, where the `availableProcessors`
-  reported to the Java Runtime may not well account for the container's CPU resource.
+  If needed, the global concurrency can be customized using a constructor argument. E.g. This may become useful when the
+  application is deployed using containers, where the `availableProcessors` reported to the Java Runtime may not reflect
+  the actual CPU resource of the container.
   ```
   ConcurrentSequencer conseq = new Conseq(10);
   ```
