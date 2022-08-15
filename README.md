@@ -48,7 +48,7 @@ a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/loc
 , to establish a certain sequence of task submissions; leave it to the conseq4j API to provide concurrency, as well as
 proper sequencing, while it executes the submitted tasks. 
 
-See API and usage samples below.
+Skip to see the API and usage samples below.
 
 ### The long version on usage:
 
