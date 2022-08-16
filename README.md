@@ -46,7 +46,7 @@ implementation 'io.github.q3769:conseq4j:20220728.0.2'
 It is recommended that the API client use some form of synchronization, such as a managed single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
 , to establish a certain sequence of task submissions; leave it to the conseq4j API to provide concurrency, as well as
-proper sequencing, while it executes the submitted tasks. 
+proper sequencing, while it executes the submitted tasks.
 
 Skip to see the API and usage samples below.
 
@@ -58,8 +58,8 @@ thread-safety goes beyond the concern of data corruption on individual tasks, in
 multiple related tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of the
 conseq4j API, to achieve concurrency.
 
-First, it is the API client's responsibility and concern how tasks are submitted. If execution order is imperative, the
-client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
+First, it is the API client's responsibility and concern that how tasks are submitted. If execution order is imperative,
+the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
 Otherwise, however, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
 submitted by different threads. If the client does not take specific measures to ensure the scheduling order among the
@@ -71,7 +71,7 @@ order in the first place, the sequencing capability of conseq4j will be rendered
 Second, when a certain submission sequence is established by the API client, it is then conseq4j's concern and
 responsibility that further execution of the submitted tasks is in the meaningful order and concurrency as promised.
 Although having no control over how task submissions are scheduled, conseq4j does guarantee that tasks are received in
-the same order as their submissions. Then a "fair" execution order is also guaranteed: Related tasks of the same
+the same order as their submissions. Also, a "fair" execution order is then guaranteed: Related tasks of the same
 sequence key are sequentially executed in the same submitted/received order - the earliest-submitted/received task gets
 executed first; meanwhile, unrelated tasks can be executed in parallel.
 
