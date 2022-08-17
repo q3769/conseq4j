@@ -139,7 +139,7 @@ import java.util.logging.Level;
     /**
      * @param task        the task to call with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
-     * @return future result of the task
+     * @return future result of the task. Not downcast-able.
      * @see StagingExecutor#execute(Runnable, Object)
      */
     @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
