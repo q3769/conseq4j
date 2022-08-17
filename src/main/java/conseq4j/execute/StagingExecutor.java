@@ -93,7 +93,7 @@ import java.util.logging.Level;
      * never put in a task queue or the executor map, and has no effect on the overall sequential-ness of the main-line
      * executions.
      *
-     * @param command     the command to run as part of the sequential series of the sequence key
+     * @param command     the command to run asynchronously in proper sequence
      * @param sequenceKey the key that the command should be queued behind such that all commands of the same key are
      *                    sequentially executed
      */
@@ -137,7 +137,7 @@ import java.util.logging.Level;
     }
 
     /**
-     * @param task        the task to call with proper sequence
+     * @param task        the task to be called asynchronously with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
      * @return future result of the task. Not downcast-able.
      * @see StagingExecutor#execute(Runnable, Object)
