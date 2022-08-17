@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package conseq4j;
+package conseq4j.summon;
 
 import lombok.ToString;
 import lombok.extern.java.Log;

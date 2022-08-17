@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j;
+package conseq4j.summon;
 
 import lombok.ToString;
 

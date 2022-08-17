@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.executors;
+package conseq4j.execute;
 
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;

@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.executors;
+package conseq4j.execute;
 
 import lombok.Data;
 import lombok.NonNull;
@@ -75,7 +75,7 @@ import java.util.logging.Level;
      * completion-stages of the {@link CompletableFuture} on the same key; i.e. the "main-line" execution.
      * <p>
      * A {@link ConcurrentMap} is employed to keep track of each sequence key's pending tasks. Each map entry represents
-     * an active sequential executor in-executors for all the tasks under the same sequence/entry key; the entry's value
+     * an active sequential executor in-service for all the tasks under the same sequence/entry key; the entry's value
      * is to hold the most recently added task (completion stage), i.e. the tail of the FIFO task queue of the active
      * executor. With this executor map, an active executor can be located by its sequence key so that further
      * tasks/stages of the same key can be queued behind the previous task(s) of the same executor. If no active

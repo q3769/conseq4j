@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.executors;
+package conseq4j.execute;
 
 import lombok.NonNull;
 
@@ -32,7 +32,7 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Synchronizes calls to the wrapped executors, with fairness option being true as in
+ * Synchronizes calls to the wrapped executor, with fairness option being true as in
  * {@link ReentrantLock#ReentrantLock(boolean)}. The fairness setup ensures the tasks are executed in the same order as
  * they are received from the API client's submission. Performance-wise the synchronization should not be a problem
  * because, although synchronized, no call should be blocking on the task's actual execution which happens on a

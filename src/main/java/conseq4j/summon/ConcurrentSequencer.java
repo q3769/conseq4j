@@ -21,23 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package conseq4j;
-
-import conseq4j.executors.ConcurrentSequencingExecutor;
+package conseq4j.summon;
 
 import java.util.concurrent.ExecutorService;
 
 /**
  * Main API of concurrent sequencer, exposing a sequential executor of type {@link ExecutorService}
  * <p>
- * See javadoc of {@link ConcurrentSequencingExecutor} regarding thread-safety.
+ * See javadoc of {@link conseq4j.execute.ConcurrentSequencingExecutor} regarding thread-safety.
  *
  * @author Qingtian Wang
  */
 public interface ConcurrentSequencer {
 
     /**
-     * @param sequenceKey an {@link Object} whose hash code is used to locate and summon the corresponding sequential
+     * @param sequenceKey an {@link Object} whose hash code is used to summon and summon the corresponding sequential
      *                    executor.
      * @return the executor of type {@link ExecutorService} that executes all tasks of this sequence key in the same
      *         order as they are submitted.

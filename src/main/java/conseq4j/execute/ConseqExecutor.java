@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.executors;
+package conseq4j.execute;
 
 import lombok.NonNull;
 import lombok.ToString;
@@ -45,14 +45,14 @@ import java.util.concurrent.Future;
     private final ConcurrentSequencingExecutor delegate;
 
     /**
-     * Default executors uses {@link ForkJoinPool#commonPool()} as async facility.
+     * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
      */
     public ConseqExecutor() {
         this(null);
     }
 
     /**
-     * @param executionThreadPool custom thread pool to facilitate async execution of the executors
+     * @param executionThreadPool custom thread pool to facilitate async execution of the executor
      */
     public ConseqExecutor(ExecutorService executionThreadPool) {
         delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));

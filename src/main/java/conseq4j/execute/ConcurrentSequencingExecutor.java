@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.executors;
+package conseq4j.execute;
 
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;

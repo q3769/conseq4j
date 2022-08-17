@@ -21,8 +21,10 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package conseq4j;
+package conseq4j.summon;
 
+import conseq4j.SpyingTask;
+import conseq4j.TestUtils;
 import lombok.extern.java.Log;
 import org.junit.jupiter.api.*;
 

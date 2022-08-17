@@ -57,7 +57,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
         return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
-    static <T> List<T> getAll(List<Future<T>> futures) {
+    public static <T> List<T> getAll(List<Future<T>> futures) {
         log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
         final List<T> doneTasks = futures.stream().map(f -> {
             try {
