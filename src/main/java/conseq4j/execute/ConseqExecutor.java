@@ -52,7 +52,7 @@ import java.util.concurrent.Future;
     }
 
     /**
-     * @param executionThreadPool custom thread pool to facilitate async execution of this conseq executor instance
+     * @param executionThreadPool custom JDK thread pool to facilitate async execution of this conseq executor instance
      */
     public ConseqExecutor(ExecutorService executionThreadPool) {
         delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
