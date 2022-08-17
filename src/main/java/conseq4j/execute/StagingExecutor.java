@@ -39,25 +39,15 @@ import java.util.logging.Level;
  */
 @Log @ToString final class StagingExecutor implements ConcurrentSequencingExecutor {
 
-    private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
-
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
 
     /**
-     * Default constructor sets the global execution thread pool to be the default JDK
-     * {@link ForkJoinPool#commonPool()}.
-     */
-    public StagingExecutor() {
-        this(null);
-    }
-
-    /**
      * @param executionThreadPool the custom thread pool to facilitate the global async execution
      */
-    public StagingExecutor(ExecutorService executionThreadPool) {
-        this.executionThreadPool = executionThreadPool == null ? DEFAULT_THREAD_POOL : executionThreadPool;
+    public StagingExecutor(@NonNull ExecutorService executionThreadPool) {
+        this.executionThreadPool = executionThreadPool;
         log.fine(() -> "constructed " + this);
     }
 

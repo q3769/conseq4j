@@ -41,7 +41,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 @Log class StagingExecutorTest {
 
     @Test void noExecutorLingersOnSameSequenceKey() {
-        StagingExecutor sut = new StagingExecutor();
+        StagingExecutor sut = new StagingExecutor(ForkJoinPool.commonPool());
         UUID sameSequenceKey = UUID.randomUUID();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
@@ -52,7 +52,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
     }
 
     @Test void noExecutorLingersOnRandomSequenceKeys() {
-        StagingExecutor sut = new StagingExecutor();
+        StagingExecutor sut = new StagingExecutor(ForkJoinPool.commonPool());
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
@@ -71,7 +71,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
     @Test void defaultBackingThreadPool() {
         ExecutorService expected = ForkJoinPool.commonPool();
-        StagingExecutor sut = new StagingExecutor();
+        StagingExecutor sut = new StagingExecutor(ForkJoinPool.commonPool());
 
         String expectedPoolName = expected.getClass().getName();
         assertEquals(expectedPoolName, sut.getExecutionThreadPoolTypeName());

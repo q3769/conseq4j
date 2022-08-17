@@ -42,13 +42,14 @@ import java.util.concurrent.Future;
  */
 @ThreadSafe @Log @ToString public final class ConseqExecutor implements ConcurrentSequencingExecutor {
 
+    private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
     private final ConcurrentSequencingExecutor delegate;
 
     /**
      * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
      */
     public ConseqExecutor() {
-        this(null);
+        this(DEFAULT_THREAD_POOL);
     }
 
     /**
