@@ -42,7 +42,7 @@ import static java.lang.Math.floorMod;
  */
 
 @ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
-    
+
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
@@ -56,7 +56,7 @@ import static java.lang.Math.floorMod;
 
     /**
      * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
-     *                          concurrently executed at any given time
+     *                          concurrently executed at any given time by this conseq instance.
      */
     public Conseq(int globalConcurrency) {
         if (globalConcurrency <= 0)
