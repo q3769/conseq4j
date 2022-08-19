@@ -36,7 +36,7 @@ import java.util.concurrent.Executors;
 import static java.lang.Math.floorMod;
 
 /**
- * <p>Default implementation of {@code ConcurrentSequencer}.</p>
+ * Default implementation of {@code ConcurrentSequencer}.
  *
  * @author Qingtian Wang
  */
