@@ -237,13 +237,14 @@ Notes:
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
   behind the scenes to achieve sequential execution of related tasks. A thread pool is employed to facilitate the
   overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
-  pool size. Compared to the other conseq4j API style, this has the advantage of avoiding hash collision related issues,
-  and may be preferable for simple cases that do not require the syntax and semantic richness
+  pool size. Compared to the other conseq4j API style, this has the advantage of avoiding the issues associated with
+  hash collision, and may be preferable for simple cases that do not require the syntax and semantic richness
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
   offer.
-- Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. I.e. even
-  related tasks of the same sequence key could be executed by different threads from the thread pool, albeit in
-  sequential order. This may bring extra performance gain compared to the other API style.
+- Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. All
+  pooled threads are anonymous and interchangeable to execute any tasks. I.e. even related tasks of the same sequence
+  key could be executed by different pooled threads, albeit in sequential order. This may bring extra performance gain
+  compared to the other API style.
 
   The default thread pool is
   JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
