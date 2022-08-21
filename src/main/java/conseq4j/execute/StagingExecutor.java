@@ -71,9 +71,9 @@ import java.util.logging.Level;
      * tasks/stages of the same key can be queued behind the previous task(s) of the same executor. If no active
      * executor exists in the map for the submitted task's sequence key, a new entry/executor will be created. Each
      * submitted task will create a new corresponding main-line completion stage which is always put on the executor map
-     * - either as the head (and tail) of a new executor's task queue, or as the task-queue tail of an existing
-     * executor. This new stage will not start executing before the previous stage completes, and, will have to complete
-     * execution before the next task's completion stage can start executing. Such linear progression of the main-line
+     * - either as the head (and tail) of a new executor's task queue, or the tail of an existing executor's task queue.
+     * This new stage will not start executing before the previous stage completes, and, will have to complete execution
+     * before the next task's completion stage can start executing. Such linear progression of the main-line
      * tasks/stages ensures the sequential-ness of task execution under the same sequence key.
      * <p>
      * A separate maintenance/cleanup stage is set up to run after the completion of each main-line task/stage. This
@@ -110,20 +110,8 @@ import java.util.logging.Level;
      *                    executor's tail task in queue is done at the time of checking
      */
     private void sweepExecutorIfAllTasksComplete(Object sequenceKey, CompletableFuture<?> triggerTask) {
-        triggerTask.whenCompleteAsync(
-                (whateverResult, whateverException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                        (sameSequenceKey, tailTask) -> {
-                            if (tailTask.isDone()) {
-                                log.log(Level.FINER,
-                                        () -> "sweeping executor with tail stage " + tailTask + " for sequence key "
-                                                + sameSequenceKey + " off of executor map");
-                                return null;
-                            }
-                            log.log(Level.FINER,
-                                    () -> "keeping executor with tail stage " + tailTask + " for sequence key "
-                                            + sameSequenceKey + " in executor map");
-                            return tailTask;
-                        }));
+        triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
+                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask));
     }
 
     /**
