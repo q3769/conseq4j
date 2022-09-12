@@ -51,7 +51,8 @@ final class FairSynchronizingExecutor implements ConcurrentSequencingExecutor {
         this.delegate = delegate;
     }
 
-    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+    @Override
+    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         fairLock.lock();
         try {
             delegate.execute(command, sequenceKey);
@@ -60,7 +61,8 @@ final class FairSynchronizingExecutor implements ConcurrentSequencingExecutor {
         }
     }
 
-    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
+    @Override
+    public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         fairLock.lock();
         try {
             return delegate.submit(task, sequenceKey);

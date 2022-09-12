@@ -37,7 +37,10 @@ import static org.awaitility.Awaitility.await;
 /**
  * @author Qingtian Wang
  */
-@Log @ToString @Getter public class SpyingTask implements Runnable, Callable<SpyingTask> {
+@Log
+@ToString
+@Getter
+public class SpyingTask implements Runnable, Callable<SpyingTask> {
 
     public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 20;
@@ -57,7 +60,8 @@ import static org.awaitility.Awaitility.await;
         return 1 + RANDOM.nextInt(SpyingTask.MAX_RUN_TIME_MILLIS);
     }
 
-    @Override public void run() {
+    @Override
+    public void run() {
         this.runTimeStartMillis = System.currentTimeMillis();
         this.runThreadName = Thread.currentThread().getName();
         await().with()
@@ -69,7 +73,8 @@ import static org.awaitility.Awaitility.await;
                         + " millis");
     }
 
-    @Override public SpyingTask call() {
+    @Override
+    public SpyingTask call() {
         this.run();
         return this;
     }

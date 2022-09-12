@@ -35,7 +35,8 @@ import java.util.concurrent.*;
  *
  * @author Qingtian Wang
  */
-@ToString final class ShutdownDisabledExecutorService implements ExecutorService {
+@ToString
+final class ShutdownDisabledExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
             "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
@@ -56,71 +57,80 @@ import java.util.concurrent.*;
      * sequential/FIFO order. Shutdown of the executor would stop executions for all tasks, which is disallowed to
      * prevent undesired task-execute coordination.
      */
-    @Override public void shutdown() {
+    @Override
+    public void shutdown() {
         throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
     }
 
     /**
      * @see #shutdown()
      */
-    @Override public List<Runnable> shutdownNow() {
+    @Override
+    public List<Runnable> shutdownNow() {
         throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public boolean isShutdown() {
+    @Override
+    public boolean isShutdown() {
         return this.delegate.isShutdown();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public boolean isTerminated() {
+    @Override
+    public boolean isTerminated() {
         return this.delegate.isTerminated();
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         return this.delegate.awaitTermination(timeout, unit);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public <T> Future<T> submit(Callable<T> task) {
+    @Override
+    public <T> Future<T> submit(Callable<T> task) {
         return this.delegate.submit(task);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public <T> Future<T> submit(Runnable task, T result) {
+    @Override
+    public <T> Future<T> submit(Runnable task, T result) {
         return this.delegate.submit(task, result);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public Future<?> submit(Runnable task) {
+    @Override
+    public Future<?> submit(Runnable task) {
         return this.delegate.submit(task);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         return this.delegate.invokeAll(tasks);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
         return this.delegate.invokeAll(tasks, timeout, unit);
     }
@@ -128,15 +138,16 @@ import java.util.concurrent.*;
     /**
      * {@inheritDoc}
      */
-    @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         return this.delegate.invokeAny(tasks);
     }
 
     /**
      * {@inheritDoc}
      */
-    @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return this.delegate.invokeAny(tasks, timeout, unit);
     }
@@ -144,8 +155,8 @@ import java.util.concurrent.*;
     /**
      * {@inheritDoc}
      */
-    @Override public void execute(Runnable command) {
+    @Override
+    public void execute(Runnable command) {
         this.delegate.execute(command);
     }
-
 }

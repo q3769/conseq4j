@@ -40,7 +40,10 @@ import java.util.concurrent.Future;
  *
  * @author Qingtian Wang
  */
-@ThreadSafe @Log @ToString public final class ConseqExecutor implements ConcurrentSequencingExecutor {
+@ThreadSafe
+@Log
+@ToString
+public final class ConseqExecutor implements ConcurrentSequencingExecutor {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
     private final ConcurrentSequencingExecutor delegate;
@@ -60,12 +63,13 @@ import java.util.concurrent.Future;
         log.fine(() -> "constructed " + this);
     }
 
-    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+    @Override
+    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         delegate.execute(command, sequenceKey);
     }
 
-    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
+    @Override
+    public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         return delegate.submit(task, sequenceKey);
     }
-
 }

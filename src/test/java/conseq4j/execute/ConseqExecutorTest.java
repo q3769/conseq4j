@@ -46,13 +46,15 @@ import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Log class ConseqExecutorTest {
+@Log
+class ConseqExecutorTest {
 
     private static final int TASK_COUNT = 100;
 
     private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
 
-    @BeforeAll public static void setLoggingLevel() {
+    @BeforeAll
+    public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
         // .level= ALL
         root.setLevel(TEST_RUN_LOG_LEVEL);
@@ -64,15 +66,18 @@ import static org.junit.jupiter.api.Assertions.*;
         }
     }
 
-    @BeforeEach void setUp(TestInfo testInfo) {
+    @BeforeEach
+    void setUp(TestInfo testInfo) {
         log.info(String.format("===== start test: %s", testInfo.getDisplayName()));
     }
 
-    @AfterEach void tearDown(TestInfo testInfo) {
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
         log.info(String.format("##### done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test void submitConcurrencyBoundedByThreadPoolSize() {
+    @Test
+    void submitConcurrencyBoundedByThreadPoolSize() {
         int threadPoolSize = TASK_COUNT / 10;
         ConseqExecutor conseqExecutor = new ConseqExecutor(Executors.newFixedThreadPool(threadPoolSize));
 
@@ -87,7 +92,8 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(threadPoolSize, actualThreadCount);
     }
 
-    @Test void submitConcurrencyBoundedByTotalTaskCount() {
+    @Test
+    void submitConcurrencyBoundedByTotalTaskCount() {
         int threadPoolSize = TASK_COUNT * 10;
         ConseqExecutor conseqExecutor = new ConseqExecutor(Executors.newFixedThreadPool(threadPoolSize));
 
@@ -102,7 +108,8 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(TASK_COUNT, actualThreadCount);
     }
 
-    @Test void executeRunsAllTasksOfSameSequenceKeyInSequence() {
+    @Test
+    void executeRunsAllTasksOfSameSequenceKeyInSequence() {
         ConseqExecutor conseqExecutor = new ConseqExecutor(Executors.newFixedThreadPool(100));
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -115,7 +122,8 @@ import static org.junit.jupiter.api.Assertions.*;
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
-    @Test void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
+    @Test
+    void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
         ConseqExecutor conseqExecutor = new ConseqExecutor();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -141,13 +149,15 @@ import static org.junit.jupiter.api.Assertions.*;
         assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
     }
 
-    @Test void returnMinimalFuture() {
+    @Test
+    void returnMinimalFuture() {
         Future<SpyingTask> result = new ConseqExecutor().submit(new SpyingTask(1), UUID.randomUUID());
 
         assertFalse(result instanceof CompletableFuture);
     }
 
-    @Test void provideConcurrencyAmongDifferentSequenceKeys() {
+    @Test
+    void provideConcurrencyAmongDifferentSequenceKeys() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT / 2);
         UUID sameSequenceKey = UUID.randomUUID();
         ConseqExecutor sut = new ConseqExecutor();
@@ -165,5 +175,4 @@ import static org.junit.jupiter.api.Assertions.*;
         long runtimeSequential = sameKeyEndTimeMillis - sameKeyStartTimeMillis;
         assertTrue(runtimeConcurrent < runtimeSequential);
     }
-
 }

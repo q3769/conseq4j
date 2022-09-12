@@ -36,7 +36,8 @@ import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@Log public class TestUtils {
+@Log
+public class TestUtils {
 
     private TestUtils() {
     }

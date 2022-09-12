@@ -49,7 +49,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         this.delegate = delegate;
     }
 
-    @Override public void shutdown() {
+    @Override
+    public void shutdown() {
         fairLock.lock();
         try {
             delegate.shutdown();
@@ -58,7 +59,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public List<Runnable> shutdownNow() {
+    @Override
+    public List<Runnable> shutdownNow() {
         fairLock.lock();
         try {
             return delegate.shutdownNow();
@@ -67,7 +69,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public boolean isShutdown() {
+    @Override
+    public boolean isShutdown() {
         fairLock.lock();
         try {
             return delegate.isShutdown();
@@ -76,7 +79,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public boolean isTerminated() {
+    @Override
+    public boolean isTerminated() {
         fairLock.lock();
         try {
             return delegate.isTerminated();
@@ -85,7 +89,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    @Override
+    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
         fairLock.lock();
         try {
             return delegate.awaitTermination(timeout, unit);
@@ -94,7 +99,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> Future<T> submit(Callable<T> task) {
+    @Override
+    public <T> Future<T> submit(Callable<T> task) {
         fairLock.lock();
         try {
             return delegate.submit(task);
@@ -103,7 +109,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> Future<T> submit(Runnable task, T result) {
+    @Override
+    public <T> Future<T> submit(Runnable task, T result) {
         fairLock.lock();
         try {
             return delegate.submit(task, result);
@@ -112,7 +119,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public Future<?> submit(Runnable task) {
+    @Override
+    public Future<?> submit(Runnable task) {
         fairLock.lock();
         try {
             return delegate.submit(task);
@@ -121,8 +129,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
         fairLock.lock();
         try {
             return delegate.invokeAll(tasks);
@@ -131,7 +139,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override
+    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException {
         fairLock.lock();
         try {
@@ -141,8 +150,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
         fairLock.lock();
         try {
             return delegate.invokeAny(tasks);
@@ -151,7 +160,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    @Override
+    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         fairLock.lock();
         try {
@@ -161,7 +171,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
         }
     }
 
-    @Override public void execute(Runnable command) {
+    @Override
+    public void execute(Runnable command) {
         fairLock.lock();
         try {
             delegate.execute(command);

@@ -41,7 +41,10 @@ import static java.lang.Math.floorMod;
  * @author Qingtian Wang
  */
 
-@ThreadSafe @ToString @Log public final class Conseq implements ConcurrentSequencer {
+@ThreadSafe
+@ToString
+@Log
+public final class Conseq implements ConcurrentSequencer {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
@@ -69,7 +72,8 @@ import static java.lang.Math.floorMod;
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
-    @Override public ExecutorService getSequentialExecutor(Object sequenceKey) {
+    @Override
+    public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new FairSynchronizingExecutorService(
                         new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
@@ -78,5 +82,4 @@ import static java.lang.Math.floorMod;
     private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hash(sequenceKey), this.globalConcurrency);
     }
-
 }

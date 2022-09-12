@@ -38,9 +38,11 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /**
  * @author q3769
  */
-@Log class ConfigTest {
+@Log
+class ConfigTest {
 
-    @Test void shouldReturnSameExecutorOnSameName() {
+    @Test
+    void shouldReturnSameExecutorOnSameName() {
         Conseq sut = new Conseq();
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -53,7 +55,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
                 + " times with the same sequence key: " + sameSequenceKey);
     }
 
-    @Test void errorOnNonPositiveConcurrency() {
+    @Test
+    void errorOnNonPositiveConcurrency() {
         int errors = 0;
         try {
             new Conseq(0);
@@ -68,7 +71,8 @@ import static org.junit.jupiter.api.Assertions.assertSame;
         assertEquals(2, errors);
     }
 
-    @Test void shutdownUnsupported() {
+    @Test
+    void shutdownUnsupported() {
         Conseq target = new Conseq();
         final ExecutorService sequentialExecutor = target.getSequentialExecutor("foo");
         sequentialExecutor.execute(() -> {

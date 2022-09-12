@@ -49,13 +49,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Qingtian Wang
  */
-@Log class ConseqTest {
+@Log
+class ConseqTest {
 
     private static final int TASK_COUNT = 100;
 
     private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
 
-    @BeforeAll public static void setLoggingLevel() {
+    @BeforeAll
+    public static void setLoggingLevel() {
         Logger root = Logger.getLogger("");
         // .level= ALL
         root.setLevel(TEST_RUN_LOG_LEVEL);
@@ -67,15 +69,18 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         }
     }
 
-    @BeforeEach void setUp(TestInfo testInfo) {
+    @BeforeEach
+    void setUp(TestInfo testInfo) {
         log.info(String.format("===== start test: %s", testInfo.getDisplayName()));
     }
 
-    @AfterEach void tearDown(TestInfo testInfo) {
+    @AfterEach
+    void tearDown(TestInfo testInfo) {
         log.info(String.format("##### done test: %s", testInfo.getDisplayName()));
     }
 
-    @Test void concurrencyBoundedByTotalTaskCount() {
+    @Test
+    void concurrencyBoundedByTotalTaskCount() {
         Conseq withHigherConcurrencyThanTaskCount = new Conseq(TASK_COUNT * 2);
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
@@ -88,7 +93,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
-    @Test void higherConcurrencyRendersBetterThroughput() {
+    @Test
+    void higherConcurrencyRendersBetterThroughput() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT);
         int lowConcurrency = 2;
         int highConcurrency = lowConcurrency * 10;
@@ -118,7 +124,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
-    @Test void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
+    @Test
+    void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
         Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -130,7 +137,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assertSingleThread(doneTasks);
     }
 
-    @Test void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
+    @Test
+    void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
         Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
@@ -142,7 +150,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
         assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
     }
 
-    @Test void submitsRunAllTasksOfSameSequenceKeyInSequence() {
+    @Test
+    void submitsRunAllTasksOfSameSequenceKeyInSequence() {
         Conseq defaultConseq = new Conseq();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();

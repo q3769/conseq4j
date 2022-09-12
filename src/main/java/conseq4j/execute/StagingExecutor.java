@@ -37,7 +37,9 @@ import java.util.logging.Level;
  *
  * @author Qingtian Wang
  */
-@Log @ToString final class StagingExecutor implements ConcurrentSequencingExecutor {
+@Log
+@ToString
+final class StagingExecutor implements ConcurrentSequencingExecutor {
 
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
@@ -87,7 +89,8 @@ import java.util.logging.Level;
      * @param sequenceKey the key that the command should be queued behind such that all commands of the same key are
      *                    sequentially executed
      */
-    @Override public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+    @Override
+    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         CompletableFuture<?> commandStage = this.sequentialExecutors.compute(sequenceKey,
                 (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
                         CompletableFuture.runAsync(command, this.executionThreadPool) :
@@ -120,7 +123,8 @@ import java.util.logging.Level;
      * @return future result of the task. Not downcast-able.
      * @see StagingExecutor#execute(Runnable, Object)
      */
-    @Override public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
+    @Override
+    public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         FutureHolder<T> taskFutureHolder = new FutureHolder<>();
         CompletableFuture<?> taskStage =
                 this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
@@ -154,9 +158,9 @@ import java.util.logging.Level;
         }
     }
 
-    @Data private static class FutureHolder<T> {
+    @Data
+    private static class FutureHolder<T> {
 
         Future<T> future;
     }
-
 }
