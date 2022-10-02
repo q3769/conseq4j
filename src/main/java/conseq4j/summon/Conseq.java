@@ -62,9 +62,10 @@ public final class Conseq implements ConcurrentSequencer {
      *                          concurrently executed at any given time by this conseq instance.
      */
     public Conseq(int globalConcurrency) {
-        if (globalConcurrency <= 0)
+        if (globalConcurrency <= 0) {
             throw new IllegalArgumentException(
                     "expecting positive global concurrency, but given: " + globalConcurrency);
+        }
         this.globalConcurrency = globalConcurrency;
         log.fine(() -> "constructed " + this);
     }
@@ -75,8 +76,7 @@ public final class Conseq implements ConcurrentSequencer {
     @Override
     public ExecutorService getSequentialExecutor(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                bucket -> new FairSynchronizingExecutorService(
-                        new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
+                bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
     }
 
     private int bucketOf(Object sequenceKey) {

@@ -51,8 +51,6 @@ class ConfigTest {
         for (int i = 0; i < additionalSummonTimes; i++) {
             assertSame(e, sut.getSequentialExecutor(sameSequenceKey));
         }
-        log.info("summoned back the same executor - " + e + " - for a total of " + (1 + additionalSummonTimes)
-                + " times with the same sequence key: " + sameSequenceKey);
     }
 
     @Test

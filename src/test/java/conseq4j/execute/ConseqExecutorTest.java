@@ -87,7 +87,8 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
+        log.log(Level.INFO,
+                "[{0}] tasks were run by [{1}] threads, with thread pool size [{2}]",
                 new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
         assertEquals(threadPoolSize, actualThreadCount);
     }
@@ -103,7 +104,8 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.log(Level.INFO, "{0} tasks were run by {1} threads, with thread pool size {2}",
+        log.log(Level.INFO,
+                "[{0}] tasks were run by [{1}] threads, with thread pool size [{2}]",
                 new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
         assertEquals(TASK_COUNT, actualThreadCount);
     }
@@ -118,7 +120,7 @@ class ConseqExecutorTest {
 
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
-        log.info(TASK_COUNT + " tasks were run by " + actualThreadCount + " threads");
+        log.log(Level.INFO, "[{0}] tasks were run by [{1}] threads", new Object[] { TASK_COUNT, actualThreadCount });
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
@@ -133,11 +135,11 @@ class ConseqExecutorTest {
         for (int i = 0; i < TASK_COUNT; i++) {
             Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i), sameSequenceKey);
             if (i == cancelTaskIdx) {
-                log.info("cancelling task " + taskFuture);
+                log.info("cancelling task: " + taskFuture);
                 try {
                     taskFuture.cancel(true);
                 } catch (Exception e) {
-                    log.log(Level.WARNING, "error cancelling " + taskFuture, e);
+                    log.log(Level.WARNING, "error cancelling: " + taskFuture, e);
                 }
             }
             resultFutures.add(taskFuture);

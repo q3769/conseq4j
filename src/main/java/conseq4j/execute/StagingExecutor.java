@@ -95,9 +95,11 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                 (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
                         CompletableFuture.runAsync(command, this.executionThreadPool) :
                         currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                            if (currentException != null)
-                                log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                        + " before executing next command: " + command);
+                            if (currentException != null) {
+                                log.log(Level.WARNING,
+                                        "[{0}] occurred in [{1}] before executing next command [{2}]",
+                                        new Object[] { currentException, currentExecutionStage, command });
+                            }
                             command.run();
                             return null;
                         }, this.executionThreadPool));
@@ -131,9 +133,11 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                     CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
                             CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                                if (currentException != null)
-                                    log.log(Level.WARNING, currentException + " occurred in " + currentExecutionStage
-                                            + " before executing next task: " + task);
+                                if (currentException != null) {
+                                    log.log(Level.WARNING,
+                                            "[{0}] occurred in [{1}] before executing next task [{2}]",
+                                            new Object[] { currentException, currentExecutionStage, task });
+                                }
                                 return call(task);
                             }, this.executionThreadPool);
                     taskFutureHolder.setFuture(nextExecutionStage);

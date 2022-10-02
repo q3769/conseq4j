@@ -89,7 +89,7 @@ class ConseqTest {
                 .collect(toList());
 
         final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-        log.log(Level.INFO, "{0} tasks were run by {1} threads", new Object[] { TASK_COUNT, totalRunThreads });
+        log.log(Level.INFO, "[{0}] tasks were run by [{1}] threads", new Object[] { TASK_COUNT, totalRunThreads });
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -117,9 +117,11 @@ class ConseqTest {
         TestUtils.awaitAll(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.log(Level.INFO, "low concurrency: {0}, run time: {1}",
+        log.log(Level.INFO,
+                "low concurrency: [{0}], run time: [{1}]",
                 new Object[] { lowConcurrency, Duration.ofNanos(lowConcurrencyTime) });
-        log.log(Level.INFO, "high concurrency: {0}, run time: {1}",
+        log.log(Level.INFO,
+                "high concurrency: [{0}], run time: [{1}]",
                 new Object[] { highConcurrency, Duration.ofNanos(highConcurrencyTime) });
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
@@ -146,7 +148,7 @@ class ConseqTest {
         SpyingTask doneTask = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAny(tasks);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
-        log.log(Level.INFO, "Chosen task sequence : {0}", scheduledSequence);
+        log.log(Level.INFO, "Chosen task sequence : [{0}]", scheduledSequence);
         assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
     }
 
@@ -164,7 +166,9 @@ class ConseqTest {
 
     void assertSingleThread(List<SpyingTask> tasks) {
         assertEquals(1, tasks.stream().map(SpyingTask::getRunThreadName).distinct().count());
-        log.log(Level.INFO, "{0} tasks executed by single thread: {1}", new Object[] { tasks.size(),
-                tasks.stream().findFirst().orElseThrow(NoSuchElementException::new).getRunThreadName() });
+        log.log(Level.INFO,
+                "[{0}] tasks executed by single thread: [{1}]",
+                new Object[] { tasks.size(),
+                        tasks.stream().findFirst().orElseThrow(NoSuchElementException::new).getRunThreadName() });
     }
 }

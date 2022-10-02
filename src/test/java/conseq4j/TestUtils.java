@@ -59,7 +59,7 @@ public class TestUtils {
     }
 
     public static <T> List<T> getAll(List<Future<T>> futures) {
-        log.log(Level.FINER, () -> "Wait and get all results on futures " + futures);
+        log.log(Level.FINER, () -> "Wait and get all results on futures: " + futures);
         final List<T> doneTasks = futures.stream().map(f -> {
             try {
                 return f.get();
@@ -76,15 +76,16 @@ public class TestUtils {
     }
 
     public static void awaitDone(List<SpyingTask> tasks) {
-        await().until(
-                () -> tasks.parallelStream().allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
+        await().until(() -> tasks.parallelStream()
+                .allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
     }
 
     public static <T> int normalCompletionCount(List<Future<T>> resultFutures) {
         int normalCompletionCount = 0;
         for (Future<T> future : resultFutures) {
-            if (future.isCancelled())
+            if (future.isCancelled()) {
                 continue;
+            }
             try {
                 future.get();
             } catch (InterruptedException | ExecutionException e) {
@@ -104,9 +105,6 @@ public class TestUtils {
         for (int i = 0; i < tasks.size() - 1; i++) {
             SpyingTask current = tasks.get(i);
             SpyingTask next = tasks.get(i + 1);
-            if (current.getRunTimeEndMillis() > next.getRunTimeStartMillis())
-                log.log(Level.WARNING,
-                        "execution out of order between current task " + current + " and next task " + next);
             assertFalse(current.getRunTimeEndMillis() > next.getRunTimeStartMillis());
         }
     }
