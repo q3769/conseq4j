@@ -23,22 +23,21 @@
  */
 package conseq4j.summon;
 
+import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import lombok.extern.java.Log;
-import org.junit.jupiter.api.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.stream.Collectors;
 
 import static conseq4j.TestUtils.createSpyingTasks;
 import static conseq4j.TestUtils.getAll;
@@ -49,35 +48,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Qingtian Wang
  */
-@Log
+@Slf4j
 class ConseqTest {
 
     private static final int TASK_COUNT = 100;
-
-    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
-
-    @BeforeAll
-    public static void setLoggingLevel() {
-        Logger root = Logger.getLogger("");
-        // .level= ALL
-        root.setLevel(TEST_RUN_LOG_LEVEL);
-        for (Handler handler : root.getHandlers()) {
-            if (handler instanceof ConsoleHandler) {
-                // java.util.logging.ConsoleHandler.level = ALL
-                handler.setLevel(TEST_RUN_LOG_LEVEL);
-            }
-        }
-    }
-
-    @BeforeEach
-    void setUp(TestInfo testInfo) {
-        log.info(String.format("===== start test: %s", testInfo.getDisplayName()));
-    }
-
-    @AfterEach
-    void tearDown(TestInfo testInfo) {
-        log.info(String.format("##### done test: %s", testInfo.getDisplayName()));
-    }
 
     @Test
     void concurrencyBoundedByTotalTaskCount() {
@@ -89,7 +63,7 @@ class ConseqTest {
                 .collect(toList());
 
         final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-        log.log(Level.INFO, "[{0}] tasks were run by [{1}] threads", new Object[] { TASK_COUNT, totalRunThreads });
+        log.atInfo().log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -117,12 +91,9 @@ class ConseqTest {
         TestUtils.awaitAll(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.log(Level.INFO,
-                "low concurrency: [{0}], run time: [{1}]",
-                new Object[] { lowConcurrency, Duration.ofNanos(lowConcurrencyTime) });
-        log.log(Level.INFO,
-                "high concurrency: [{0}], run time: [{1}]",
-                new Object[] { highConcurrency, Duration.ofNanos(highConcurrencyTime) });
+        log.atInfo().log("low concurrency: [{}], run time: [{}]", lowConcurrency, Duration.ofNanos(lowConcurrencyTime));
+        log.atInfo()
+                .log("high concurrency: [{}], run time: [{}]", highConcurrency, Duration.ofNanos(highConcurrencyTime));
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -148,8 +119,8 @@ class ConseqTest {
         SpyingTask doneTask = defaultConseq.getSequentialExecutor(sameSequenceKey).invokeAny(tasks);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
-        log.log(Level.INFO, "Chosen task sequence : [{0}]", scheduledSequence);
-        assertTrue(scheduledSequence >= 0 && scheduledSequence < TASK_COUNT);
+        log.atInfo().log("Chosen task sequence : [{}]", scheduledSequence);
+        assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequence));
     }
 
     @Test
@@ -165,10 +136,11 @@ class ConseqTest {
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {
-        assertEquals(1, tasks.stream().map(SpyingTask::getRunThreadName).distinct().count());
-        log.log(Level.INFO,
-                "[{0}] tasks executed by single thread: [{1}]",
-                new Object[] { tasks.size(),
-                        tasks.stream().findFirst().orElseThrow(NoSuchElementException::new).getRunThreadName() });
+        Set<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).collect(Collectors.toSet());
+        assertEquals(1, distinctThreads.size());
+        log.atInfo()
+                .log("[{}] tasks executed by single thread: [{}]",
+                        tasks.size(),
+                        distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
     }
 }

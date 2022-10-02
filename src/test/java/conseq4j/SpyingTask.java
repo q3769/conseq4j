@@ -25,19 +25,16 @@ package conseq4j;
 
 import lombok.Getter;
 import lombok.ToString;
-import lombok.extern.java.Log;
 
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.Callable;
-import java.util.logging.Level;
 
 import static org.awaitility.Awaitility.await;
 
 /**
  * @author Qingtian Wang
  */
-@Log
 @ToString
 @Getter
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
@@ -68,9 +65,6 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
                 .pollInterval(Duration.ofMillis(1))
                 .until(() -> (System.currentTimeMillis() - this.runTimeStartMillis) >= this.targetRunDurationMillis);
         this.runTimeEndMillis = System.currentTimeMillis();
-        log.log(Level.FINEST,
-                () -> "End running: " + this + ", took " + (this.runTimeEndMillis - this.runTimeStartMillis)
-                        + " millis");
     }
 
     @Override

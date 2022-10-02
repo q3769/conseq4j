@@ -27,17 +27,16 @@ package conseq4j.execute;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.extern.java.Log;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
-import java.util.logging.Level;
 
 /**
  * Relies on the JDK {@link CompletableFuture} as the sequential executor of the tasks under the same sequence key.
  *
  * @author Qingtian Wang
  */
-@Log
+@Slf4j
 @ToString
 final class StagingExecutor implements ConcurrentSequencingExecutor {
 
@@ -50,14 +49,13 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
      */
     public StagingExecutor(@NonNull ExecutorService executionThreadPool) {
         this.executionThreadPool = executionThreadPool;
-        log.fine(() -> "constructed " + this);
     }
 
     private static <T> T call(Callable<T> task) {
         try {
             return task.call();
         } catch (Exception e) {
-            log.log(Level.WARNING, "error executing user provided task " + task, e);
+            log.atWarn().log("error executing user provided task: " + task, e);
             throw new UncheckedExecutionException(e);
         }
     }
@@ -96,9 +94,11 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                         CompletableFuture.runAsync(command, this.executionThreadPool) :
                         currentExecutionStage.handleAsync((currentResult, currentException) -> {
                             if (currentException != null) {
-                                log.log(Level.WARNING,
-                                        "[{0}] occurred in [{1}] before executing next command [{2}]",
-                                        new Object[] { currentException, currentExecutionStage, command });
+                                log.atWarn()
+                                        .log("[{}] occurred in [{}] before executing next command [{}]",
+                                                currentException,
+                                                currentExecutionStage,
+                                                command);
                             }
                             command.run();
                             return null;
@@ -134,9 +134,11 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                             CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
-                                    log.log(Level.WARNING,
-                                            "[{0}] occurred in [{1}] before executing next task [{2}]",
-                                            new Object[] { currentException, currentExecutionStage, task });
+                                    log.atWarn()
+                                            .log("[{}] occurred in [{}] before executing next task [{}]",
+                                                    currentException,
+                                                    currentExecutionStage,
+                                                    task);
                                 }
                                 return call(task);
                             }, this.executionThreadPool);

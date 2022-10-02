@@ -24,7 +24,6 @@
 package conseq4j.summon;
 
 import lombok.ToString;
-import lombok.extern.java.Log;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.Objects;
@@ -43,7 +42,6 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-@Log
 public final class Conseq implements ConcurrentSequencer {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
@@ -67,7 +65,6 @@ public final class Conseq implements ConcurrentSequencer {
                     "expecting positive global concurrency, but given: " + globalConcurrency);
         }
         this.globalConcurrency = globalConcurrency;
-        log.fine(() -> "constructed " + this);
     }
 
     /**

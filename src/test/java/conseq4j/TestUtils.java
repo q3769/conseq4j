@@ -24,19 +24,15 @@
 
 package conseq4j;
 
-import lombok.extern.java.Log;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
-import java.util.logging.Level;
 
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
-@Log
 public class TestUtils {
 
     private TestUtils() {
@@ -59,16 +55,13 @@ public class TestUtils {
     }
 
     public static <T> List<T> getAll(List<Future<T>> futures) {
-        log.log(Level.FINER, () -> "Wait and get all results on futures: " + futures);
-        final List<T> doneTasks = futures.stream().map(f -> {
+        return futures.stream().map(f -> {
             try {
                 return f.get();
             } catch (InterruptedException | ExecutionException ex) {
                 throw new IllegalStateException(ex);
             }
         }).collect(toList());
-        log.log(Level.FINER, () -> "All futures done, results: " + doneTasks);
-        return doneTasks;
     }
 
     public static <T> void awaitAll(List<Future<T>> futures) {
@@ -81,6 +74,7 @@ public class TestUtils {
     }
 
     public static <T> int normalCompletionCount(List<Future<T>> resultFutures) {
+        awaitAll(resultFutures);
         int normalCompletionCount = 0;
         for (Future<T> future : resultFutures) {
             if (future.isCancelled()) {

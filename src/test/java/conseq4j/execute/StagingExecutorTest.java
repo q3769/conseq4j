@@ -26,7 +26,6 @@ package conseq4j.execute;
 
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import lombok.extern.java.Log;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -38,7 +37,6 @@ import java.util.concurrent.ForkJoinPool;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-@Log
 class StagingExecutorTest {
 
     @Test

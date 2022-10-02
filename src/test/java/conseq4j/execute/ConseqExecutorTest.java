@@ -27,8 +27,8 @@ package conseq4j.execute;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import lombok.extern.java.Log;
-import org.junit.jupiter.api.*;
+import lombok.extern.slf4j.Slf4j;
+import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -36,45 +36,16 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Handler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 import static conseq4j.TestUtils.awaitDone;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Log
+@Slf4j
 class ConseqExecutorTest {
 
     private static final int TASK_COUNT = 100;
-
-    private static final Level TEST_RUN_LOG_LEVEL = Level.INFO;
-
-    @BeforeAll
-    public static void setLoggingLevel() {
-        Logger root = Logger.getLogger("");
-        // .level= ALL
-        root.setLevel(TEST_RUN_LOG_LEVEL);
-        for (Handler handler : root.getHandlers()) {
-            if (handler instanceof ConsoleHandler) {
-                // java.util.logging.ConsoleHandler.level = ALL
-                handler.setLevel(TEST_RUN_LOG_LEVEL);
-            }
-        }
-    }
-
-    @BeforeEach
-    void setUp(TestInfo testInfo) {
-        log.info(String.format("===== start test: %s", testInfo.getDisplayName()));
-    }
-
-    @AfterEach
-    void tearDown(TestInfo testInfo) {
-        log.info(String.format("##### done test: %s", testInfo.getDisplayName()));
-    }
 
     @Test
     void submitConcurrencyBoundedByThreadPoolSize() {
@@ -87,9 +58,11 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.log(Level.INFO,
-                "[{0}] tasks were run by [{1}] threads, with thread pool size [{2}]",
-                new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
+        log.atInfo()
+                .log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
+                        TASK_COUNT,
+                        actualThreadCount,
+                        threadPoolSize);
         assertEquals(threadPoolSize, actualThreadCount);
     }
 
@@ -104,9 +77,11 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.log(Level.INFO,
-                "[{0}] tasks were run by [{1}] threads, with thread pool size [{2}]",
-                new Object[] { TASK_COUNT, actualThreadCount, threadPoolSize });
+        log.atInfo()
+                .log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
+                        TASK_COUNT,
+                        actualThreadCount,
+                        threadPoolSize);
         assertEquals(TASK_COUNT, actualThreadCount);
     }
 
@@ -120,7 +95,7 @@ class ConseqExecutorTest {
 
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
-        log.log(Level.INFO, "[{0}] tasks were run by [{1}] threads", new Object[] { TASK_COUNT, actualThreadCount });
+        log.atInfo().log("[{}] tasks were run by [{}] threads", TASK_COUNT, actualThreadCount);
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
@@ -135,12 +110,7 @@ class ConseqExecutorTest {
         for (int i = 0; i < TASK_COUNT; i++) {
             Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i), sameSequenceKey);
             if (i == cancelTaskIdx) {
-                log.info("cancelling task: " + taskFuture);
-                try {
-                    taskFuture.cancel(true);
-                } catch (Exception e) {
-                    log.log(Level.WARNING, "error cancelling: " + taskFuture, e);
-                }
+                taskFuture.cancel(true);
             }
             resultFutures.add(taskFuture);
         }
@@ -148,7 +118,7 @@ class ConseqExecutorTest {
         int cancelledCount = TestUtils.cancellationCount(resultFutures);
         int normalCompleteCount = TestUtils.normalCompletionCount(resultFutures);
         assertEquals(1, cancelledCount);
-        assertEquals(resultFutures.size() - cancelledCount, normalCompleteCount);
+        assertEquals(resultFutures.size(), cancelledCount + normalCompleteCount);
     }
 
     @Test

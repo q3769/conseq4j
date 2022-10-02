@@ -26,7 +26,6 @@ package conseq4j.execute;
 
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.extern.java.Log;
 import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.Callable;
@@ -41,7 +40,6 @@ import java.util.concurrent.Future;
  * @author Qingtian Wang
  */
 @ThreadSafe
-@Log
 @ToString
 public final class ConseqExecutor implements ConcurrentSequencingExecutor {
 
@@ -60,7 +58,6 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      */
     public ConseqExecutor(ExecutorService executionThreadPool) {
         delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
-        log.fine(() -> "constructed " + this);
     }
 
     @Override

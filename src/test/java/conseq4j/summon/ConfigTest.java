@@ -23,7 +23,6 @@
  */
 package conseq4j.summon;
 
-import lombok.extern.java.Log;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -38,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /**
  * @author q3769
  */
-@Log
 class ConfigTest {
 
     @Test
