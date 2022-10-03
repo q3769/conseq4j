@@ -95,6 +95,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                         currentExecutionStage.handleAsync((currentResult, currentException) -> {
                             if (currentException != null) {
                                 log.atWarn()
+                                        .setCause(currentException)
                                         .log("[{}] occurred in [{}] before executing next command [{}]",
                                                 currentException,
                                                 currentExecutionStage,
@@ -135,6 +136,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
                                     log.atWarn()
+                                            .setCause(currentException)
                                             .log("[{}] occurred in [{}] before executing next task [{}]",
                                                     currentException,
                                                     currentExecutionStage,
