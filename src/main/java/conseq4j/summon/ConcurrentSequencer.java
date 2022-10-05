@@ -28,7 +28,7 @@ import java.util.concurrent.ExecutorService;
 /**
  * Main API of concurrent sequencer, exposing a sequential executor of type {@link ExecutorService}
  * <p>
- * See javadoc of {@link conseq4j.execute.ConcurrentSequencingExecutor} regarding thread-safety.
+ * See javadoc of {@link conseq4j.submit.ConcurrentSequencingExecutor} regarding thread-safety.
  *
  * @author Qingtian Wang
  */

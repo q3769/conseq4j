@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.execute;
+package conseq4j.submit;
 
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
