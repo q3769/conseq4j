@@ -224,7 +224,7 @@ public class MessageConsumer {
      * {@link CompletableFuture}'s completion stages.
      */
     public void onMessage(Message shoppingEvent) {       
-        conseqExecutor.execute(
+        conseqExecutor.submit(
                 () -> shoppingEventProcessor.process(shoppingEvent), 
                 shoppingEvent.getShoppingCartId());
     }
