@@ -39,8 +39,8 @@ Skip to see the API and usage samples below.
 The conseq4j implementation is thread-safe per its given sequence of submitted tasks. However, it is not recommended
 that the API client use concurrent threads for task submission. In the context of sequencing and concurrency,
 thread-safety goes beyond the concern of data corruption on individual tasks, into that of the execution order across
-multiple related tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of the
-conseq4j API, to achieve concurrency.
+multiple related tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of using
+the conseq4j API, to achieve concurrency.
 
 First, it is the API client's responsibility and concern that how tasks are submitted. If execution order is imperative,
 the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
