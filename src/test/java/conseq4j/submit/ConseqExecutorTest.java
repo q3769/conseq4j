@@ -27,7 +27,7 @@ package conseq4j.submit;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import lombok.extern.slf4j.Slf4j;
+import org.jlf.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -42,10 +42,9 @@ import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
 
-@Slf4j
 class ConseqExecutorTest {
-
     private static final int TASK_COUNT = 100;
+    private static final Logger log = Logger.instance(ConseqExecutorTest.class);
 
     @Test
     void submitConcurrencyBoundedByThreadPoolSize() {

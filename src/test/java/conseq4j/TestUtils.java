@@ -38,20 +38,42 @@ public class TestUtils {
     private TestUtils() {
     }
 
-    public static List<SpyingTask> createSpyingTasks(int taskCount) {
-        List<SpyingTask> result = new ArrayList<>();
-        for (int i = 0; i < taskCount; i++) {
-            result.add(new SpyingTask(i));
-        }
-        return result;
+    public static long actualCompletionThreadCount(List<Future<SpyingTask>> futures) {
+        return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
     public static int actualExecutionThreadCount(List<SpyingTask> tasks) {
         return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
-    public static long actualCompletionThreadCount(List<Future<SpyingTask>> futures) {
-        return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+    public static void assertConsecutiveRuntimes(List<SpyingTask> tasks) {
+        for (int i = 0; i < tasks.size() - 1; i++) {
+            SpyingTask current = tasks.get(i);
+            SpyingTask next = tasks.get(i + 1);
+            assertFalse(current.getRunTimeEndMillis() > next.getRunTimeStartMillis());
+        }
+    }
+
+    public static <T> void awaitAll(List<Future<T>> futures) {
+        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
+    }
+
+    public static void awaitDone(List<SpyingTask> tasks) {
+        await().until(() -> tasks.parallelStream()
+                .allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
+    }
+
+    public static <T> int cancellationCount(List<Future<T>> futures) {
+        awaitAll(futures);
+        return futures.parallelStream().mapToInt(f -> f.isCancelled() ? 1 : 0).sum();
+    }
+
+    public static List<SpyingTask> createSpyingTasks(int taskCount) {
+        List<SpyingTask> result = new ArrayList<>();
+        for (int i = 0; i < taskCount; i++) {
+            result.add(new SpyingTask(i));
+        }
+        return result;
     }
 
     public static <T> List<T> getAll(List<Future<T>> futures) {
@@ -62,15 +84,6 @@ public class TestUtils {
                 throw new IllegalStateException(ex);
             }
         }).collect(toList());
-    }
-
-    public static <T> void awaitAll(List<Future<T>> futures) {
-        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
-    }
-
-    public static void awaitDone(List<SpyingTask> tasks) {
-        await().until(() -> tasks.parallelStream()
-                .allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
     }
 
     public static <T> int normalCompletionCount(List<Future<T>> resultFutures) {
@@ -88,18 +101,5 @@ public class TestUtils {
             normalCompletionCount++;
         }
         return normalCompletionCount;
-    }
-
-    public static <T> int cancellationCount(List<Future<T>> futures) {
-        awaitAll(futures);
-        return futures.parallelStream().mapToInt(f -> f.isCancelled() ? 1 : 0).sum();
-    }
-
-    public static void assertConsecutiveRuntimes(List<SpyingTask> tasks) {
-        for (int i = 0; i < tasks.size() - 1; i++) {
-            SpyingTask current = tasks.get(i);
-            SpyingTask next = tasks.get(i + 1);
-            assertFalse(current.getRunTimeEndMillis() > next.getRunTimeStartMillis());
-        }
     }
 }
