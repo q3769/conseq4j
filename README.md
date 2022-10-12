@@ -45,14 +45,13 @@ the conseq4j API, to achieve concurrency.
 First, it is the API client's responsibility and concern that how tasks are submitted. If execution order is imperative,
 the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
-Otherwise, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
-submitted by different threads. When the client does not take specific measures to ensure the scheduling order among the
-submission threads, then by definition of concurrency, such submitted tasks are considered "safe" to execute in any
-order. With multithreading, though, it may not be trivial for the client to control the submission order among the
-concurrent threads, as Java does not provide a strong guarantee on thread scheduling. Without definitive task submission
-order in the first place, the sequencing capability of conseq4j will be rendered moot.
+However, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
+submitted by the different concurrent threads. Those tasks are considered "safe" to execute in any
+order. It is not trivial to control the submission order among the
+concurrent threads, as Java does not provide a strong guarantee on thread scheduling. Without a definitive order of
+task submission in the first place, conseq4j's sequencing capability will be rendered moot.
 
-Second, when a certain submission sequence is established by the API client, it is then conseq4j's concern and
+Second, when a certain submission sequence is established by the API client, e.g. via a managed caller thread, it is then conseq4j's concern and
 responsibility that further execution of the submitted tasks is in the meaningful order and concurrency as promised.
 Although having no control over how task submissions are scheduled, conseq4j does guarantee that tasks are received in
 the same order as their submissions. Also, a "fair" execution order is then guaranteed: Related tasks of the same
@@ -69,7 +68,7 @@ sequence key always gets back the same executor from the factory, no matter when
 summoned. All tasks sumbitted to that executor, no matter when or how many, are considered part of the the same 
 sequence indexed by the key, therefore, executed sequentially in exactly the same order as submitted. 
 
-There is no limit on the total number of sequence keys or sequential executors the API client can summon. Behind
+There is no limit on the total number of sequence keys the API client can use to summon executors. Behind
 the scenes, tasks of different sequence keys will be managed to execute in parallel, by a thread pool of 
 configurable size.
 
