@@ -26,7 +26,7 @@ package conseq4j.summon;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import lombok.extern.slf4j.Slf4j;
+import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
@@ -48,10 +48,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /**
  * @author Qingtian Wang
  */
-@Slf4j
 class ConseqTest {
-
     private static final int TASK_COUNT = 100;
+    private static final Logger log = Logger.instance(ConseqTest.class);
 
     @Test
     void concurrencyBoundedByTotalTaskCount() {

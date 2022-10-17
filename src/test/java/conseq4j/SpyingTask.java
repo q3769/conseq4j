@@ -25,6 +25,7 @@ package conseq4j;
 
 import lombok.Getter;
 import lombok.ToString;
+import elf4j.Logger;
 
 import java.time.Duration;
 import java.util.Random;
@@ -38,10 +39,10 @@ import static org.awaitility.Awaitility.await;
 @ToString
 @Getter
 public class SpyingTask implements Runnable, Callable<SpyingTask> {
-
-    public static final Random RANDOM = new Random();
     public static final int MAX_RUN_TIME_MILLIS = 20;
+    public static final Random RANDOM = new Random();
     public static final int UNSET_TIME_STAMP = 0;
+    private static final Logger LOGGER = Logger.instance(SpyingTask.class);
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
     volatile long runTimeStartMillis = UNSET_TIME_STAMP;
@@ -65,6 +66,8 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
                 .pollInterval(Duration.ofMillis(1))
                 .until(() -> (System.currentTimeMillis() - this.runTimeStartMillis) >= this.targetRunDurationMillis);
         this.runTimeEndMillis = System.currentTimeMillis();
+        LOGGER.atTrace()
+                .log("run duration: [{}] on [{}]", Duration.ofMillis(runTimeEndMillis - runTimeStartMillis), this);
     }
 
     @Override

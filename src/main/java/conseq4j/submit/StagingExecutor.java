@@ -24,10 +24,10 @@
 
 package conseq4j.submit;
 
+import elf4j.Logger;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.concurrent.*;
 
@@ -36,10 +36,9 @@ import java.util.concurrent.*;
  *
  * @author Qingtian Wang
  */
-@Slf4j
 @ToString
 final class StagingExecutor implements ConcurrentSequencingExecutor {
-
+    private static final Logger log = Logger.instance(StagingExecutor.class);
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
@@ -54,8 +53,9 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
     private static <T> T call(Callable<T> task) {
         try {
             return task.call();
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            log.atWarn().log("error executing user provided task: " + task, e);
             throw new UncheckedExecutionException(e);
         }
     }
@@ -95,8 +95,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                         currentExecutionStage.handleAsync((currentResult, currentException) -> {
                             if (currentException != null) {
                                 log.atWarn()
-                                        .setCause(currentException)
-                                        .log("[{}] occurred in [{}] before executing next command [{}]",
+                                        .log("[{}] occurred in [{}] before executing command [{}]",
                                                 currentException,
                                                 currentExecutionStage,
                                                 command);
@@ -105,19 +104,6 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                             return null;
                         }, this.executionThreadPool));
         sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
-    }
-
-    /**
-     * The thread pool to conduct the executor sweeping maintenance is the default {@link ForkJoinPool#commonPool()},
-     * and cannot be customized.
-     *
-     * @param sequenceKey the key whose tasks are sequentially executed
-     * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
-     *                    executor's tail task in queue is done at the time of checking
-     */
-    private void sweepExecutorIfAllTasksComplete(Object sequenceKey, CompletableFuture<?> triggerTask) {
-        triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask));
     }
 
     /**
@@ -136,8 +122,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
                                     log.atWarn()
-                                            .setCause(currentException)
-                                            .log("[{}] occurred in [{}] before executing next task [{}]",
+                                            .log("[{}] occurred in [{}] before executing task [{}]",
                                                     currentException,
                                                     currentExecutionStage,
                                                     task);
@@ -149,6 +134,19 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
         return new MinimalFuture<>(taskFutureHolder.getFuture());
+    }
+
+    /**
+     * The thread pool to conduct the executor sweeping maintenance is the default {@link ForkJoinPool#commonPool()},
+     * and cannot be customized.
+     *
+     * @param sequenceKey the key whose tasks are sequentially executed
+     * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
+     *                    executor's tail task in queue is done at the time of checking
+     */
+    private void sweepExecutorIfAllTasksComplete(Object sequenceKey, CompletableFuture<?> triggerTask) {
+        triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
+                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask));
     }
 
     int getActiveExecutorCount() {
