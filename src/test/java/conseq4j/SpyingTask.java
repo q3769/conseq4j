@@ -25,7 +25,7 @@ package conseq4j;
 
 import lombok.Getter;
 import lombok.ToString;
-import org.jlf.Logger;
+import elf4j.Logger;
 
 import java.time.Duration;
 import java.util.Random;

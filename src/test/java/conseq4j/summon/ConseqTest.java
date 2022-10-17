@@ -26,7 +26,7 @@ package conseq4j.summon;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import org.jlf.Logger;
+import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.time.Duration;

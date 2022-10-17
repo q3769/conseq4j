@@ -24,10 +24,10 @@
 
 package conseq4j.submit;
 
+import elf4j.Logger;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
-import org.jlf.Logger;
 
 import java.util.concurrent.*;
 
@@ -53,8 +53,9 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
     private static <T> T call(Callable<T> task) {
         try {
             return task.call();
+        } catch (RuntimeException e) {
+            throw e;
         } catch (Exception e) {
-            log.atWarn().log("error executing user provided task: " + task, e);
             throw new UncheckedExecutionException(e);
         }
     }
