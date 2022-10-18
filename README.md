@@ -25,7 +25,7 @@ Java 8 or better
 
 ## Use it...
 
-A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if 
+A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if
 `Objects.equals(key1, key2)` returns `true`.
 
 ### TL;DR:
@@ -45,39 +45,36 @@ thread-safety goes beyond the concern of data corruption on individual tasks, in
 multiple related tasks. It is worthwhile to clarify the effect of using client-side multithreading, instead of using
 the conseq4j API, to achieve concurrency.
 
-First, it is the API client's responsibility and concern that how tasks are submitted. If execution order is imperative,
+First, it is the API client's concern and responsibility that how tasks are submitted. If execution order is imperative,
 the client has to ensure that tasks are submitted in proper sequence to begin with. Fortunately, often times that is
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
 
-However, if the client is multithreaded, then organically there is no such thing as sequence among the tasks
-submitted by the different concurrent threads. Those tasks are considered "safe" to execute in any
-order. It is not trivial for the client to control the submission order among the
-concurrent threads, as Java does not provide a strong guarantee on thread scheduling. Meanwhile, without a definitive order of
-task submission in the first place, conseq4j's sequencing capability will be rendered moot. The only sensible scenario for client mulithreading
-might be when the client is certain that all tasks of the same sequence key are submitted by only one of the concurrent threads.
+However, if the client is multithreaded, then organically there is no such thing as sequence among the tasks submitted
+by the different concurrent threads. Without a definitive order of task submission in the first place, conseq4j's
+sequencing capability will be rendered moot. One of the few sensible scenarios for client multithreading might be when
+the client is certain that all tasks of the same sequence key are submitted by only one of the concurrent threads.
 
-Second, when a certain submission sequence is established by the API client, e.g. via a managed caller thread, it is then conseq4j's concern and
-responsibility that further execution of the submitted tasks is in the meaningful order and concurrency as promised.
-Although having no control over how task submissions are scheduled, conseq4j does guarantee that tasks are received in
-the same order as their submissions. Also, a "fair" execution order is then guaranteed: Related tasks of the same
-sequence key are sequentially executed in the same submitted/received order - the earliest-submitted/received task gets
-executed first; meanwhile, unrelated tasks can be executed in parallel.
+Second, once a certain submission sequence is established by the API client, e.g. via a managed caller thread, it is
+then conseq4j's concern and responsibility that further execution of the submitted tasks is in the meaningful order and
+concurrency as promised. Although having no control over how task submissions are scheduled, conseq4j does guarantee
+that tasks are received in the same order as their submissions. Also, a "fair" execution order is then guaranteed:
+Related tasks of the same sequence key are sequentially executed in the same submitted/received order - the
+earliest-submitted/received task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
 In other words, see the TL;DR above.
 
 ### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
 
-In this API style, the `ConcurrentSequencer` is a factory that produces sequential executors of JDK type 
-[ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). A certain 
+In this API style, the `ConcurrentSequencer` is a factory that produces sequential executors of JDK type
+[ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). A certain
 sequence key always gets back the same executor from the factory, no matter when or how many times the executor is
-summoned. All tasks sumbitted to that executor, no matter when or how many, are considered part of the the same 
-sequence indexed by the key, therefore, executed sequentially in exactly the same order as submitted. 
+summoned. All tasks submitted to that executor, no matter when or how many, are considered part of the same sequence
+indexed by the key, therefore, executed sequentially in exactly the same order as submitted.
 
-There is no limit on the total number of sequence keys the API client can use to summon executors. Behind
-the scenes, tasks of different sequence keys will be managed to execute in parallel, by a thread pool of 
-configurable size.
+There is no limit on the total number of sequence keys the API client can use to summon executors. Behind the scenes,
+tasks of different sequence keys will be managed to execute in parallel, by a thread pool of configurable size.
 
-Consider using this style when your executor requires the 
+Consider using this style when your executor requires the
 [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
 of the JDK `ExecutorService` API.
 
@@ -166,8 +163,8 @@ Notes:
 
 ### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service.
 
-This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. The same 
-execution semantics holds: Tasks submitted with the same sequence key are executed in the same submission order; tasks 
+This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. The same
+execution semantics holds: Tasks submitted with the same sequence key are executed in the same submission order; tasks
 of different sequence keys are managed to execute in paralell, by a thread pool of configurable size.
 
 Prefer using this style when you do not require the full-blown syntax and semantic support of a
