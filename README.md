@@ -12,7 +12,8 @@ short for **con**current **seq**uencer.
    so that, across all such submissions, related tasks under the same/equal sequence key are executed sequentially and
    unrelated tasks of different sequence keys are executed concurrently.
 
-Note: Any sequence key intance whose Object#hashCode method returns the same value is considered "the same sequence key".
+Note: All sequence key intances that pass the Object#equals check as true to one another are considered 
+"the same sequence key".
 
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
 execution order at the same time.
