@@ -12,9 +12,6 @@ short for **con**current **seq**uencer.
    so that, across all such submissions, related tasks under the same/equal sequence key are executed sequentially and
    unrelated tasks of different sequence keys are executed concurrently.
 
-Note: A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if 
-`Objects.equals(key1, key2)` returns `true`.
-
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
 execution order at the same time.
 
@@ -27,6 +24,9 @@ Java 8 or better
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
 ## Use it...
+
+A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if 
+`Objects.equals(key1, key2)` returns `true`.
 
 ### TL;DR:
 
