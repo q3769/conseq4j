@@ -32,8 +32,8 @@ A sequence key cannot be `null`. Any two keys are considered "the same sequence 
 
 It is recommended that the API client use some form of synchronization, such as a managed single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
-, to establish the sequence of task submissions; leave it to the conseq4j API to provide concurrency, as well as
-proper sequencing in execution.
+, to establish the sequence of task submissions; leave it to the conseq4j API to provide execution concurrency, as well
+as proper sequencing.
 
 Skip to see the API and usage samples below.
 
