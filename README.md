@@ -25,7 +25,7 @@ Java 8 or better
 
 ## Use it...
 
-A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if
+A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
 `Objects.equals(key1, key2)` returns `true`.
 
 ### TL;DR:
@@ -145,18 +145,16 @@ Notes:
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
-- The default global concurrency is 1 plus the
-  JVM
+- The default global concurrency is 1 plus the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--)
-  ,
-  via the default constructor:
+  , via the default constructor:
   ```
   ConcurrentSequencer conseq = new Conseq();
   ```
 
-  If needed, the global concurrency can be customized using a constructor argument. E.g. This may become useful when the
-  application is deployed using containers, where the `availableProcessors` reported to the Java Runtime may not reflect
-  the actual CPU resource of the container.
+  The global concurrency can be customized by a constructor argument. This may become useful when the application is
+  deployed using containers, where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU
+  resource of the container.
   ```
   ConcurrentSequencer conseq = new Conseq(10);
   ```
@@ -165,7 +163,7 @@ Notes:
 
 This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. The same
 execution semantics holds: Tasks submitted with the same sequence key are executed in the same submission order; tasks
-of different sequence keys are managed to execute in paralell, by a thread pool of configurable size.
+of different sequence keys are managed to execute in parallel, by a thread pool of configurable size.
 
 Prefer using this style when you do not require the full-blown syntax and semantic support of a
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
