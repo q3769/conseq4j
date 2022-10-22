@@ -28,7 +28,7 @@ Java 8 or better
 A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
 `Objects.equals(key1, key2)` returns `true`.
 
-### TL;DR:
+### TL;DR
 
 It is recommended that the API client use some form of synchronization, such as a managed single caller thread or
 a [fair lock](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/locks/ReentrantLock.html#ReentrantLock-boolean-)
@@ -37,7 +37,7 @@ as proper sequencing.
 
 Skip to see the API and usage samples below.
 
-### The long version on usage:
+### The long version on usage
 
 The conseq4j implementation is thread-safe per its given sequence of submitted tasks. However, it is not recommended
 that the API client use concurrent threads for task submission. In the context of sequencing and concurrency,
@@ -63,7 +63,7 @@ earliest-submitted/received task gets executed first; meanwhile, unrelated tasks
 
 In other words, see the TL;DR above.
 
-### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService.
+### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
 In this API style, the `ConcurrentSequencer` is a factory that produces sequential executors of JDK type
 [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). A certain
@@ -78,7 +78,7 @@ Consider using this style when your executor requires the
 [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
 of the JDK `ExecutorService` API.
 
-#### API:
+#### API
 
 ```
 public interface ConcurrentSequencer {
@@ -93,7 +93,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-#### Sample usage:
+#### Sample usage
 
 ```
 public class MessageConsumer {
@@ -159,7 +159,7 @@ Notes:
   ConcurrentSequencer conseq = new Conseq(10);
   ```
 
-### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service.
+### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service
 
 This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. The same
 execution semantics holds: Tasks submitted with the same sequence key are executed in the same submission order; tasks
@@ -168,7 +168,7 @@ of different sequence keys are managed to execute in parallel, by a thread pool 
 Prefer using this style when you do not require the full-blown syntax and semantic support of a
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 
-#### API:
+#### API
 
 ```
 public interface ConcurrentSequencingExecutor {
@@ -189,7 +189,7 @@ public interface ConcurrentSequencingExecutor {
 }
 ```
 
-#### Sample usage:
+#### Sample usage
 
 ```
 public class MessageConsumer {
