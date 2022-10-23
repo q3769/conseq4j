@@ -22,7 +22,7 @@
  * SOFTWARE.
  */
 
-package conseq4j.submit;
+package conseq4j.execute;
 
 import elf4j.Logger;
 import lombok.Data;

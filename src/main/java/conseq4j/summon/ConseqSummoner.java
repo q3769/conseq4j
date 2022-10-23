@@ -42,7 +42,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class Conseq implements ConcurrentSequencer {
+public final class ConseqSummoner implements ConcurrentSequencingExecutorServiceSummoner {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
@@ -51,7 +51,7 @@ public final class Conseq implements ConcurrentSequencer {
     /**
      * Default constructor sets default global concurrency
      */
-    public Conseq() {
+    public ConseqSummoner() {
         this(DEFAULT_GLOBAL_CONCURRENCY);
     }
 
@@ -59,7 +59,7 @@ public final class Conseq implements ConcurrentSequencer {
      * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
      *                          concurrently executed at any given time by this conseq instance.
      */
-    public Conseq(int globalConcurrency) {
+    public ConseqSummoner(int globalConcurrency) {
         if (globalConcurrency <= 0) {
             throw new IllegalArgumentException(
                     "expecting positive global concurrency, but given: " + globalConcurrency);
@@ -71,7 +71,7 @@ public final class Conseq implements ConcurrentSequencer {
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getSequentialExecutor(Object sequenceKey) {
+    public ExecutorService summon(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
     }

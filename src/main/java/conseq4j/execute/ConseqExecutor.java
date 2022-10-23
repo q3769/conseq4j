@@ -22,52 +22,51 @@
  * SOFTWARE.
  */
 
-package conseq4j.submit;
+package conseq4j.execute;
 
 import lombok.NonNull;
+import lombok.ToString;
+import net.jcip.annotations.ThreadSafe;
 
 import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Synchronizes calls to the wrapped executor, with fairness option being true as in
- * {@link ReentrantLock#ReentrantLock(boolean)}. The fairness setup ensures the tasks are executed in the same order as
- * they are received from the API client's submission. Performance-wise the synchronization should not be a problem
- * because, although synchronized, no call should be blocking on the task's actual execution which happens on a
- * different thread; only the submission portion of the call is blocking on the calling thread.
+ * The default implementation of the {@link ConcurrentSequencingExecutor} API. Task submission calls are thread-safe
+ * (synchronized) and fair under contention.
+ *
+ * @author Qingtian Wang
  */
-final class FairSynchronizingExecutor implements ConcurrentSequencingExecutor {
+@ThreadSafe
+@ToString
+public final class ConseqExecutor implements ConcurrentSequencingExecutor {
+
+    private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
+    private final ConcurrentSequencingExecutor delegate;
 
     /**
-     * Earliest-submitted task gets executed first
+     * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
      */
-    public static final boolean FAIR_ON_CONTENTION = true;
-    private final ConcurrentSequencingExecutor delegate;
-    private final Lock fairLock = new ReentrantLock(FAIR_ON_CONTENTION);
+    public ConseqExecutor() {
+        this(DEFAULT_THREAD_POOL);
+    }
 
-    public FairSynchronizingExecutor(@NonNull ConcurrentSequencingExecutor delegate) {
-        this.delegate = delegate;
+    /**
+     * @param executionThreadPool custom JDK thread pool to facilitate async execution of this conseq executor instance
+     */
+    public ConseqExecutor(ExecutorService executionThreadPool) {
+        delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
     }
 
     @Override
     public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        fairLock.lock();
-        try {
-            delegate.execute(command, sequenceKey);
-        } finally {
-            fairLock.unlock();
-        }
+        delegate.execute(command, sequenceKey);
     }
 
     @Override
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        fairLock.lock();
-        try {
-            return delegate.submit(task, sequenceKey);
-        } finally {
-            fairLock.unlock();
-        }
+        return delegate.submit(task, sequenceKey);
     }
 }
