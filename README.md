@@ -9,7 +9,7 @@ short for **con**current **seq**uencer.
    execute all related tasks with the same sequence key using the same executor while unrelated tasks with different
    sequence keys can be executed concurrently by different executors.
 2. As a client of the conseq4j API, I want to asynchronously submit a task for execution together with a sequence key,
-   so that, across all such submissions, related tasks under the same/equal sequence key are executed sequentially and
+   so that, across all such submissions, related tasks under the same sequence key are executed sequentially and
    unrelated tasks of different sequence keys are executed concurrently.
 
 Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
