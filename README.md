@@ -177,7 +177,7 @@ public interface SequentialExecutor {
      * @param command     the Runnable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
      */
-    void execute(Runnable command, Object sequenceKey);
+    Future<Void> execute(Runnable command, Object sequenceKey);
 
     /**
      * @param task        the Callable task to run sequentially with others under the same sequence key
