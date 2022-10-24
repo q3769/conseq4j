@@ -38,7 +38,7 @@ import java.util.concurrent.*;
  */
 @ToString
 final class StagingExecutor implements SequentialExecutor {
-    private static final Logger log = Logger.instance(StagingExecutor.class);
+    private static final Logger logger = Logger.instance(StagingExecutor.class).atWarn();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
     private final ExecutorService executionThreadPool;
@@ -88,22 +88,27 @@ final class StagingExecutor implements SequentialExecutor {
      *                    sequentially executed
      */
     @Override
-    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        CompletableFuture<?> commandStage = this.sequentialExecutors.compute(sequenceKey,
-                (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
-                        CompletableFuture.runAsync(command, this.executionThreadPool) :
-                        currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                            if (currentException != null) {
-                                log.atWarn()
-                                        .log("[{}] occurred in [{}] before executing command [{}]",
-                                                currentException,
-                                                currentExecutionStage,
-                                                command);
-                            }
-                            command.run();
-                            return null;
-                        }, this.executionThreadPool));
+    public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+        RunFutureHolder runFutureHolder = new RunFutureHolder();
+        CompletableFuture<?> commandStage =
+                this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
+                    CompletableFuture<Void> nextExecutionStage = (currentExecutionStage == null) ?
+                            CompletableFuture.runAsync(command, this.executionThreadPool) :
+                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
+                                if (currentException != null) {
+                                    logger.log("[{}] occurred in [{}] before executing command [{}]",
+                                            currentException,
+                                            currentExecutionStage,
+                                            command);
+                                }
+                                command.run();
+                                return null;
+                            }, this.executionThreadPool);
+                    runFutureHolder.setFuture(nextExecutionStage);
+                    return nextExecutionStage;
+                });
         sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
+        return new MinimalFuture<>(runFutureHolder.getFuture());
     }
 
     /**
@@ -114,26 +119,25 @@ final class StagingExecutor implements SequentialExecutor {
      */
     @Override
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        FutureHolder<T> taskFutureHolder = new FutureHolder<>();
+        SubmitFutureHolder<T> submitFutureHolder = new SubmitFutureHolder<>();
         CompletableFuture<?> taskStage =
                 this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
                     CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
                             CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
-                                    log.atWarn()
-                                            .log("[{}] occurred in [{}] before executing task [{}]",
-                                                    currentException,
-                                                    currentExecutionStage,
-                                                    task);
+                                    logger.log("[{}] occurred in [{}] before executing task [{}]",
+                                            currentException,
+                                            currentExecutionStage,
+                                            task);
                                 }
                                 return call(task);
                             }, this.executionThreadPool);
-                    taskFutureHolder.setFuture(nextExecutionStage);
+                    submitFutureHolder.setFuture(nextExecutionStage);
                     return nextExecutionStage;
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
-        return new MinimalFuture<>(taskFutureHolder.getFuture());
+        return new MinimalFuture<>(submitFutureHolder.getFuture());
     }
 
     /**
@@ -165,7 +169,13 @@ final class StagingExecutor implements SequentialExecutor {
     }
 
     @Data
-    private static class FutureHolder<T> {
+    private static class RunFutureHolder {
+
+        Future<Void> future;
+    }
+
+    @Data
+    private static class SubmitFutureHolder<T> {
 
         Future<T> future;
     }

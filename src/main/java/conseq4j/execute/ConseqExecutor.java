@@ -61,8 +61,8 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     @Override
-    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        delegate.execute(command, sequenceKey);
+    public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+        return delegate.execute(command, sequenceKey);
     }
 
     @Override

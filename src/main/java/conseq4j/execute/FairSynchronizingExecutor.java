@@ -52,10 +52,10 @@ final class FairSynchronizingExecutor implements SequentialExecutor {
     }
 
     @Override
-    public void execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+    public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         fairLock.lock();
         try {
-            delegate.execute(command, sequenceKey);
+            return delegate.execute(command, sequenceKey);
         } finally {
             fairLock.unlock();
         }
