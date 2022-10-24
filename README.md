@@ -161,12 +161,14 @@ Notes:
 
 ### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service
 
-This API style bypasses the JDK ExecutorService API and, instead, services the submitted task directly. The same
-execution semantics holds: Tasks submitted with the same sequence key are executed in the same submission order; tasks
-of different sequence keys are managed to execute in parallel, by a thread pool of configurable size.
+This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
+directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
+submission order; tasks of different sequence keys are managed to execute in parallel, by a thread pool of configurable
+size.
 
-Prefer using this style when you do not require the full-blown syntax and semantic support of a
-JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
+Prefer this style when the full-blown syntax and semantic support of a
+JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
+required.
 
 #### API
 
