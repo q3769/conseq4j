@@ -67,7 +67,7 @@ In other words, see the TL;DR above.
 ### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
 In this API style, the `SequentialExecutorServiceFactory` produces executors of JDK
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). A certain
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
 sequence key always gets back the same executor from the factory, no matter when or how many times the executor is
 summoned. All tasks submitted to that executor, no matter when or how many, are considered part of the same sequence;
 therefore, executed sequentially in exactly the same order as submitted.
