@@ -51,14 +51,14 @@ the client has to ensure that tasks are submitted in proper sequence to begin wi
 naturally the case e.g. when the client is under the management of a messaging provider running a single caller thread.
 
 However, if the client is multithreaded, then organically there is no such thing as sequence among the tasks submitted
-by the different concurrent threads. Without a definitive order of task submission in the first place, conseq4j's
-sequencing capability will be rendered moot. One of the few sensible scenarios for client multithreading might be when
+by the different concurrent threads. As such, Conseq4j's
+sequencing capability would be rendered moot. One of the few sensible scenarios for client multithreading might be when
 the client is certain that all tasks of the same sequence key are submitted by only one of the concurrent threads.
 
 Second, once a certain submission sequence is established by the API client, e.g. via a managed caller thread, it is
 then conseq4j's concern and responsibility that further execution of the submitted tasks is in the meaningful order and
 concurrency as promised. Although having no control over how task submissions are scheduled, conseq4j does guarantee
-that tasks are received in the same order as their submissions. Also, a "fair" execution order is then guaranteed:
+that tasks are received in the same order as their submissions. Then, a "fair" execution order is also guaranteed:
 Related tasks of the same sequence key are sequentially executed in the same submitted/received order - the
 earliest-submitted/received task gets executed first; meanwhile, unrelated tasks can be executed in parallel.
 
