@@ -31,10 +31,10 @@ A sequence key cannot be `null`. Any two keys are considered "the same sequence 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
 In this API style, the `ExecutorServiceFactory` produces instances of JDK
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
-sequence key always gets back the same executor from the factory, no matter when or how many times the executor is
-summoned. All tasks submitted to that executor, no matter when or how many, are considered part of the same sequence;
-therefore, executed sequentially in exactly the same order as submitted.
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) based on
+sequence keys. The same sequence key always gets back the same executor from the factory, no matter when or how many
+times the executor is summoned. All tasks submitted to that executor, no matter when or how many, are considered part of
+the same sequence; therefore, executed sequentially in exactly the same order as submitted.
 
 There is no limit on the total number of sequence keys the API client can use to summon executors. Behind the scenes,
 tasks of different sequence keys will be managed to execute in parallel, by a thread pool of configurable size.
@@ -130,7 +130,7 @@ directly. The same execution semantics holds: Tasks submitted with the same sequ
 submission order; tasks of different sequence keys are managed to execute in parallel, by a thread pool of configurable
 size.
 
-Prefer this style when the full-blown syntax and semantic support of a
+Prefer this style when the full-blown syntax and semantic support of
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
 required.
 
@@ -142,7 +142,7 @@ public interface SequencingExecutor {
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
-     * @return future holding run status of the command
+     * @return future holding run status of the executing command
      */
     Future<Void> execute(Runnable command, Object sequenceKey);
 
@@ -150,7 +150,7 @@ public interface SequencingExecutor {
      * @param task        the Callable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
      * @param <T>         the type of the task's result
-     * @return a Future representing pending completion of the task
+     * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 }

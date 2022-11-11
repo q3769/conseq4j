@@ -46,7 +46,7 @@ public interface SequencingExecutor {
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
-     * @return future holding run status of the command
+     * @return future holding run status of the executing command
      */
     Future<Void> execute(Runnable command, Object sequenceKey);
 
@@ -54,7 +54,7 @@ public interface SequencingExecutor {
      * @param task        the Callable task to run sequentially with others under the same sequence key
      * @param sequenceKey the key under which all tasks are executed sequentially
      * @param <T>         the type of the task's result
-     * @return a Future representing pending completion of the task
+     * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 }
