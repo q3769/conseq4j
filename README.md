@@ -28,7 +28,7 @@ Java 8 or better
 A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
 `Objects.equals(key1, key2)` returns `true`.
 
-### *Style 1:* Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
+### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
 In this API style, the `SequentialExecutorServiceFactory` produces executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
@@ -124,7 +124,7 @@ Notes:
   SequentialExecutorServiceFactory conseqFactory = new ConseqFactory(10);
   ```
 
-### *Style 2:* Submit a task together with its sequence key, and directly use the conseq4j API as an executor service
+### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as an executor service
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
