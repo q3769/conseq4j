@@ -41,7 +41,7 @@ import java.util.concurrent.Future;
  *
  * @author Qingtian Wang
  */
-public interface SequentialExecutor {
+public interface SequencingExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key

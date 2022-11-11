@@ -44,10 +44,10 @@ class ConfigTest {
         ConseqFactory sut = new ConseqFactory();
         UUID sameSequenceKey = UUID.randomUUID();
 
-        Executor e = sut.getExecutorService(sameSequenceKey);
+        Executor e = sut.getInstance(sameSequenceKey);
         int additionalSummonTimes = 1 + new Random().nextInt(100);
         for (int i = 0; i < additionalSummonTimes; i++) {
-            assertSame(e, sut.getExecutorService(sameSequenceKey));
+            assertSame(e, sut.getInstance(sameSequenceKey));
         }
     }
 
@@ -70,7 +70,7 @@ class ConfigTest {
     @Test
     void shutdownUnsupported() {
         ConseqFactory target = new ConseqFactory();
-        final ExecutorService sequentialExecutor = target.getExecutorService("foo");
+        final ExecutorService sequentialExecutor = target.getInstance("foo");
         sequentialExecutor.execute(() -> {
             long runDurationMillis = 100L;
             long startTimeMillis = System.currentTimeMillis();

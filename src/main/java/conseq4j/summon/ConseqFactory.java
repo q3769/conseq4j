@@ -42,7 +42,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class ConseqFactory implements SequentialExecutorServiceFactory {
+public final class ConseqFactory implements ExecutorServiceFactory {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
@@ -71,7 +71,7 @@ public final class ConseqFactory implements SequentialExecutorServiceFactory {
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getExecutorService(Object sequenceKey) {
+    public ExecutorService getInstance(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
     }

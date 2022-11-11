@@ -37,7 +37,7 @@ import java.util.concurrent.*;
  * @author Qingtian Wang
  */
 @ToString
-final class StagingExecutor implements SequentialExecutor {
+final class StagingExecutor implements SequencingExecutor {
     private final Logger warn = Logger.instance(StagingExecutor.class).atWarn();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 

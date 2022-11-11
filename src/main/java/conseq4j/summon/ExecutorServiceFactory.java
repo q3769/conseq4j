@@ -23,24 +23,23 @@
  */
 package conseq4j.summon;
 
-import conseq4j.execute.SequentialExecutor;
+import conseq4j.execute.SequencingExecutor;
 
 import java.util.concurrent.ExecutorService;
 
 /**
  * Main API of concurrent sequencer, exposing a sequential executor of type {@link ExecutorService}
  * <p>
- * See javadoc of {@link SequentialExecutor} regarding thread-safety.
+ * See javadoc of {@link SequencingExecutor} regarding thread-safety.
  *
  * @author Qingtian Wang
  */
-public interface SequentialExecutorServiceFactory {
+public interface ExecutorServiceFactory {
 
     /**
-     * @param sequenceKey an {@link Object} whose hash code is used to summon and summon the corresponding sequential
-     *                    executor.
+     * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
      * @return the executor of type {@link ExecutorService} that executes all tasks of this sequence key in the same
      *         order as they are submitted.
      */
-    ExecutorService getExecutorService(Object sequenceKey);
+    ExecutorService getInstance(Object sequenceKey);
 }
