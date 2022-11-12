@@ -30,8 +30,8 @@ Java 8 or better
 
 - Thread-safety: conseq4j is thread-safe in that there is no data corruption due to thread racing. By definition, 
 however, there is no such thing as sequence among tasks submitted concurrently by different threads, regardless of
-the sequence keys. As such, client-side multithreading is not recommended; instead, conseq4j should be providing 
-concurrency, as well as sequencing.
+the sequence keys. As such, client-side multithreading is not recommended while sequencing is imperative; instead, 
+conseq4j should be providing concurrency, as well as sequencing.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
