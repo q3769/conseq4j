@@ -128,7 +128,7 @@ Notes:
   ExecutorServiceFactory conseqFactory = new ConseqFactory(10);
   ```
 
-### Style 2: Submit a task together with its sequence key, and directly use the conseq4j API as an executor service
+### Style 2: Submit a task together with its sequence key, and directly use conseq4j API as the executor service
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
