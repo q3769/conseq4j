@@ -28,10 +28,10 @@ Java 8 or better
 - Sequence keys: A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
   `Objects.equals(key1, key2)` returns `true`.
 
-- Thread-safety: conseq4j is thread-safe in that there is no data corruption due to thread racing. However, there is no
-  such thing as sequence among tasks submitted concurrently by different threads; that is by definition, and regardless
-  of the sequence keys. Therefore, client-side multithreading is not recommended while sequencing is imperative;
-  instead, conseq4j should be used to provide concurrency, as well as sequencing.
+- Thread-safety: conseq4j is thread-safe in that no data corruption happens due to thread racing. Note, however, there
+  is no such thing as sequence among tasks submitted concurrently by different threads; that is by definition, and
+  regardless of the tasks' sequence keys. Therefore, client-side multithreading is not recommended while sequencing is
+  imperative; instead, conseq4j should be used to provide concurrency, as well as sequencing.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
