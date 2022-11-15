@@ -189,7 +189,7 @@ final class StagingExecutor implements SequencingExecutor {
 
         private final Future<V> future;
 
-        SimpleFuture(@lombok.NonNull Future<V> future) {
+        SimpleFuture(@NonNull Future<V> future) {
             this.future = future;
         }
 
@@ -214,7 +214,7 @@ final class StagingExecutor implements SequencingExecutor {
         }
 
         @Override
-        public V get(long timeout, @lombok.NonNull TimeUnit unit)
+        public V get(long timeout, @NonNull TimeUnit unit)
                 throws InterruptedException, java.util.concurrent.ExecutionException,
                 java.util.concurrent.TimeoutException {
             return this.future.get(timeout, unit);
