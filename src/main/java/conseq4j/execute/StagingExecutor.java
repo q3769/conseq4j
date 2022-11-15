@@ -89,7 +89,7 @@ final class StagingExecutor implements SequencingExecutor {
      */
     @Override
     public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        RunFutureHolder runFutureHolder = new RunFutureHolder();
+        FutureHolder<Void> futureHolder = new FutureHolder<>();
         CompletableFuture<?> commandStage =
                 this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
                     CompletableFuture<Void> nextExecutionStage = (currentExecutionStage == null) ?
@@ -104,11 +104,11 @@ final class StagingExecutor implements SequencingExecutor {
                                 command.run();
                                 return null;
                             }, this.executionThreadPool);
-                    runFutureHolder.setFuture(nextExecutionStage);
+                    futureHolder.setFuture(nextExecutionStage);
                     return nextExecutionStage;
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
-        return new SimpleFuture<>(runFutureHolder.getFuture());
+        return new SimpleFuture<>(futureHolder.getFuture());
     }
 
     /**
@@ -119,7 +119,7 @@ final class StagingExecutor implements SequencingExecutor {
      */
     @Override
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        SubmitFutureHolder<T> submitFutureHolder = new SubmitFutureHolder<>();
+        FutureHolder<T> futureHolder = new FutureHolder<>();
         CompletableFuture<?> taskStage =
                 this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
                     CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
@@ -133,11 +133,11 @@ final class StagingExecutor implements SequencingExecutor {
                                 }
                                 return call(task);
                             }, this.executionThreadPool);
-                    submitFutureHolder.setFuture(nextExecutionStage);
+                    futureHolder.setFuture(nextExecutionStage);
                     return nextExecutionStage;
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
-        return new SimpleFuture<>(submitFutureHolder.getFuture());
+        return new SimpleFuture<>(futureHolder.getFuture());
     }
 
     /**
@@ -169,13 +169,7 @@ final class StagingExecutor implements SequencingExecutor {
     }
 
     @Data
-    private static class RunFutureHolder {
-
-        Future<Void> future;
-    }
-
-    @Data
-    private static class SubmitFutureHolder<T> {
+    private static class FutureHolder<T> {
 
         Future<T> future;
     }
