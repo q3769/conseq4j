@@ -209,14 +209,13 @@ final class StagingExecutor implements SequencingExecutor {
         }
 
         @Override
-        public V get() throws InterruptedException, java.util.concurrent.ExecutionException {
+        public V get() throws InterruptedException, ExecutionException {
             return this.future.get();
         }
 
         @Override
         public V get(long timeout, @NonNull TimeUnit unit)
-                throws InterruptedException, java.util.concurrent.ExecutionException,
-                java.util.concurrent.TimeoutException {
+                throws InterruptedException, ExecutionException, TimeoutException {
             return this.future.get(timeout, unit);
         }
     }
