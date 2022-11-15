@@ -37,7 +37,7 @@ Java 8 or better
 
 In this API style, sequence keys are used to sommon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same 
-sequence key always gets back the same executor from the factory, no matter when or how many
+sequence key always gets back the same executor from the API, no matter when or how many
 times the executor is summoned. All tasks submitted to that executor, no matter when or how many, are considered part of
 the same sequence; therefore, executed sequentially in exactly the same order as submitted.
 
@@ -128,7 +128,7 @@ Notes:
   ExecutorServiceFactory conseqFactory = new ConseqFactory(10);
   ```
 
-### Style 2: Submit a task together with its sequence key, and directly use conseq4j API as the executor service
+### Style 2: Submit tasks together with their sequence keys, and directly use conseq4j API as the executor service
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
