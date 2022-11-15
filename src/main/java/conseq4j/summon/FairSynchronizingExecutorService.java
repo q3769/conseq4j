@@ -24,6 +24,8 @@
 
 package conseq4j.summon;
 
+import lombok.NonNull;
+
 import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.*;
@@ -60,7 +62,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
+    public @NonNull List<Runnable> shutdownNow() {
         fairLock.lock();
         try {
             return delegate.shutdownNow();
@@ -90,7 +92,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, @NonNull TimeUnit unit) throws InterruptedException {
         fairLock.lock();
         try {
             return delegate.awaitTermination(timeout, unit);
@@ -100,7 +102,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> Future<T> submit(Callable<T> task) {
+    public <T> @NonNull Future<T> submit(@NonNull Callable<T> task) {
         fairLock.lock();
         try {
             return delegate.submit(task);
@@ -110,7 +112,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> Future<T> submit(Runnable task, T result) {
+    public <T> @NonNull Future<T> submit(@NonNull Runnable task, T result) {
         fairLock.lock();
         try {
             return delegate.submit(task, result);
@@ -120,7 +122,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public Future<?> submit(Runnable task) {
+    public @NonNull Future<?> submit(@NonNull Runnable task) {
         fairLock.lock();
         try {
             return delegate.submit(task);
@@ -130,7 +132,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public <T> @NonNull List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
         fairLock.lock();
         try {
             return delegate.invokeAll(tasks);
@@ -140,8 +143,9 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException {
+    public <T> @NonNull List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks,
+            long timeout,
+            @NonNull TimeUnit unit) throws InterruptedException {
         fairLock.lock();
         try {
             return delegate.invokeAll(tasks, timeout, unit);
@@ -151,7 +155,8 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> @NonNull T invokeAny(@NonNull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
         fairLock.lock();
         try {
             return delegate.invokeAny(tasks);
@@ -161,7 +166,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    public <T> T invokeAny(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         fairLock.lock();
         try {
@@ -172,7 +177,7 @@ final class FairSynchronizingExecutorService implements ExecutorService {
     }
 
     @Override
-    public void execute(Runnable command) {
+    public void execute(@NonNull Runnable command) {
         fairLock.lock();
         try {
             delegate.execute(command);

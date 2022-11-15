@@ -108,7 +108,7 @@ final class StagingExecutor implements SequencingExecutor {
                     return nextExecutionStage;
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
-        return new MinimalFuture<>(runFutureHolder.getFuture());
+        return new SimpleFuture<>(runFutureHolder.getFuture());
     }
 
     /**
@@ -137,7 +137,7 @@ final class StagingExecutor implements SequencingExecutor {
                     return nextExecutionStage;
                 });
         sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
-        return new MinimalFuture<>(submitFutureHolder.getFuture());
+        return new SimpleFuture<>(submitFutureHolder.getFuture());
     }
 
     /**
@@ -178,5 +178,46 @@ final class StagingExecutor implements SequencingExecutor {
     private static class SubmitFutureHolder<T> {
 
         Future<T> future;
+    }
+
+    /**
+     * Making it impossible to downcast this wrapper's instances any further from {@link Future}
+     *
+     * @param <V> type of result held by the Future
+     */
+    private static final class SimpleFuture<V> implements Future<V> {
+
+        private final Future<V> future;
+
+        SimpleFuture(@lombok.NonNull Future<V> future) {
+            this.future = future;
+        }
+
+        @Override
+        public boolean cancel(boolean mayInterruptIfRunning) {
+            return this.future.cancel(mayInterruptIfRunning);
+        }
+
+        @Override
+        public boolean isCancelled() {
+            return this.future.isCancelled();
+        }
+
+        @Override
+        public boolean isDone() {
+            return this.future.isDone();
+        }
+
+        @Override
+        public V get() throws InterruptedException, java.util.concurrent.ExecutionException {
+            return this.future.get();
+        }
+
+        @Override
+        public V get(long timeout, @lombok.NonNull TimeUnit unit)
+                throws InterruptedException, java.util.concurrent.ExecutionException,
+                java.util.concurrent.TimeoutException {
+            return this.future.get(timeout, unit);
+        }
     }
 }
