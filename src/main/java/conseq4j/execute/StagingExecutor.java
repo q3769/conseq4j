@@ -181,7 +181,7 @@ final class StagingExecutor implements SequencingExecutor {
     }
 
     /**
-     * Making it impossible to downcast this wrapper's instances any further from {@link Future}
+     * Making it impossible to downcast any further from {@link Future}
      *
      * @param <V> type of result held by the Future
      */
