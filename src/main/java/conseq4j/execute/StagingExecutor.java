@@ -148,7 +148,7 @@ final class StagingExecutor implements SequencingExecutor {
      * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
      *                    executor's tail task in queue is done at the time of checking
      */
-    private void sweepExecutorIfAllTasksComplete(Object sequenceKey, CompletableFuture<?> triggerTask) {
+    private void sweepExecutorIfAllTasksComplete(Object sequenceKey, @NonNull CompletableFuture<?> triggerTask) {
         triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
                 (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask));
     }
@@ -157,7 +157,7 @@ final class StagingExecutor implements SequencingExecutor {
         return this.sequentialExecutors.size();
     }
 
-    String getExecutionThreadPoolTypeName() {
+    @NonNull String getExecutionThreadPoolTypeName() {
         return this.executionThreadPool.getClass().getName();
     }
 
