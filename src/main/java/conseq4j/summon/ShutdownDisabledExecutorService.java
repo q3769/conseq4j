@@ -24,6 +24,7 @@
 
 package conseq4j.summon;
 
+import lombok.NonNull;
 import lombok.ToString;
 
 import java.util.Collection;
@@ -31,7 +32,7 @@ import java.util.List;
 import java.util.concurrent.*;
 
 /**
- * An {@code ExecutorService} that cannot be shut down at run-time.
+ * An {@link ExecutorService} that cannot be shut down at run-time.
  *
  * @author Qingtian Wang
  */
@@ -90,7 +91,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+    public boolean awaitTermination(long timeout, @NonNull TimeUnit unit) throws InterruptedException {
         return this.delegate.awaitTermination(timeout, unit);
     }
 
@@ -98,7 +99,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> Future<T> submit(Callable<T> task) {
+    public @NonNull <T> Future<T> submit(@NonNull Callable<T> task) {
         return this.delegate.submit(task);
     }
 
@@ -106,7 +107,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> Future<T> submit(Runnable task, T result) {
+    public @NonNull <T> Future<T> submit(@NonNull Runnable task, T result) {
         return this.delegate.submit(task, result);
     }
 
@@ -114,7 +115,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public Future<?> submit(Runnable task) {
+    public @NonNull Future<?> submit(@NonNull Runnable task) {
         return this.delegate.submit(task);
     }
 
@@ -122,7 +123,8 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+    public @NonNull <T> List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException {
         return this.delegate.invokeAll(tasks);
     }
 
@@ -130,8 +132,9 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
-            throws InterruptedException {
+    public <T> @NonNull List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks,
+            long timeout,
+            @NonNull TimeUnit unit) throws InterruptedException {
         return this.delegate.invokeAll(tasks, timeout, unit);
     }
 
@@ -139,7 +142,8 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+    public <T> @NonNull T invokeAny(@NonNull Collection<? extends Callable<T>> tasks)
+            throws InterruptedException, ExecutionException {
         return this.delegate.invokeAny(tasks);
     }
 
@@ -147,7 +151,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+    public <T> T invokeAny(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit)
             throws InterruptedException, ExecutionException, TimeoutException {
         return this.delegate.invokeAny(tasks, timeout, unit);
     }
@@ -156,7 +160,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
      * {@inheritDoc}
      */
     @Override
-    public void execute(Runnable command) {
+    public void execute(@NonNull Runnable command) {
         this.delegate.execute(command);
     }
 }
