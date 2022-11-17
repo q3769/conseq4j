@@ -169,7 +169,7 @@ public class MessageConsumer {
      * 
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
-     * private SequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(Executors.newFixedThreadPool(10));
+     * private SequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(newFixedThreadPool(10));
      * </code>
      */
     private SequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
