@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 import static java.lang.Math.floorMod;
 
 /**
- * Default implementation of {@code ConcurrentSequencer}.
+ * Providing concurrency as well as sequencing, via the {@link ExecutorService} API
  *
  * @author Qingtian Wang
  */
