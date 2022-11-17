@@ -42,24 +42,17 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class ConseqFactory implements ExecutorServiceFactory {
+public final class ConseqExecutorServiceFactory implements SequentialExecutorServiceFactory {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
     private final int globalConcurrency;
 
     /**
-     * Default constructor sets default global concurrency
-     */
-    public ConseqFactory() {
-        this(DEFAULT_GLOBAL_CONCURRENCY);
-    }
-
-    /**
      * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
      *                          concurrently executed at any given time by this conseq instance.
      */
-    public ConseqFactory(int globalConcurrency) {
+    private ConseqExecutorServiceFactory(int globalConcurrency) {
         if (globalConcurrency <= 0) {
             throw new IllegalArgumentException(
                     "expecting positive global concurrency, but given: " + globalConcurrency);
@@ -67,11 +60,19 @@ public final class ConseqFactory implements ExecutorServiceFactory {
         this.globalConcurrency = globalConcurrency;
     }
 
+    public static ConseqExecutorServiceFactory ofConcurrency(int globalConcurrency) {
+        return new ConseqExecutorServiceFactory(globalConcurrency);
+    }
+
+    public static ConseqExecutorServiceFactory ofDefaultConcurrency() {
+        return new ConseqExecutorServiceFactory(DEFAULT_GLOBAL_CONCURRENCY);
+    }
+
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getInstance(Object sequenceKey) {
+    public ExecutorService getExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
     }

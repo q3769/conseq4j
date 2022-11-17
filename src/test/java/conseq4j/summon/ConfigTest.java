@@ -41,13 +41,13 @@ class ConfigTest {
 
     @Test
     void shouldReturnSameExecutorOnSameName() {
-        ConseqFactory sut = new ConseqFactory();
+        ConseqExecutorServiceFactory sut = ConseqExecutorServiceFactory.ofDefaultConcurrency();
         UUID sameSequenceKey = UUID.randomUUID();
 
-        Executor e = sut.getInstance(sameSequenceKey);
+        Executor e = sut.getExecutorService(sameSequenceKey);
         int additionalSummonTimes = 1 + new Random().nextInt(100);
         for (int i = 0; i < additionalSummonTimes; i++) {
-            assertSame(e, sut.getInstance(sameSequenceKey));
+            assertSame(e, sut.getExecutorService(sameSequenceKey));
         }
     }
 
@@ -55,12 +55,12 @@ class ConfigTest {
     void errorOnNonPositiveConcurrency() {
         int errors = 0;
         try {
-            new ConseqFactory(0);
+            ConseqExecutorServiceFactory.ofConcurrency(0);
         } catch (IllegalArgumentException e) {
             errors++;
         }
         try {
-            new ConseqFactory(-999);
+            ConseqExecutorServiceFactory.ofConcurrency(-999);
         } catch (IllegalArgumentException e) {
             errors++;
         }
@@ -69,8 +69,8 @@ class ConfigTest {
 
     @Test
     void shutdownUnsupported() {
-        ConseqFactory target = new ConseqFactory();
-        final ExecutorService sequentialExecutor = target.getInstance("foo");
+        ConseqExecutorServiceFactory target = ConseqExecutorServiceFactory.ofDefaultConcurrency();
+        final ExecutorService sequentialExecutor = target.getExecutorService("foo");
         sequentialExecutor.execute(() -> {
             long runDurationMillis = 100L;
             long startTimeMillis = System.currentTimeMillis();

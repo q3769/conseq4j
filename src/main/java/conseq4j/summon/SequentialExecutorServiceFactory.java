@@ -34,12 +34,12 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Qingtian Wang
  */
-public interface ExecutorServiceFactory {
+public interface SequentialExecutorServiceFactory {
 
     /**
      * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
      * @return the executor of type {@link ExecutorService} that executes all tasks of this sequence key in the same
      *         order as they are submitted.
      */
-    ExecutorService getInstance(Object sequenceKey);
+    ExecutorService getExecutorService(Object sequenceKey);
 }

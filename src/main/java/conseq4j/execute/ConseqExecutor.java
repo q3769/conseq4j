@@ -47,17 +47,21 @@ public final class ConseqExecutor implements SequencingExecutor {
     private final SequencingExecutor delegate;
 
     /**
-     * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
+     * @param executionThreadPool custom JDK thread pool to facilitate async execution of this conseq executor instance
      */
-    public ConseqExecutor() {
-        this(DEFAULT_THREAD_POOL);
+    private ConseqExecutor(ExecutorService executionThreadPool) {
+        delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
     }
 
     /**
-     * @param executionThreadPool custom JDK thread pool to facilitate async execution of this conseq executor instance
+     * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
      */
-    public ConseqExecutor(ExecutorService executionThreadPool) {
-        delegate = new FairSynchronizingExecutor(new StagingExecutor(executionThreadPool));
+    public static ConseqExecutor withDefaultThreadPool() {
+        return new ConseqExecutor(DEFAULT_THREAD_POOL);
+    }
+
+    public static ConseqExecutor withThreadPool(ExecutorService executionThreadPool) {
+        return new ConseqExecutor(executionThreadPool);
     }
 
     @Override

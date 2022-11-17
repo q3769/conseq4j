@@ -36,7 +36,7 @@ Java 8 or better
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
 In this API style, sequence keys are used to sommon executors of JDK
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same 
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
 sequence key always gets back the same executor from the API, no matter when or how many
 times the executor is summoned. All tasks submitted to that executor, no matter when or how many, are considered part of
 the same sequence; therefore, executed sequentially in exactly the same order as submitted.
@@ -51,14 +51,14 @@ of the JDK `ExecutorService` API.
 #### API
 
 ```
-public interface ExecutorServiceFactory {
+public interface SequentialExecutorServiceFactory {
 
     /**
      * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
      * @return the executor of type {@link ExecutorService} that executes all tasks of this sequence key in the same
      *         order as they are submitted.
      */
-    ExecutorService getInstance(Object sequenceKey);
+    ExecutorService getExecutorService(Object sequenceKey);
 }
 ```
 
@@ -72,10 +72,10 @@ public class MessageConsumer {
      * 
      * Or to set the global concurrency to 10, for example:
      * <code>
-     * private ExecutorServiceFactory conseqFactory = new ConseqFactory(10);
+     * private SequentialExecutorServiceFactory conseqExecutorServiceFactory = ConseqExecutorServiceFactory.ofConcurrency(10);
      * </code>
      */
-    private ExecutorServiceFactory conseqFactory = new ConseqFactory(); 
+    private SequentialExecutorServiceFactory conseqExecutorServiceFactory = ConseqExecutorServiceFactory.ofDefaultConcurrency(); 
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
@@ -90,7 +90,7 @@ public class MessageConsumer {
      * shopping events of the same shopping cart ID, by the same executor.
      */
     public void onMessage(Message shoppingEvent) {       
-        conseqFactory.getInstance(shoppingEvent.getShoppingCartId())
+        conseqExecutorServiceFactory.getExecutorService(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
     }
     ...
@@ -115,20 +115,18 @@ Notes:
   returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 - The default global concurrency is 1 plus the JVM
-  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--)
-  , via the default constructor:
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
   ```
-  ExecutorServiceFactory conseqFactory = new ConseqFactory();
-  ```
-
-  The global concurrency can be customized by a constructor argument. This may become useful when the application is
-  deployed using containers, where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU
-  resource of the container.
-  ```
-  ExecutorServiceFactory conseqFactory = new ConseqFactory(10);
+  SequentialExecutorServiceFactory conseqExecutorServiceFactory = ConseqExecutorServiceFactory.ofDefaultConcurrency();
   ```
 
-### Style 2: Submit task together with sequence key, directly using conseq4j API as executor service
+  The global concurrency can be customized. This may become useful when the application is deployed using containers,
+  where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU resource of the container.
+  ```
+  SequentialExecutorServiceFactory conseqExecutorServiceFactory = ConseqExecutorServiceFactory.ofConcurrency(10);
+  ```
+
+### Style 2: Submit task together with sequence key, directly using conseq4j API as execution service
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
@@ -171,10 +169,10 @@ public class MessageConsumer {
      * 
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
-     * private SequencingExecutor conseqExecutor = new ConseqExectuor(Executors.newFixedThreadPool(10));
+     * private SequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(Executors.newFixedThreadPool(10));
      * </code>
      */
-    private SequencingExecutor conseqExecutor = new ConseqExectuor();
+    private SequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
     
     @Autowired
     private ShoppingEventProcessor shoppingEventProcessor;
@@ -213,16 +211,14 @@ Notes:
   compared to the other API style.
 
   The default thread pool is
-  JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--)
-  , via the default constructor:
+  JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--):
   ```
-  SequencingExecutor conseqExecutor = new ConseqExecutor();
+  SequencingExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
   ```
 
-  Alternatively, the thread pool can be customized through a constructor argument. E.g. this is to use a customized
-  thread pool of 10 threads:
+  Alternatively, the thread pool can be customized. E.g. this is to use a customized thread pool of 10 threads:
   ```
-  SequencingExecutor conseqExecutor = new ConseqExecutor(java.util.concurrent.Executors.newFixedThreadPool(10));
+  SequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
 
 ## Full disclosure - Asynchronous Conundrum

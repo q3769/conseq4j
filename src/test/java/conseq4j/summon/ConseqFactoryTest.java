@@ -54,10 +54,11 @@ class ConseqFactoryTest {
 
     @Test
     void concurrencyBoundedByTotalTaskCount() {
-        ConseqFactory withHigherConcurrencyThanTaskCount = new ConseqFactory(TASK_COUNT * 2);
+        ConseqExecutorServiceFactory withHigherConcurrencyThanTaskCount =
+                ConseqExecutorServiceFactory.ofConcurrency(TASK_COUNT * 2);
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
-                .map(task -> withHigherConcurrencyThanTaskCount.getInstance(UUID.randomUUID())
+                .map(task -> withHigherConcurrencyThanTaskCount.getExecutorService(UUID.randomUUID())
                         .submit((Callable<SpyingTask>) task))
                 .collect(toList());
 
@@ -72,18 +73,19 @@ class ConseqFactoryTest {
         int lowConcurrency = 2;
         int highConcurrency = lowConcurrency * 10;
 
-        ConseqFactory lowConcurrencyService = new ConseqFactory(lowConcurrency);
+        ConseqExecutorServiceFactory withLowConcurrency = ConseqExecutorServiceFactory.ofConcurrency(lowConcurrency);
         long lowConcurrencyStart = System.nanoTime();
         List<Future<SpyingTask>> lowConcurrencyFutures = sameTasks.stream()
-                .map(t -> lowConcurrencyService.getInstance(UUID.randomUUID()).submit((Callable<SpyingTask>) t))
+                .map(t -> withLowConcurrency.getExecutorService(UUID.randomUUID()).submit((Callable<SpyingTask>) t))
                 .collect(toList());
         TestUtils.awaitAll(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        ConseqFactory highConcurrencyService = new ConseqFactory(highConcurrency);
+        ConseqExecutorServiceFactory withHighConcurrency = ConseqExecutorServiceFactory.ofConcurrency(highConcurrency);
         long highConcurrencyStart = System.nanoTime();
         List<Future<SpyingTask>> highConcurrencyFutures = sameTasks.stream()
-                .map(task -> highConcurrencyService.getInstance(UUID.randomUUID()).submit((Callable<SpyingTask>) task))
+                .map(task -> withHighConcurrency.getExecutorService(UUID.randomUUID())
+                        .submit((Callable<SpyingTask>) task))
                 .collect(toList());
         TestUtils.awaitAll(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
@@ -96,12 +98,13 @@ class ConseqFactoryTest {
 
     @Test
     void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        ConseqFactory defaultConseqExecutorServiceFactory = new ConseqFactory();
+        ConseqExecutorServiceFactory defaultConseqExecutorServiceFactory =
+                ConseqExecutorServiceFactory.ofDefaultConcurrency();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
         final List<Future<SpyingTask>> completedFutures =
-                defaultConseqExecutorServiceFactory.getInstance(sameSequenceKey).invokeAll(tasks);
+                defaultConseqExecutorServiceFactory.getExecutorService(sameSequenceKey).invokeAll(tasks);
 
         final List<SpyingTask> doneTasks = getAll(completedFutures);
         assertSingleThread(doneTasks);
@@ -109,11 +112,12 @@ class ConseqFactoryTest {
 
     @Test
     void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
-        ConseqFactory defaultConseqExecutorServiceFactory = new ConseqFactory();
+        ConseqExecutorServiceFactory defaultConseqExecutorServiceFactory =
+                ConseqExecutorServiceFactory.ofDefaultConcurrency();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        SpyingTask doneTask = defaultConseqExecutorServiceFactory.getInstance(sameSequenceKey).invokeAny(tasks);
+        SpyingTask doneTask = defaultConseqExecutorServiceFactory.getExecutorService(sameSequenceKey).invokeAny(tasks);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
         log.atInfo().log("Chosen task sequence : [{}]", scheduledSequence);
@@ -122,11 +126,12 @@ class ConseqFactoryTest {
 
     @Test
     void submitsRunAllTasksOfSameSequenceKeyInSequence() {
-        ConseqFactory defaultConseqExecutorServiceFactory = new ConseqFactory();
+        ConseqExecutorServiceFactory defaultConseqExecutorServiceFactory =
+                ConseqExecutorServiceFactory.ofDefaultConcurrency();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
-        tasks.forEach(task -> defaultConseqExecutorServiceFactory.getInstance(sameSequenceKey).execute(task));
+        tasks.forEach(task -> defaultConseqExecutorServiceFactory.getExecutorService(sameSequenceKey).execute(task));
 
         TestUtils.awaitDone(tasks);
         assertSingleThread(tasks);
