@@ -199,7 +199,7 @@ Notes:
 
 - The implementation of this style relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
-  behind the scenes to achieve sequential execution of related tasks. A thread pool is employed to facilitate the
+  behind the scenes to achieve sequential execution of related tasks. A backing thread pool is used to facilitate the
   overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
   pool size. Compared to the other conseq4j API style, this has the advantage of avoiding the issues associated with
   hash collision, and may be preferable for simple cases that do not require the syntax and semantic richness
