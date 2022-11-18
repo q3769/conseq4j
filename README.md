@@ -42,7 +42,7 @@ times the executor is summoned. All tasks submitted to that executor, no matter 
 the same sequence; therefore, executed sequentially in exactly the same order as submitted.
 
 There is no limit on the total number of sequence keys the API client can use to summon executors. Behind the scenes,
-tasks of different sequence keys will be managed to execute in parallel, by a thread pool of configurable size.
+tasks of different sequence keys will be managed to execute in parallel, with a configurable global maximum concurrency.
 
 Consider using this style when the summoned executor needs to provide
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
