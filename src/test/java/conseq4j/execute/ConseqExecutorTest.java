@@ -44,7 +44,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class ConseqExecutorTest {
     private static final int TASK_COUNT = 100;
-    private static final Logger log = Logger.instance(ConseqExecutorTest.class);
+    private static final Logger info = Logger.instance(ConseqExecutorTest.class).atInfo();
 
     @Test
     void submitConcurrencyBoundedByThreadPoolSize() {
@@ -57,11 +57,10 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.atInfo()
-                .log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
-                        TASK_COUNT,
-                        actualThreadCount,
-                        threadPoolSize);
+        info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
+                TASK_COUNT,
+                actualThreadCount,
+                threadPoolSize);
         assertEquals(threadPoolSize, actualThreadCount);
     }
 
@@ -76,11 +75,10 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
-        log.atInfo()
-                .log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
-                        TASK_COUNT,
-                        actualThreadCount,
-                        threadPoolSize);
+        info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
+                TASK_COUNT,
+                actualThreadCount,
+                threadPoolSize);
         assertEquals(TASK_COUNT, actualThreadCount);
     }
 
@@ -94,7 +92,7 @@ class ConseqExecutorTest {
 
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
-        log.atInfo().log("[{}] tasks were run by [{}] threads", TASK_COUNT, actualThreadCount);
+        info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, actualThreadCount);
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 

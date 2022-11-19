@@ -38,16 +38,16 @@ import java.util.concurrent.locks.ReentrantLock;
  * because, although synchronized, no call should be blocking on the task's actual execution which happens on a
  * different thread; only the submission portion of the call is blocking on the calling thread.
  */
-final class FairSynchronizingExecutor implements SequencingExecutor {
+final class FairSynchronizingExecutor implements ConcurrentSequencingExecutor {
 
     /**
      * Earliest-submitted task gets executed first
      */
     public static final boolean FAIR_ON_CONTENTION = true;
-    private final SequencingExecutor delegate;
+    private final ConcurrentSequencingExecutor delegate;
     private final Lock fairLock = new ReentrantLock(FAIR_ON_CONTENTION);
 
-    public FairSynchronizingExecutor(@NonNull SequencingExecutor delegate) {
+    public FairSynchronizingExecutor(@NonNull ConcurrentSequencingExecutor delegate) {
         this.delegate = delegate;
     }
 

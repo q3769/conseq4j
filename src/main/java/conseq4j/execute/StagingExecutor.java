@@ -37,7 +37,7 @@ import java.util.concurrent.*;
  * @author Qingtian Wang
  */
 @ToString
-final class StagingExecutor implements SequencingExecutor {
+final class StagingExecutor implements ConcurrentSequencingExecutor {
     private final Logger warn = Logger.instance(StagingExecutor.class).atWarn();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
 
@@ -96,7 +96,7 @@ final class StagingExecutor implements SequencingExecutor {
                             CompletableFuture.runAsync(command, this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
-                                    warn.log("[{}] occurred in [{}] before executing command [{}]",
+                                    warn.log("exception {} occurred in stage {} before executing next command {}",
                                             currentException,
                                             currentExecutionStage,
                                             command);
@@ -126,7 +126,7 @@ final class StagingExecutor implements SequencingExecutor {
                             CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
                             currentExecutionStage.handleAsync((currentResult, currentException) -> {
                                 if (currentException != null) {
-                                    warn.log("[{}] occurred in [{}] before executing task [{}]",
+                                    warn.log("exception {} occurred in stage {} before executing next task {}",
                                             currentException,
                                             currentExecutionStage,
                                             task);

@@ -34,17 +34,17 @@ import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.Future;
 
 /**
- * The default implementation of the {@link SequencingExecutor} API. Task submission calls are thread-safe
+ * The default implementation of the {@link ConcurrentSequencingExecutor} API. Task submission calls are thread-safe
  * (synchronized) and fair under contention.
  *
  * @author Qingtian Wang
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements SequencingExecutor {
+public final class ConseqExecutor implements ConcurrentSequencingExecutor {
 
     private static final ExecutorService DEFAULT_THREAD_POOL = ForkJoinPool.commonPool();
-    private final SequencingExecutor delegate;
+    private final ConcurrentSequencingExecutor delegate;
 
     /**
      * @param executionThreadPool custom JDK thread pool to facilitate async execution of this conseq executor instance
@@ -55,11 +55,17 @@ public final class ConseqExecutor implements SequencingExecutor {
 
     /**
      * Default executor uses {@link ForkJoinPool#commonPool()} as async facility.
+     *
+     * @return executor with default thread pool
      */
     public static ConseqExecutor withDefaultThreadPool() {
         return new ConseqExecutor(DEFAULT_THREAD_POOL);
     }
 
+    /**
+     * @param executionThreadPool customized thread pool to use as async facility
+     * @return executor with given thread pool as concurrency facility
+     */
     public static ConseqExecutor withThreadPool(ExecutorService executionThreadPool) {
         return new ConseqExecutor(executionThreadPool);
     }

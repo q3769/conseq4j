@@ -35,14 +35,15 @@ import java.util.concurrent.Executors;
 import static java.lang.Math.floorMod;
 
 /**
- * Providing concurrency as well as sequencing, via the {@link ExecutorService} API
+ * A factory to produce sequential executors of type {@link ExecutorService} with an upper-bound global execution
+ * concurrency. Providing task execution concurrency, as well as sequencing, via the {@link ExecutorService} API.
  *
  * @author Qingtian Wang
  */
 
 @ThreadSafe
 @ToString
-public final class ConseqExecutorServiceFactory implements SequentialExecutorServiceFactory {
+public final class Conseq implements ConcurrentSequencer {
 
     private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
@@ -52,7 +53,7 @@ public final class ConseqExecutorServiceFactory implements SequentialExecutorSer
      * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
      *                          concurrently executed at any given time by this conseq instance.
      */
-    private ConseqExecutorServiceFactory(int globalConcurrency) {
+    private Conseq(int globalConcurrency) {
         if (globalConcurrency <= 0) {
             throw new IllegalArgumentException(
                     "expecting positive global concurrency, but given: " + globalConcurrency);
@@ -60,19 +61,26 @@ public final class ConseqExecutorServiceFactory implements SequentialExecutorSer
         this.globalConcurrency = globalConcurrency;
     }
 
-    public static ConseqExecutorServiceFactory ofConcurrency(int globalConcurrency) {
-        return new ConseqExecutorServiceFactory(globalConcurrency);
+    /**
+     * @param globalConcurrency max number of tasks possible to be executed in parallel
+     * @return ExecutorService factory with given global concurrency
+     */
+    public static Conseq ofConcurrency(int globalConcurrency) {
+        return new Conseq(globalConcurrency);
     }
 
-    public static ConseqExecutorServiceFactory ofDefaultConcurrency() {
-        return new ConseqExecutorServiceFactory(DEFAULT_GLOBAL_CONCURRENCY);
+    /**
+     * @return ExecutorService factory with default global concurrency
+     */
+    public static Conseq ofDefaultConcurrency() {
+        return new Conseq(DEFAULT_GLOBAL_CONCURRENCY);
     }
 
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getExecutorService(Object sequenceKey) {
+    public ExecutorService getSequentialExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
     }
