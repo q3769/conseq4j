@@ -216,7 +216,7 @@ Notes:
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
   ```
 
-  Alternatively, the thread pool can be customized. E.g. this is to use a customized thread pool of 10 threads:
+  Alternatively, the thread pool can be customized. E.g. this is to use a pool of 10 threads:
   ```
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
