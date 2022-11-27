@@ -50,7 +50,7 @@ of the JDK `ExecutorService` API.
 
 #### API
 
-```
+```java
 public interface ConcurrentSequencer {
 
     /**
@@ -64,34 +64,32 @@ public interface ConcurrentSequencer {
 
 #### Sample usage
 
-```
+```java
 public class MessageConsumer {
 
     /**
      * Default conseq's global concurrency is (java.lang.Runtime.availableProcessors + 1).
-     * 
+     *
      * Or to set the global concurrency to 10, for example:
      * <code>
      * private ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
      * </code>
      */
-    private ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency(); 
-    
-    @Autowired
-    private ShoppingEventProcessor shoppingEventProcessor;
-    
-    
+    private ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
+
+    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
+
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider.
      * This is usually via a single caller thread.
-     * 
+     *
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel, by different executors. Sequence is maintained on all 
      * shopping events of the same shopping cart ID, by the same executor.
      */
-    public void onMessage(Message shoppingEvent) {       
+    public void onMessage(Message shoppingEvent) {
         conseq.getSequentialExecutorService(shoppingEvent.getShoppingCartId())
-                .execute(() -> shoppingEventProcessor.process(shoppingEvent)); 
+                .execute(() -> shoppingEventProcessor.process(shoppingEvent));
     }
     ...
 ```
@@ -116,13 +114,13 @@ Notes:
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 - The default global concurrency is 1 plus the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
-  ```
+  ```java
   ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
   ```
 
   The global concurrency can be customized. This may become useful when the application is deployed using containers,
   where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU resource of the container.
-  ```
+  ```java
   ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
   ```
 
@@ -139,7 +137,7 @@ required.
 
 #### API
 
-```
+```java
 public interface ConcurrentSequencingExecutor {
 
     /**
@@ -161,7 +159,7 @@ public interface ConcurrentSequencingExecutor {
 
 #### Sample usage
 
-```
+```java
 public class MessageConsumer {
 
     /**
@@ -212,12 +210,12 @@ Notes:
 
   The default thread pool is
   JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--):
-  ```
+  ```java
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
   ```
 
   Alternatively, the thread pool can be customized. E.g. this is to use a pool of 10 threads:
-  ```
+  ```java
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
 
