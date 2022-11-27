@@ -163,7 +163,7 @@ public interface ConcurrentSequencingExecutor {
 public class MessageConsumer {
 
     /**
-     * Default service uses JDK's ForkJoinPooll#commonPool to facilitate async execution.
+     * Default service uses JDK's ForkJoinPool#commonPool to facilitate async execution.
      *
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
