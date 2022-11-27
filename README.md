@@ -164,31 +164,27 @@ public class MessageConsumer {
 
     /**
      * Default service uses JDK's ForkJoinPooll#commonPool to facilitate async execution.
-     * 
+     *
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
      * private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(newFixedThreadPool(10));
      * </code>
      */
     private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
-    
-    @Autowired
-    private ShoppingEventProcessor shoppingEventProcessor;
-    
-    
+
+    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
+
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider.
      * This is usually via a single caller thread.
-     * 
+     *
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel by different backing threads. Sequence is maintained on all 
      * shopping events of the same shopping cart ID, via linear progressing of the
      * {@link CompletableFuture}'s completion stages.
      */
-    public void onMessage(Message shoppingEvent) {       
-        conseqExecutor.submit(
-                () -> shoppingEventProcessor.process(shoppingEvent), 
-                shoppingEvent.getShoppingCartId());
+    public void onMessage(Message shoppingEvent) {
+        conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
     }
     ...
 ```
