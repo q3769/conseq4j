@@ -224,31 +224,29 @@ maintaining meaningful local execution order and maximizing global concurrency.
 
 In asynchronous messaging, there are generally two approaches to achieve ordering with concurrency:
 
-### 1. Preventive
+1. Preventive
 
-This is more on the technical level. Sometimes it is possible to prevent related messages from ever being executed out
-of order in a globally concurrent process. This implies:
+   This is more on the technical level. Sometimes it is possible to prevent related messages from ever being executed
+   out of order in a globally concurrent process. This implies:
 
-(1) The message producer ensures that messages are posted to the messaging provider in correct order.
+    1. The message producer ensures that messages are posted to the messaging provider in correct order.
+    2. The messaging provider ensures that messages are delivered to the message consumer in the same order they are
+       received.
+    3. The message consumer ensures that related messages are processed in the same order, e.g., by using a
+       sequence/correlation key as with this API.
 
-(2) The messaging provider ensures that messages are delivered to the message consumer in the same order they are
-received.
+2. Curative
 
-(3) The message consumer ensures that related messages are processed in the same order, e.g., by using a
-sequence/correlation key as with this API.
+   This is more on the business rule level. Sometimes preventative measures of messaging order preservation, through the
+   likes of this API, are either not possible or not worthwhile to pursue. By the time the consumer receives the
+   messages, things can be out of order already. E.g., when the messages are coming in from independent producers and
+   sources, there may be no guarantee of correct ordering in the first place. Now the message consumer's job is to
+   detect and make amends when things do go out of order, by using business rules.
 
-### 2. Curative
-
-This is more on the business rule level. Sometimes preventative measures of messaging order preservation, through the
-likes of this API, are either not possible or not worthwhile to pursue. By the time the consumer receives the messages,
-things can be out of order already. E.g., when the messages are coming in from independent producers and sources, there
-may be no guarantee of correct ordering in the first place. Now the message consumer's job is to detect and make amends
-when things do go out of order, by using business rules.
-
-Compared to preventative measures, corrective ones can be much more complicated in terms of design, implementation
-and runtime performance. E.g. it may help to do a stateful/historical look-up of all the data and other events received
-so far that are related to the incoming event; this forms a correlated and collective session of information for
-the incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of
-order per business rules; corrective (among other reactive) actions can then be taken as needed. This may fall into the
-scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can
-also be a useful design in such scenario.
+   Compared to preventative measures, corrective ones can be much more complicated in terms of design, implementation
+   and runtime performance. E.g. it may help to do a stateful/historical look-up of all the data and other events
+   received so far that are related to the incoming event; this forms a correlated and collective session of information
+   for the incoming event. A comprehensive review of such session can detect and determine if the incoming event is out
+   of order per business rules; corrective (among other reactive) actions can then be taken as needed. This may fall
+   into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State
+   Machines can also be a useful design in such scenario.
