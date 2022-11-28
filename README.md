@@ -1,7 +1,8 @@
 # conseq4j
 
-A Java concurrent API to sequence the executions of related tasks while concurring unrelated ones, where "conseq" is
-short for **con**current **seq**uencer.
+A Java concurrent API to sequence the executions of related tasks while concurring unrelated ones.
+
+- **conseq** is short for **con**current **seq**uencer.
 
 ## User stories
 
