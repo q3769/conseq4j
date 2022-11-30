@@ -24,12 +24,11 @@
 
 package conseq4j.execute;
 
-import elf4j.Logger;
-import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
 
+import javax.annotation.Nullable;
 import java.util.concurrent.*;
 
 /**
@@ -39,9 +38,8 @@ import java.util.concurrent.*;
  */
 @ToString
 final class StagingExecutor implements ConcurrentSequencingExecutor {
-    private final Logger warn = Logger.instance(StagingExecutor.class).atWarn();
+    private static final ExecutorService ADMIN_THREAD = Executors.newSingleThreadExecutor();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
-
     private final ExecutorService executionThreadPool;
 
     /**
@@ -59,6 +57,12 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
         } catch (Exception e) {
             throw new UncheckedExecutionException(e);
         }
+    }
+
+    @Nullable
+    private static Object run(@NonNull Runnable command) {
+        command.run();
+        return null;
     }
 
     /**
@@ -90,26 +94,13 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
      */
     @Override
     public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
-        FutureHolder<Void> futureHolder = new FutureHolder<>();
-        CompletableFuture<?> commandStage =
-                this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
-                    CompletableFuture<Void> nextExecutionStage = (currentExecutionStage == null) ?
-                            CompletableFuture.runAsync(command, this.executionThreadPool) :
-                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                                if (currentException != null) {
-                                    warn.log("exception {} occurred in stage {} before executing next command {}",
-                                            currentException,
-                                            currentExecutionStage,
-                                            command);
-                                }
-                                command.run();
-                                return null;
-                            }, this.executionThreadPool);
-                    futureHolder.setFuture(nextExecutionStage);
-                    return nextExecutionStage;
-                });
+        CompletableFuture<?> commandStage = this.sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
+                        CompletableFuture.runAsync(command, this.executionThreadPool) :
+                        currentExecutionStage.handleAsync((currentResult, currentException) -> run(command),
+                                this.executionThreadPool));
         sweepExecutorIfAllTasksComplete(sequenceKey, commandStage);
-        return new SimpleFuture<>(futureHolder.getFuture());
+        return new SimpleFuture<>(commandStage);
     }
 
     /**
@@ -120,25 +111,13 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
      */
     @Override
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        FutureHolder<T> futureHolder = new FutureHolder<>();
-        CompletableFuture<?> taskStage =
-                this.sequentialExecutors.compute(sequenceKey, (sameSequenceKey, currentExecutionStage) -> {
-                    CompletableFuture<T> nextExecutionStage = (currentExecutionStage == null) ?
-                            CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
-                            currentExecutionStage.handleAsync((currentResult, currentException) -> {
-                                if (currentException != null) {
-                                    warn.log("exception {} occurred in stage {} before executing next task {}",
-                                            currentException,
-                                            currentExecutionStage,
-                                            task);
-                                }
-                                return call(task);
-                            }, this.executionThreadPool);
-                    futureHolder.setFuture(nextExecutionStage);
-                    return nextExecutionStage;
-                });
+        CompletableFuture<?> taskStage = this.sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
+                        CompletableFuture.supplyAsync(() -> call(task), this.executionThreadPool) :
+                        currentExecutionStage.handleAsync((currentResult, currentException) -> call(task),
+                                this.executionThreadPool));
         sweepExecutorIfAllTasksComplete(sequenceKey, taskStage);
-        return new SimpleFuture<>(futureHolder.getFuture());
+        return new SimpleFuture<>(taskStage);
     }
 
     /**
@@ -151,7 +130,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
      */
     private void sweepExecutorIfAllTasksComplete(Object sequenceKey, @NonNull CompletableFuture<?> triggerTask) {
         triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask));
+                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask), ADMIN_THREAD);
     }
 
     int getActiveExecutorCount() {
@@ -169,12 +148,6 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
         }
     }
 
-    @Data
-    private static class FutureHolder<T> {
-
-        Future<T> future;
-    }
-
     /**
      * Making it impossible to downcast the wrapped instance any further from the minimum implementation of
      * {@link Future}
@@ -184,8 +157,9 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
     private static final class SimpleFuture<V> implements Future<V> {
         @Delegate private final Future<V> future;
 
-        SimpleFuture(@NonNull Future<V> future) {
-            this.future = future;
+        @SuppressWarnings("unchecked")
+        SimpleFuture(@NonNull Future<?> future) {
+            this.future = (Future<V>) future;
         }
     }
 }
