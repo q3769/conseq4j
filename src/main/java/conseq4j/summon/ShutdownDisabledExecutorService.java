@@ -24,12 +24,11 @@
 
 package conseq4j.summon;
 
-import lombok.NonNull;
 import lombok.ToString;
+import lombok.experimental.Delegate;
 
-import java.util.Collection;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
 
 /**
  * An {@link ExecutorService} that cannot be shut down at run-time.
@@ -42,7 +41,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
             "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
 
-    private final ExecutorService delegate;
+    @Delegate(excludes = ShutdownOperations.class) private final ExecutorService delegate;
 
     /**
      * <p>Constructor for ShutdownDisallowedExecutorService.</p>
@@ -72,95 +71,11 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
     }
 
     /**
-     * {@inheritDoc}
+     * Methods that require decoration instead of delegation
      */
-    @Override
-    public boolean isShutdown() {
-        return this.delegate.isShutdown();
-    }
+    private interface ShutdownOperations {
+        void shutdown();
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean isTerminated() {
-        return this.delegate.isTerminated();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public boolean awaitTermination(long timeout, @NonNull TimeUnit unit) throws InterruptedException {
-        return this.delegate.awaitTermination(timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull <T> Future<T> submit(@NonNull Callable<T> task) {
-        return this.delegate.submit(task);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull <T> Future<T> submit(@NonNull Runnable task, T result) {
-        return this.delegate.submit(task, result);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull Future<?> submit(@NonNull Runnable task) {
-        return this.delegate.submit(task);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public @NonNull <T> List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks)
-            throws InterruptedException {
-        return this.delegate.invokeAll(tasks);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T> @NonNull List<Future<T>> invokeAll(@NonNull Collection<? extends Callable<T>> tasks,
-            long timeout,
-            @NonNull TimeUnit unit) throws InterruptedException {
-        return this.delegate.invokeAll(tasks, timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T> @NonNull T invokeAny(@NonNull Collection<? extends Callable<T>> tasks)
-            throws InterruptedException, ExecutionException {
-        return this.delegate.invokeAny(tasks);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public <T> T invokeAny(@NonNull Collection<? extends Callable<T>> tasks, long timeout, @NonNull TimeUnit unit)
-            throws InterruptedException, ExecutionException, TimeoutException {
-        return this.delegate.invokeAny(tasks, timeout, unit);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void execute(@NonNull Runnable command) {
-        this.delegate.execute(command);
+        List<Runnable> shutdownNow();
     }
 }
