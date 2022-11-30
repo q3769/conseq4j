@@ -28,6 +28,7 @@ import elf4j.Logger;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.ToString;
+import lombok.experimental.Delegate;
 
 import java.util.concurrent.*;
 
@@ -181,37 +182,10 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
      * @param <V> type of result held by the Future
      */
     private static final class SimpleFuture<V> implements Future<V> {
-
-        private final Future<V> future;
+        @Delegate private final Future<V> future;
 
         SimpleFuture(@NonNull Future<V> future) {
             this.future = future;
-        }
-
-        @Override
-        public boolean cancel(boolean mayInterruptIfRunning) {
-            return this.future.cancel(mayInterruptIfRunning);
-        }
-
-        @Override
-        public boolean isCancelled() {
-            return this.future.isCancelled();
-        }
-
-        @Override
-        public boolean isDone() {
-            return this.future.isDone();
-        }
-
-        @Override
-        public V get() throws InterruptedException, ExecutionException {
-            return this.future.get();
-        }
-
-        @Override
-        public V get(long timeout, @NonNull TimeUnit unit)
-                throws InterruptedException, ExecutionException, TimeoutException {
-            return this.future.get(timeout, unit);
         }
     }
 }
