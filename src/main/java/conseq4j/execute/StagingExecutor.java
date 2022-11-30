@@ -121,8 +121,7 @@ final class StagingExecutor implements ConcurrentSequencingExecutor {
     }
 
     /**
-     * The thread pool to conduct the executor sweeping maintenance is the default {@link ForkJoinPool#commonPool()},
-     * and cannot be customized.
+     * When trigger task is complete, check and de-list the executor entry if all is complete
      *
      * @param sequenceKey the key whose tasks are sequentially executed
      * @param triggerTask the task/stage that triggers a check and possible sweep of the executor from the map if
