@@ -27,7 +27,7 @@ Java 8 or better
 ## Use it...
 
 - Sequence keys: A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
-  `Objects.equals(key1, key2)` returns `true`.
+  `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 - Thread-safety: conseq4j is thread-safe in that no data corruption happens due to thread racing. Note, however, there
   is no such thing as sequence among tasks submitted concurrently by different threads; that is by definition, and
