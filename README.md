@@ -243,7 +243,7 @@ This is more on the business rule level. Sometimes preventative measures for mes
 possible or not worthwhile to pursue. By the time the consumer receives the messages, things can be out of order
 already. E.g. when the messages are coming in from independent producers and sources, there may be no guarantee of
 correct ordering in the first place. In such cases, the message consumer's job would be to detect and make amends when
-things do go out of order, by applying business rules to restore the proper order.
+things do go out of order, by applying business rules to restore the proper sequence.
 
 Compared to preventative measures, corrective ones can be much more complicated in terms of design, implementation and
 runtime performance. E.g. it may help to do a stateful/historical look-up of all the data and other events received so
