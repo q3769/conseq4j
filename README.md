@@ -241,7 +241,7 @@ sequence/correlation key as with this API.
 
 This is more on the business rule level. Sometimes preventative measures for messaging order preservation are either not
 possible or not worthwhile to pursue. By the time the consumer receives the messages, things can be out of order
-already. E.g., when the messages are coming in from independent producers and sources, there may be no guarantee of
+already. E.g. when the messages are coming in from independent producers and sources, there may be no guarantee of
 correct ordering in the first place. In such cases, the message consumer's job would be to detect and make amends when
 things do go out of order, by applying business rules to restore the proper order.
 
