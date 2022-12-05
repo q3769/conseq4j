@@ -50,7 +50,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ConseqFactoryTest {
     private static final int TASK_COUNT = 100;
-    private static final Logger log = Logger.instance(ConseqFactoryTest.class);
+    private static final Logger info = Logger.instance(ConseqFactoryTest.class);
 
     @Test
     void concurrencyBoundedByTotalTaskCount() {
@@ -62,7 +62,7 @@ class ConseqFactoryTest {
                 .collect(toList());
 
         final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-        log.atInfo().log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
+        info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -90,9 +90,11 @@ class ConseqFactoryTest {
         TestUtils.awaitAll(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        log.atInfo().log("low concurrency: [{}], run time: [{}]", lowConcurrency, Duration.ofNanos(lowConcurrencyTime));
-        log.atInfo()
-                .log("high concurrency: [{}], run time: [{}]", highConcurrency, Duration.ofNanos(highConcurrencyTime));
+        info.log("low concurrency: [{}], run time: [{}]; high concurrency: [{}], run time: [{}]",
+                lowConcurrency,
+                Duration.ofNanos(lowConcurrencyTime),
+                highConcurrency,
+                Duration.ofNanos(highConcurrencyTime));
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -118,7 +120,7 @@ class ConseqFactoryTest {
         SpyingTask doneTask = defaultConseq.getSequentialExecutorService(sameSequenceKey).invokeAny(tasks);
 
         final Integer scheduledSequence = doneTask.getScheduledSequence();
-        log.atInfo().log("Chosen task sequence : [{}]", scheduledSequence);
+        info.log("chosen task sequence: [{}]", scheduledSequence);
         assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequence));
     }
 
@@ -137,9 +139,8 @@ class ConseqFactoryTest {
     void assertSingleThread(List<SpyingTask> tasks) {
         Set<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).collect(Collectors.toSet());
         assertEquals(1, distinctThreads.size());
-        log.atInfo()
-                .log("[{}] tasks executed by single thread: [{}]",
-                        tasks.size(),
-                        distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
+        info.log("[{}] tasks executed by single thread: [{}]",
+                tasks.size(),
+                distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
     }
 }
