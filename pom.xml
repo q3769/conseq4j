@@ -139,7 +139,7 @@
         <dependency>
             <groupId>io.github.elf4j</groupId>
             <artifactId>elf4j-tinylog</artifactId>
-            <version>8.0.0</version>
+            <version>9.0.0</version>
             <scope>test</scope>
         </dependency>
         <dependency>
