@@ -24,23 +24,23 @@
 
 package conseq4j;
 
-import java.time.Duration;
-import java.util.ArrayList;
+import org.awaitility.Awaitility;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.stream.IntStream;
 
 import static java.util.stream.Collectors.toList;
-import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class TestUtils {
 
     private TestUtils() {
     }
 
-    public static long actualCompletionThreadCount(List<Future<SpyingTask>> futures) {
-        return getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+    public static long actualCompletionThreadCountIfAllNormal(List<Future<SpyingTask>> futures) {
+        return getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
     public static int actualExecutionThreadCount(List<SpyingTask> tasks) {
@@ -51,33 +51,28 @@ public class TestUtils {
         for (int i = 0; i < tasks.size() - 1; i++) {
             SpyingTask current = tasks.get(i);
             SpyingTask next = tasks.get(i + 1);
-            assertFalse(current.getRunTimeEndMillis() > next.getRunTimeStartMillis());
+            assertTrue(current.getRunTimeEndMillis() <= next.getRunTimeStartMillis());
         }
     }
 
-    public static <T> void awaitAll(List<Future<T>> futures) {
-        await().timeout(Duration.ofSeconds(20)).until(() -> futures.parallelStream().allMatch(Future::isDone));
+    public static <T> void awaitFutures(List<Future<T>> futures) {
+        Awaitility.await().until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
-    public static void awaitDone(List<SpyingTask> tasks) {
-        await().until(() -> tasks.parallelStream()
-                .allMatch(t -> t.getRunTimeEndMillis() != SpyingTask.UNSET_TIME_STAMP));
+    public static void awaitTasks(List<SpyingTask> tasks) {
+        Awaitility.await().until(() -> tasks.parallelStream().allMatch(SpyingTask::isDone));
     }
 
     public static <T> int cancellationCount(List<Future<T>> futures) {
-        awaitAll(futures);
+        awaitFutures(futures);
         return futures.parallelStream().mapToInt(f -> f.isCancelled() ? 1 : 0).sum();
     }
 
     public static List<SpyingTask> createSpyingTasks(int taskCount) {
-        List<SpyingTask> result = new ArrayList<>();
-        for (int i = 0; i < taskCount; i++) {
-            result.add(new SpyingTask(i));
-        }
-        return result;
+        return IntStream.range(0, taskCount).mapToObj(SpyingTask::new).collect(toList());
     }
 
-    public static <T> List<T> getAll(List<Future<T>> futures) {
+    public static <T> List<T> getResultsIfAllNormal(List<Future<T>> futures) {
         return futures.stream().map(f -> {
             try {
                 return f.get();
@@ -88,7 +83,7 @@ public class TestUtils {
     }
 
     public static <T> int normalCompletionCount(List<Future<T>> resultFutures) {
-        awaitAll(resultFutures);
+        awaitFutures(resultFutures);
         int normalCompletionCount = 0;
         for (Future<T> future : resultFutures) {
             if (future.isCancelled()) {

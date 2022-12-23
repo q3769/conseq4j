@@ -40,9 +40,9 @@ import static org.awaitility.Awaitility.await;
 @ToString
 @Getter
 public class SpyingTask implements Runnable {
-    public static final int MAX_RUN_TIME_MILLIS = 20;
-    public static final Random RANDOM = new Random();
-    public static final int UNSET_TIME_STAMP = 0;
+    private static final int MAX_RUN_TIME_MILLIS = 20;
+    private static final Random RANDOM = new Random();
+    private static final long UNSET_TIME_STAMP = Long.MIN_VALUE;
     private static final Logger trace = Logger.instance(SpyingTask.class).atTrace();
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
@@ -67,10 +67,21 @@ public class SpyingTask implements Runnable {
                 .pollInterval(Duration.ofMillis(1))
                 .until(() -> (System.currentTimeMillis() - this.runTimeStartMillis) >= this.targetRunDurationMillis);
         this.runTimeEndMillis = System.currentTimeMillis();
-        trace.log("task: {}, run duration: {}", this, Duration.ofMillis(runTimeEndMillis - runTimeStartMillis));
+        trace.log("task: {}, ran duration: {}", this, this.getActualRunDuration());
     }
 
     public Callable<SpyingTask> toCallable() {
         return Executors.callable(this, this);
+    }
+
+    public boolean isDone() {
+        return this.runTimeStartMillis != UNSET_TIME_STAMP && this.runTimeEndMillis != UNSET_TIME_STAMP;
+    }
+
+    public Duration getActualRunDuration() {
+        if (!isDone()) {
+            throw new IllegalStateException("task " + this + " not done running yet");
+        }
+        return Duration.ofMillis(this.runTimeEndMillis - this.runTimeStartMillis);
     }
 }

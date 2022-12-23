@@ -46,7 +46,7 @@ class StagingExecutorTest {
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
-        TestUtils.awaitDone(tasks);
+        TestUtils.awaitTasks(tasks);
 
         await().until(() -> sut.getActiveExecutorCount() == 0);
     }
@@ -57,7 +57,7 @@ class StagingExecutorTest {
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
-        TestUtils.awaitDone(tasks);
+        TestUtils.awaitTasks(tasks);
 
         await().until(() -> sut.getActiveExecutorCount() == 0);
     }

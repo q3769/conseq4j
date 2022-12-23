@@ -40,7 +40,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static conseq4j.TestUtils.createSpyingTasks;
-import static conseq4j.TestUtils.getAll;
+import static conseq4j.TestUtils.getResultsIfAllNormal;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -52,6 +52,10 @@ class ConseqFactoryTest {
     private static final int TASK_COUNT = 100;
     private static final Logger info = Logger.instance(ConseqFactoryTest.class);
 
+    private static List<Callable<SpyingTask>> toCallables(List<SpyingTask> tasks) {
+        return tasks.stream().map(SpyingTask::toCallable).collect(Collectors.toList());
+    }
+
     @Test
     void concurrencyBoundedByTotalTaskCount() {
         Conseq withHigherConcurrencyThanTaskCount = Conseq.ofConcurrency(TASK_COUNT * 2);
@@ -61,7 +65,7 @@ class ConseqFactoryTest {
                         .submit(task.toCallable()))
                 .collect(toList());
 
-        final long totalRunThreads = getAll(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        final long totalRunThreads = getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
@@ -77,7 +81,7 @@ class ConseqFactoryTest {
         List<Future<SpyingTask>> lowConcurrencyFutures = sameTasks.stream()
                 .map(t -> withLowConcurrency.getSequentialExecutorService(UUID.randomUUID()).submit(t.toCallable()))
                 .collect(toList());
-        TestUtils.awaitAll(lowConcurrencyFutures);
+        TestUtils.awaitFutures(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
         Conseq withHighConcurrency = Conseq.ofConcurrency(highConcurrency);
@@ -86,7 +90,7 @@ class ConseqFactoryTest {
                 .map(task -> withHighConcurrency.getSequentialExecutorService(UUID.randomUUID())
                         .submit(task.toCallable()))
                 .collect(toList());
-        TestUtils.awaitAll(highConcurrencyFutures);
+        TestUtils.awaitFutures(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
         info.log("low concurrency: {}, ran duration: {}; high concurrency: {}, ran duration: {}",
@@ -106,7 +110,7 @@ class ConseqFactoryTest {
         final List<Future<SpyingTask>> completedFutures =
                 defaultConseq.getSequentialExecutorService(sameSequenceKey).invokeAll(toCallables(tasks));
 
-        final List<SpyingTask> doneTasks = getAll(completedFutures);
+        final List<SpyingTask> doneTasks = getResultsIfAllNormal(completedFutures);
         assertSingleThread(doneTasks);
     }
 
@@ -123,10 +127,6 @@ class ConseqFactoryTest {
         assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequence));
     }
 
-    private static List<Callable<SpyingTask>> toCallables(List<SpyingTask> tasks) {
-        return tasks.stream().map(SpyingTask::toCallable).collect(Collectors.toList());
-    }
-
     @Test
     void submitsRunAllTasksOfSameSequenceKeyInSequence() {
         Conseq defaultConseq = Conseq.ofDefaultConcurrency();
@@ -135,7 +135,7 @@ class ConseqFactoryTest {
 
         tasks.forEach(task -> defaultConseq.getSequentialExecutorService(sameSequenceKey).execute(task));
 
-        TestUtils.awaitDone(tasks);
+        TestUtils.awaitTasks(tasks);
         assertSingleThread(tasks);
     }
 

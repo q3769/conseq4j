@@ -36,7 +36,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
-import static conseq4j.TestUtils.awaitDone;
+import static conseq4j.TestUtils.awaitTasks;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.toList;
@@ -56,7 +56,7 @@ class ConseqExecutorTest {
                 .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
-        final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
+        final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
         info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
                 TASK_COUNT,
                 actualThreadCount,
@@ -74,7 +74,7 @@ class ConseqExecutorTest {
                 .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
-        final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
+        final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
         info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
                 TASK_COUNT,
                 actualThreadCount,
@@ -134,11 +134,11 @@ class ConseqExecutorTest {
 
         long sameKeyStartTimeMillis = System.currentTimeMillis();
         sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
-        awaitDone(sameTasks);
+        awaitTasks(sameTasks);
         long sameKeyEndTimeMillis = System.currentTimeMillis();
         long differentKeysStartTimeMillis = System.currentTimeMillis();
         sameTasks.forEach(t -> sut.execute(t, UUID.randomUUID()));
-        awaitDone(sameTasks);
+        awaitTasks(sameTasks);
         long differentKeysEndTimeMillis = System.currentTimeMillis();
 
         long runtimeConcurrent = differentKeysEndTimeMillis - differentKeysStartTimeMillis;
