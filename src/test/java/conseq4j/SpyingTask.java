@@ -30,6 +30,7 @@ import lombok.ToString;
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.Callable;
+import java.util.concurrent.Executors;
 
 import static org.awaitility.Awaitility.await;
 
@@ -38,7 +39,7 @@ import static org.awaitility.Awaitility.await;
  */
 @ToString
 @Getter
-public class SpyingTask implements Runnable, Callable<SpyingTask> {
+public class SpyingTask implements Runnable {
     public static final int MAX_RUN_TIME_MILLIS = 20;
     public static final Random RANDOM = new Random();
     public static final int UNSET_TIME_STAMP = 0;
@@ -69,9 +70,7 @@ public class SpyingTask implements Runnable, Callable<SpyingTask> {
         trace.log("task: {}, run duration: {}", this, Duration.ofMillis(runTimeEndMillis - runTimeStartMillis));
     }
 
-    @Override
-    public SpyingTask call() {
-        this.run();
-        return this;
+    public Callable<SpyingTask> toCallable() {
+        return Executors.callable(this, this);
     }
 }

@@ -24,6 +24,7 @@
 
 package conseq4j;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
@@ -55,7 +56,7 @@ public class TestUtils {
     }
 
     public static <T> void awaitAll(List<Future<T>> futures) {
-        await().until(() -> futures.parallelStream().allMatch(Future::isDone));
+        await().timeout(Duration.ofSeconds(20)).until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
     public static void awaitDone(List<SpyingTask> tasks) {

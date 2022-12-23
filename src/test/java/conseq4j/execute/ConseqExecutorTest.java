@@ -53,7 +53,7 @@ class ConseqExecutorTest {
 
         List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
                 .stream()
-                .map(task -> conseqExecutor.submit(task, UUID.randomUUID()))
+                .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
@@ -71,7 +71,7 @@ class ConseqExecutorTest {
 
         List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
                 .stream()
-                .map(task -> conseqExecutor.submit(task, UUID.randomUUID()))
+                .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCount(futures);
@@ -105,7 +105,7 @@ class ConseqExecutorTest {
         List<Future<SpyingTask>> resultFutures = new ArrayList<>();
         int cancelTaskIdx = 1;
         for (int i = 0; i < TASK_COUNT; i++) {
-            Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i), sameSequenceKey);
+            Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i).toCallable(), sameSequenceKey);
             if (i == cancelTaskIdx) {
                 taskFuture.cancel(true);
             }
@@ -120,7 +120,8 @@ class ConseqExecutorTest {
 
     @Test
     void returnMinimalFuture() {
-        Future<SpyingTask> result = ConseqExecutor.withDefaultThreadPool().submit(new SpyingTask(1), UUID.randomUUID());
+        Future<SpyingTask> result =
+                ConseqExecutor.withDefaultThreadPool().submit(new SpyingTask(1).toCallable(), UUID.randomUUID());
 
         assertFalse(result instanceof CompletableFuture);
     }
