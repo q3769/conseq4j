@@ -72,7 +72,7 @@ public class MessageConsumer {
 
     /**
      * Default conseq's global concurrency is (java.lang.Runtime.availableProcessors + 1).
-     *
+     * <p></p>
      * Or to set the global concurrency to 10, for example:
      * <code>
      * private ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
@@ -85,7 +85,7 @@ public class MessageConsumer {
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider.
      * This is usually via a single caller thread.
-     *
+     * <p></p>
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel, by different executors. Sequence is maintained on all 
      * shopping events of the same shopping cart ID, by the same executor.
@@ -94,7 +94,7 @@ public class MessageConsumer {
         conseq.getSequentialExecutorService(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent));
     }
-    ...
+}
 ```
 
 Notes:
@@ -117,13 +117,13 @@ Notes:
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
 - The default global concurrency is 1 plus the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
-  ```java
+  ```jshelllanguage
   ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
   ```
 
   The global concurrency can be customized. This may become useful when the application is deployed using containers,
   where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU resource of the container.
-  ```java
+  ```jshelllanguage
   ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
   ```
 
@@ -163,11 +163,13 @@ public interface ConcurrentSequencingExecutor {
 #### Sample usage
 
 ```java
+import java.util.concurrent.CompletableFuture;
+
 public class MessageConsumer {
 
     /**
      * Default service uses JDK's ForkJoinPool#commonPool to facilitate async execution.
-     *
+     * <p></p>
      * Or to provide a custom thread pool of size 10, for example:
      * <code>
      * private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(newFixedThreadPool(10));
@@ -180,7 +182,7 @@ public class MessageConsumer {
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider.
      * This is usually via a single caller thread.
-     *
+     * <p></p>
      * Concurrency is achieved when shopping events of different shopping cart IDs are 
      * processed in parallel by different backing threads. Sequence is maintained on all 
      * shopping events of the same shopping cart ID, via linear progressing of the
@@ -189,7 +191,7 @@ public class MessageConsumer {
     public void onMessage(Message shoppingEvent) {
         conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
     }
-    ...
+}
 ```
 
 Notes:
@@ -209,12 +211,12 @@ Notes:
 
   The default thread pool is
   JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--):
-  ```java
+  ```jshelllanguage
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
   ```
 
   Alternatively, the thread pool can be customized. E.g. this is to use a pool of 10 threads:
-  ```java
+  ```jshelllanguage
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
 
