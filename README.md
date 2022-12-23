@@ -163,8 +163,6 @@ public interface ConcurrentSequencingExecutor {
 #### Sample usage
 
 ```java
-import java.util.concurrent.CompletableFuture;
-
 public class MessageConsumer {
 
     /**
