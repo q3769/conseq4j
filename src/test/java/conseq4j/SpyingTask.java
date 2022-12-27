@@ -80,7 +80,7 @@ public class SpyingTask implements Runnable {
 
     public Duration getActualRunDuration() {
         if (!isDone()) {
-            throw new IllegalStateException("task " + this + " not done running yet");
+            throw new IllegalStateException("actual run duration not available until run completes");
         }
         return Duration.ofMillis(this.runTimeEndMillis - this.runTimeStartMillis);
     }
