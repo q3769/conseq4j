@@ -43,12 +43,12 @@ public class SpyingTask implements Runnable {
     private static final int MAX_RUN_TIME_MILLIS = 20;
     private static final Random RANDOM = new Random();
     private static final long UNSET_TIME_STAMP = Long.MIN_VALUE;
-    private static final Logger trace = Logger.instance(SpyingTask.class).atTrace();
+    private static final Logger trace = Logger.instance().atTrace();
     final Integer scheduledSequence;
     final long targetRunDurationMillis;
-    volatile long runTimeStartMillis = UNSET_TIME_STAMP;
-    volatile long runTimeEndMillis = UNSET_TIME_STAMP;
     String runThreadName;
+    volatile long runTimeEndMillis = UNSET_TIME_STAMP;
+    volatile long runTimeStartMillis = UNSET_TIME_STAMP;
 
     public SpyingTask(Integer scheduledSequence) {
         this.scheduledSequence = scheduledSequence;
@@ -57,6 +57,17 @@ public class SpyingTask implements Runnable {
 
     private static int randomIntInclusive() {
         return 1 + RANDOM.nextInt(SpyingTask.MAX_RUN_TIME_MILLIS);
+    }
+
+    public Duration getActualRunDuration() {
+        if (!isDone()) {
+            throw new IllegalStateException("actual run duration not available until run completes");
+        }
+        return Duration.ofMillis(this.runTimeEndMillis - this.runTimeStartMillis);
+    }
+
+    public boolean isDone() {
+        return this.runTimeStartMillis != UNSET_TIME_STAMP && this.runTimeEndMillis != UNSET_TIME_STAMP;
     }
 
     @Override
@@ -72,16 +83,5 @@ public class SpyingTask implements Runnable {
 
     public Callable<SpyingTask> toCallable() {
         return Executors.callable(this, this);
-    }
-
-    public boolean isDone() {
-        return this.runTimeStartMillis != UNSET_TIME_STAMP && this.runTimeEndMillis != UNSET_TIME_STAMP;
-    }
-
-    public Duration getActualRunDuration() {
-        if (!isDone()) {
-            throw new IllegalStateException("actual run duration not available until run completes");
-        }
-        return Duration.ofMillis(this.runTimeEndMillis - this.runTimeStartMillis);
     }
 }

@@ -40,18 +40,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 class ConfigTest {
 
     @Test
-    void shouldReturnSameExecutorOnSameName() {
-        Conseq sut = Conseq.ofDefaultConcurrency();
-        UUID sameSequenceKey = UUID.randomUUID();
-
-        Executor e = sut.getSequentialExecutorService(sameSequenceKey);
-        int additionalSummonTimes = 1 + new Random().nextInt(100);
-        for (int i = 0; i < additionalSummonTimes; i++) {
-            assertSame(e, sut.getSequentialExecutorService(sameSequenceKey));
-        }
-    }
-
-    @Test
     void errorOnNonPositiveConcurrency() {
         int errors = 0;
         try {
@@ -65,6 +53,18 @@ class ConfigTest {
             errors++;
         }
         assertEquals(2, errors);
+    }
+
+    @Test
+    void shouldReturnSameExecutorOnSameName() {
+        Conseq sut = Conseq.ofDefaultConcurrency();
+        UUID sameSequenceKey = UUID.randomUUID();
+
+        Executor e = sut.getSequentialExecutorService(sameSequenceKey);
+        int additionalSummonTimes = 1 + new Random().nextInt(100);
+        for (int i = 0; i < additionalSummonTimes; i++) {
+            assertSame(e, sut.getSequentialExecutorService(sameSequenceKey));
+        }
     }
 
     @Test

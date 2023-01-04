@@ -45,35 +45,38 @@ import static java.lang.Math.floorMod;
 @ToString
 public final class Conseq implements ConcurrentSequencer {
 
-    private static final int DEFAULT_GLOBAL_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
+    private static final int DEFAULT_MAX_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
+    private final int maxConcurrency;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
-    private final int globalConcurrency;
 
     /**
-     * @param globalConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
-     *                          concurrently executed at any given time by this conseq instance.
+     * @param maxConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
+     *                       concurrently executed at any given time by this conseq instance.
      */
-    private Conseq(int globalConcurrency) {
-        if (globalConcurrency <= 0) {
-            throw new IllegalArgumentException(
-                    "expecting positive global concurrency, but given: " + globalConcurrency);
+    private Conseq(int maxConcurrency) {
+        if (maxConcurrency <= 0) {
+            throw new IllegalArgumentException("expecting positive global concurrency, but given: " + maxConcurrency);
         }
-        this.globalConcurrency = globalConcurrency;
+        this.maxConcurrency = maxConcurrency;
     }
 
     /**
-     * @param globalConcurrency max number of tasks possible to be executed in parallel
+     * @param maxConcurrency max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given global concurrency
      */
-    public static Conseq ofConcurrency(int globalConcurrency) {
-        return new Conseq(globalConcurrency);
+    public static Conseq ofConcurrency(int maxConcurrency) {
+        return new Conseq(maxConcurrency);
     }
 
     /**
      * @return ExecutorService factory with default global concurrency
      */
     public static Conseq ofDefaultConcurrency() {
-        return new Conseq(DEFAULT_GLOBAL_CONCURRENCY);
+        return new Conseq(DEFAULT_MAX_CONCURRENCY);
+    }
+
+    private int bucketOf(Object sequenceKey) {
+        return floorMod(Objects.hash(sequenceKey), this.maxConcurrency);
     }
 
     /**
@@ -82,10 +85,6 @@ public final class Conseq implements ConcurrentSequencer {
     @Override
     public ExecutorService getSequentialExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                bucket -> new FairSynchronizingExecutorService(new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor())));
-    }
-
-    private int bucketOf(Object sequenceKey) {
-        return floorMod(Objects.hash(sequenceKey), this.globalConcurrency);
+                bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 }

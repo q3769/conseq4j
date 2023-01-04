@@ -56,6 +56,14 @@ class ConseqFactoryTest {
         return tasks.stream().map(SpyingTask::toCallable).collect(Collectors.toList());
     }
 
+    void assertSingleThread(List<SpyingTask> tasks) {
+        Set<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).collect(Collectors.toSet());
+        assertEquals(1, distinctThreads.size());
+        info.log("[{}] tasks executed by single thread: [{}]",
+                tasks.size(),
+                distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
+    }
+
     @Test
     void concurrencyBoundedByTotalTaskCount() {
         Conseq withHigherConcurrencyThanTaskCount = Conseq.ofConcurrency(TASK_COUNT * 2);
@@ -65,7 +73,8 @@ class ConseqFactoryTest {
                         .submit(task.toCallable()))
                 .collect(toList());
 
-        final long totalRunThreads = getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+        final long totalRunThreads =
+                getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
@@ -137,13 +146,5 @@ class ConseqFactoryTest {
 
         TestUtils.awaitTasks(tasks);
         assertSingleThread(tasks);
-    }
-
-    void assertSingleThread(List<SpyingTask> tasks) {
-        Set<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).collect(Collectors.toSet());
-        assertEquals(1, distinctThreads.size());
-        info.log("[{}] tasks executed by single thread: [{}]",
-                tasks.size(),
-                distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
     }
 }
