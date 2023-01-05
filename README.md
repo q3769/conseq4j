@@ -28,16 +28,24 @@ Java 8 or better
 
 ## Use it...
 
-- Sequence Keys: A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only if
-  `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
-- Thread-safety: conseq4j is thread-safe in that no data corruption happens due to concurrent modification. By
-  definition, however, there is no such thing as sequence among tasks submitted concurrently by different threads.
-  Regardless of the sequence key, conseq4j will execute tasks in random order if they are submitted by different
-  threads.
-- Concurrency and Sequencing: Tasks submitted by a single client thread will be managed to run concurrently if they have
-  different sequence keys, and sequentially if they have the same sequence key. Therefore, client-side multithreading is
-  not recommended while sequencing is imperative; instead, conseq4j should be used to provide
-  multithreading/concurrency, as well as sequencing.
+- Sequence Keys
+
+A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only
+if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
+
+- Thread-safety
+
+conseq4j is thread-safe in that no data corruption happens due to concurrent modification. By definition, however, there
+is no such thing as sequence among tasks submitted concurrently by different threads. In case of multi-threading, it is
+entirely up to the JVM how the threads are scheduled, which does not provide a strong guarantee of order. Regardless of
+the sequence key, conseq4j will not manage execution order of tasks if they are submitted by different threads.
+
+- Concurrency and Sequencing
+
+Tasks submitted to conseq4j by a single thread - or, each single thread, in a multi-threading scenario - will be managed
+to run concurrently if they have different sequence keys, and sequentially if they have the same sequence key.
+Therefore, client-side multithreading is not recommended when sequencing is imperative; instead, conseq4j should be used
+to provide multi-threading/concurrency, as well as sequencing.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
@@ -81,7 +89,7 @@ public class MessageConsumer {
      * private ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
      * </code>
      */
-    private ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
+    private final ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -176,7 +184,7 @@ public class MessageConsumer {
      * private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(newFixedThreadPool(10));
      * </code>
      */
-    private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
+    private final ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
