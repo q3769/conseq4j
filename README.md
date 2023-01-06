@@ -45,7 +45,7 @@ order as scheduled by the JVM, regardless of sequence keys.
 
 Tasks submitted to conseq4j by a single thread - or, by each single thread in a multi-threading scenario - will be
 managed by conseq4j to run sequentially if they have the same sequence key, and concurrently if they have different
-sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead, use
+sequence keys. In general, client-side multi-threading is not recommended when sequencing is imperative; instead, use
 conseq4j to provide both concurrency and sequencing.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
