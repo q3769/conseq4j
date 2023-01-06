@@ -31,8 +31,6 @@ import org.junit.jupiter.api.Test;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -57,11 +55,10 @@ class ConseqFactoryTest {
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {
-        Set<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).collect(Collectors.toSet());
+        List<String> distinctThreads =
+                tasks.stream().map(SpyingTask::getRunThreadName).distinct().collect(Collectors.toList());
         assertEquals(1, distinctThreads.size());
-        info.log("[{}] tasks executed by single thread: [{}]",
-                tasks.size(),
-                distinctThreads.stream().findFirst().orElseThrow(NoSuchElementException::new));
+        info.log("[{}] tasks executed by single thread: [{}]", tasks.size(), distinctThreads.get(0));
     }
 
     @Test
@@ -131,9 +128,9 @@ class ConseqFactoryTest {
 
         SpyingTask doneTask = defaultConseq.getSequentialExecutorService(sameSequenceKey).invokeAny(toCallables(tasks));
 
-        final Integer scheduledSequence = doneTask.getScheduledSequence();
-        info.log("chosen task sequence: [{}]", scheduledSequence);
-        assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequence));
+        final Integer scheduledSequenceIndex = doneTask.getScheduledSequenceIndex();
+        info.log("chosen task sequence index: [{}]", scheduledSequenceIndex);
+        assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequenceIndex));
     }
 
     @Test

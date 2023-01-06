@@ -44,14 +44,14 @@ public class SpyingTask implements Runnable {
     private static final Random RANDOM = new Random();
     private static final long UNSET_TIME_STAMP = Long.MIN_VALUE;
     private static final Logger trace = Logger.instance().atTrace();
-    final Integer scheduledSequence;
+    final Integer scheduledSequenceIndex;
     final long targetRunDurationMillis;
     String runThreadName;
     volatile long runTimeEndMillis = UNSET_TIME_STAMP;
     volatile long runTimeStartMillis = UNSET_TIME_STAMP;
 
-    public SpyingTask(Integer scheduledSequence) {
-        this.scheduledSequence = scheduledSequence;
+    public SpyingTask(Integer scheduledSequenceIndex) {
+        this.scheduledSequenceIndex = scheduledSequenceIndex;
         this.targetRunDurationMillis = randomIntInclusive();
     }
 
