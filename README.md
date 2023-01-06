@@ -6,7 +6,7 @@ A Java concurrent API to sequence the executions of related tasks while concurri
 
 - **conseq** is short for **con**current **seq**uencer.
 
-## User stories
+## User Stories
 
 1. As a client of the conseq4j API, I want to summon a thread/executor by a sequence key, so that I can sequentially
    execute all related tasks with the same sequence key using the same executor while unrelated tasks with different
@@ -22,11 +22,11 @@ execution order at the same time.
 
 Java 8 or better
 
-## Get it...
+## Get It...
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
-## Use it...
+## Use It...
 
 - Sequence Keys
 
@@ -48,7 +48,7 @@ managed by conseq4j to run sequentially if they have the same sequence key, and 
 sequence keys. In general, client-side multi-threading is not recommended when sequencing is imperative; instead, use
 conseq4j to provide both concurrency and sequencing.
 
-### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
+### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
 In this API style, sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
@@ -77,7 +77,7 @@ public interface ConcurrentSequencer {
 }
 ```
 
-#### Sample usage
+#### Sample Usage
 
 ```java
 public class MessageConsumer {
@@ -133,13 +133,12 @@ Notes:
   ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
   ```
 
-  The global concurrency can be customized. This may become useful when the application is deployed using containers,
-  where the `availableProcessors` reported to the Java Runtime may not reflect the actual CPU resource of the container.
+  The global concurrency can be customized as needed:
   ```jshelllanguage
   ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
   ```
 
-### Style 2: Submit task together with sequence key, directly to conseq4j API for execution
+### Style2: Submit Each Task Together With A SequenceKey, Directly To Conseq4J API For Execution
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
@@ -172,7 +171,7 @@ public interface ConcurrentSequencingExecutor {
 }
 ```
 
-#### Sample usage
+#### Sample Usage
 
 ```java
 public class MessageConsumer {
@@ -230,7 +229,7 @@ Notes:
   ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
   ```
 
-## Full disclosure - Asynchronous Conundrum
+## Full Disclosure - Asynchronous Conundrum
 
 The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
 execution do not come together naturally; in asynchronous systems, certain limits and impedance mismatch exist between
