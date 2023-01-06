@@ -23,15 +23,13 @@
  */
 package conseq4j.summon;
 
-import conseq4j.execute.ConcurrentSequencingExecutor;
-
 import java.util.concurrent.ExecutorService;
 
 /**
- * Main API of concurrent sequencer, providing a sequential executor of type {@link ExecutorService} with execution
- * concurrency.
- * <p>
- * See javadoc of {@link ConcurrentSequencingExecutor} regarding thread-safety.
+ * Main API of concurrent sequencer, a factory to get sequential executor instances of type {@link ExecutorService} per
+ * given sequence keys. For sequencing, an executor of the same sequence key should execute all tasks sequentially in
+ * the same order of submissions. For concurrency, executor instances of different sequence keys should run in parallel
+ * by different threads.
  *
  * @author Qingtian Wang
  */

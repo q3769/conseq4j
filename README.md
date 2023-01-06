@@ -35,17 +35,18 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 - Thread-safety
 
-conseq4j is thread-safe in that no data corruption happens due to concurrent modification. By definition, however, there
-is no such thing as sequence among tasks submitted concurrently by different threads. In case of multi-threading, it is
-entirely up to the JVM how the threads are scheduled, which does not provide a strong guarantee of order. Regardless of
-the sequence key, conseq4j will not manage execution order of tasks if they are submitted by different threads.
+The conseq4j implementation is thread-safe in that there is no data corruption due to concurrent modification. In the
+context of concurrency and sequencing, though, the thread-safety concern goes above and beyond, into that of meaningful
+execution order among multiple submitted tasks. Note that, by definition, there is no such thing as order or sequence
+among tasks submitted concurrently by different threads. Such multi-thread submitted tasks will execute in whatever
+order as scheduled by the JVM, regardless of sequence keys.
 
 - Concurrency and Sequencing
 
-Tasks submitted to conseq4j by a single thread - or, each single thread, in a multi-threading scenario - will be managed
-to run concurrently if they have different sequence keys, and sequentially if they have the same sequence key.
-Therefore, client-side multithreading is not recommended when sequencing is imperative; instead, conseq4j should be used
-to provide multi-threading/concurrency, as well as sequencing.
+Tasks submitted to conseq4j by a single thread - or, by each single thread in a multi-threading scenario - will be
+managed by conseq4j to run sequentially if they have the same sequence key, and concurrently if they have different
+sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead, use
+conseq4j to provide both concurrency and sequencing.
 
 ### Style 1: Summon a sequential executor by its sequence key, and use the executor as with a JDK ExecutorService
 
