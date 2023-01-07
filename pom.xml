@@ -126,7 +126,7 @@
             <plugin>
                 <groupId>io.github.q3769</groupId>
                 <artifactId>semver-maven-plugin</artifactId>
-                <version>20221011.0.3</version>
+                <version>20221011.0.6</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
