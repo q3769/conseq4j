@@ -52,10 +52,17 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
         this.workerThreadPool = workerThreadPool;
     }
 
+    /**
+     * @return conseq executor with the default {@link ForkJoinPool#commonPool()} worker thread pool
+     */
     public static ConseqExecutor withDefaultThreadPool() {
         return new ConseqExecutor(DEFAULT_WORKER_THREAD_POOL);
     }
 
+    /**
+     * @param workerThreadPool to facilitate async execution of the returned executor instance
+     * @return conseq executor with given worker thread pool as async execution facilitator
+     */
     public static ConseqExecutor withThreadPool(ExecutorService workerThreadPool) {
         return new ConseqExecutor(workerThreadPool);
     }

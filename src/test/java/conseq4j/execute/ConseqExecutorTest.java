@@ -96,7 +96,11 @@ class ConseqExecutorTest {
 
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
-        info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, actualThreadCount);
+        info.log(
+                "{} sequential tasks of sequence key {} were run by {} threads. unlike the \"summon\" API style, even sequential tasks can be run by different threads, albeit in sequential order",
+                TASK_COUNT,
+                sameSequenceKey,
+                actualThreadCount);
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
