@@ -120,13 +120,13 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> workStage = this.sequentialExecutors.compute(sequenceKey,
-                (sameSequenceKey, currentExecutionStage) -> (currentExecutionStage == null) ?
-                        CompletableFuture.supplyAsync(() -> call(task), this.workerThreadPool) :
-                        currentExecutionStage.handleAsync((currentResult, currentException) -> call(task),
-                                this.workerThreadPool));
-        sweepExecutorIfTailTaskComplete(sequenceKey, workStage);
-        return new MinimalFuture<>((Future<T>) workStage);
+        CompletableFuture<?> taskWorkStage = sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, existingWorkStage) -> (existingWorkStage == null) ?
+                        CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
+                        existingWorkStage.handleAsync((completionResult, completionException) -> call(task),
+                                workerThreadPool));
+        sweepExecutorIfTailTaskComplete(sequenceKey, taskWorkStage);
+        return new MinimalFuture<>((Future<T>) taskWorkStage);
     }
 
     /**
