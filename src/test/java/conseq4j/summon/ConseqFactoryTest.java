@@ -63,7 +63,7 @@ class ConseqFactoryTest {
 
     @Test
     void concurrencyBoundedByTotalTaskCount() {
-        Conseq withHigherConcurrencyThanTaskCount = Conseq.ofConcurrency(TASK_COUNT * 2);
+        Conseq withHigherConcurrencyThanTaskCount = Conseq.newInstance(TASK_COUNT * 2);
 
         List<Future<SpyingTask>> futures = createSpyingTasks(TASK_COUNT).stream()
                 .map(task -> withHigherConcurrencyThanTaskCount.getSequentialExecutorService(UUID.randomUUID())
@@ -82,7 +82,7 @@ class ConseqFactoryTest {
         int lowConcurrency = 2;
         int highConcurrency = lowConcurrency * 10;
 
-        Conseq withLowConcurrency = Conseq.ofConcurrency(lowConcurrency);
+        Conseq withLowConcurrency = Conseq.newInstance(lowConcurrency);
         long lowConcurrencyStart = System.nanoTime();
         List<Future<SpyingTask>> lowConcurrencyFutures = sameTasks.stream()
                 .map(t -> withLowConcurrency.getSequentialExecutorService(UUID.randomUUID()).submit(t.toCallable()))
@@ -90,7 +90,7 @@ class ConseqFactoryTest {
         TestUtils.awaitFutures(lowConcurrencyFutures);
         long lowConcurrencyTime = System.nanoTime() - lowConcurrencyStart;
 
-        Conseq withHighConcurrency = Conseq.ofConcurrency(highConcurrency);
+        Conseq withHighConcurrency = Conseq.newInstance(highConcurrency);
         long highConcurrencyStart = System.nanoTime();
         List<Future<SpyingTask>> highConcurrencyFutures = sameTasks.stream()
                 .map(task -> withHighConcurrency.getSequentialExecutorService(UUID.randomUUID())
@@ -109,7 +109,7 @@ class ConseqFactoryTest {
 
     @Test
     void invokeAllRunsTasksOfSameSequenceKeyInSequence() throws InterruptedException {
-        Conseq defaultConseq = Conseq.ofDefaultConcurrency();
+        Conseq defaultConseq = Conseq.newInstance();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -122,7 +122,7 @@ class ConseqFactoryTest {
 
     @Test
     void invokeAnyChoosesTaskInSequenceRange() throws InterruptedException, ExecutionException {
-        Conseq defaultConseq = Conseq.ofDefaultConcurrency();
+        Conseq defaultConseq = Conseq.newInstance();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -135,7 +135,7 @@ class ConseqFactoryTest {
 
     @Test
     void submitsRunAllTasksOfSameSequenceKeyInSequence() {
-        Conseq defaultConseq = Conseq.ofDefaultConcurrency();
+        Conseq defaultConseq = Conseq.newInstance();
         List<SpyingTask> tasks = createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 

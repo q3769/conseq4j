@@ -44,39 +44,39 @@ import static java.lang.Math.floorMod;
 @ThreadSafe
 @ToString
 public final class Conseq implements ConcurrentSequencer {
-
-    private static final int DEFAULT_MAX_CONCURRENCY = Runtime.getRuntime().availableProcessors() + 1;
-    private final int maxConcurrency;
+    private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
+    private final int concurrency;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
 
     /**
-     * @param maxConcurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
-     *                       concurrently executed at any given time by this conseq instance.
+     * @param concurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
+     *                    concurrently executed at any given time by this conseq instance.
      */
-    private Conseq(int maxConcurrency) {
-        if (maxConcurrency <= 0) {
-            throw new IllegalArgumentException("expecting positive global concurrency, but given: " + maxConcurrency);
+    private Conseq(int concurrency) {
+        if (concurrency <= 0) {
+            throw new IllegalArgumentException("expecting positive concurrency, but given: " + concurrency);
         }
-        this.maxConcurrency = maxConcurrency;
+        this.concurrency = concurrency;
     }
 
     /**
-     * @param maxConcurrency max number of tasks possible to be executed in parallel
-     * @return ExecutorService factory with given global concurrency
+     * @return ExecutorService factory with default concurrency
      */
-    public static Conseq ofConcurrency(int maxConcurrency) {
-        return new Conseq(maxConcurrency);
+    public static Conseq newInstance() {
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        return new Conseq(Math.max(availableProcessors, DEFAULT_MINIMUM_CONCURRENCY));
     }
 
     /**
-     * @return ExecutorService factory with default global concurrency
+     * @param concurrency max number of tasks possible to be executed in parallel
+     * @return ExecutorService factory with given concurrency
      */
-    public static Conseq ofDefaultConcurrency() {
-        return new Conseq(DEFAULT_MAX_CONCURRENCY);
+    public static Conseq newInstance(int concurrency) {
+        return new Conseq(concurrency);
     }
 
     private int bucketOf(Object sequenceKey) {
-        return floorMod(Objects.hash(sequenceKey), this.maxConcurrency);
+        return floorMod(Objects.hash(sequenceKey), this.concurrency);
     }
 
     /**

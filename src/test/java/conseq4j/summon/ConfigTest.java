@@ -43,12 +43,12 @@ class ConfigTest {
     void errorOnNonPositiveConcurrency() {
         int errors = 0;
         try {
-            Conseq.ofConcurrency(0);
+            Conseq.newInstance(0);
         } catch (IllegalArgumentException e) {
             errors++;
         }
         try {
-            Conseq.ofConcurrency(-999);
+            Conseq.newInstance(-999);
         } catch (IllegalArgumentException e) {
             errors++;
         }
@@ -57,7 +57,7 @@ class ConfigTest {
 
     @Test
     void shouldReturnSameExecutorOnSameName() {
-        Conseq sut = Conseq.ofDefaultConcurrency();
+        Conseq sut = Conseq.newInstance();
         UUID sameSequenceKey = UUID.randomUUID();
 
         Executor e = sut.getSequentialExecutorService(sameSequenceKey);
@@ -69,7 +69,7 @@ class ConfigTest {
 
     @Test
     void shutdownUnsupported() {
-        Conseq target = Conseq.ofDefaultConcurrency();
+        Conseq target = Conseq.newInstance();
         final ExecutorService sequentialExecutor = target.getSequentialExecutorService("foo");
         sequentialExecutor.execute(() -> {
             long runDurationMillis = 100L;

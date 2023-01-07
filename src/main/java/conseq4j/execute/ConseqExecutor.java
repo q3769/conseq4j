@@ -40,31 +40,29 @@ import java.util.concurrent.*;
 @ThreadSafe
 @ToString
 public final class ConseqExecutor implements ConcurrentSequencingExecutor {
-    private static final ExecutorService ADMIN_THREAD = Executors.newSingleThreadExecutor();
-    private static final ForkJoinPool DEFAULT_WORKER_THREAD_POOL = ForkJoinPool.commonPool();
+    private static final ExecutorService ADMIN_THREAD_POOL = Executors.newCachedThreadPool();
+    private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
     private final ExecutorService workerThreadPool;
 
-    /**
-     * @param workerThreadPool the custom thread pool to facilitate the global async execution
-     */
-    private ConseqExecutor(@NonNull ExecutorService workerThreadPool) {
-        this.workerThreadPool = workerThreadPool;
+    private ConseqExecutor(int concurrency) {
+        this.workerThreadPool = Executors.newFixedThreadPool(concurrency);
     }
 
     /**
-     * @return conseq executor with the default {@link ForkJoinPool#commonPool()} worker thread pool
+     * @return conseq executor with default concurrency
      */
-    public static ConseqExecutor withDefaultThreadPool() {
-        return new ConseqExecutor(DEFAULT_WORKER_THREAD_POOL);
+    public static ConseqExecutor newInstance() {
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        return new ConseqExecutor(Math.max(availableProcessors, DEFAULT_MINIMUM_CONCURRENCY));
     }
 
     /**
-     * @param workerThreadPool to facilitate async execution of the returned executor instance
-     * @return conseq executor with given worker thread pool as async execution facilitator
+     * @param concurrency max number of tasks that can be run in parallel by the returned executor instance
+     * @return conseq executor with given concurrency
      */
-    public static ConseqExecutor withThreadPool(ExecutorService workerThreadPool) {
-        return new ConseqExecutor(workerThreadPool);
+    public static ConseqExecutor newInstance(int concurrency) {
+        return new ConseqExecutor(concurrency);
     }
 
     private static <T> T call(Callable<T> task) {
@@ -142,10 +140,6 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
         return new SimpleFuture<>(taskStage);
     }
 
-    @NonNull String getWorkerThreadPoolType() {
-        return this.workerThreadPool.getClass().getName();
-    }
-
     /**
      * When trigger task is complete, check and de-list the executor entry if all is complete
      *
@@ -155,7 +149,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      */
     private void sweepExecutorIfAllTasksComplete(Object sequenceKey, @NonNull CompletableFuture<?> triggerTask) {
         triggerTask.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask), ADMIN_THREAD);
+                (sameSequenceKey, tailTask) -> tailTask.isDone() ? null : tailTask), ADMIN_THREAD_POOL);
     }
 
     /**

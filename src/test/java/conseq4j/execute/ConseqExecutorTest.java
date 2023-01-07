@@ -33,11 +33,11 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 import static conseq4j.TestUtils.awaitTasks;
 import static conseq4j.TestUtils.createSpyingTasks;
-import static java.util.concurrent.Executors.newFixedThreadPool;
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,26 +47,8 @@ class ConseqExecutorTest {
     private static final Logger info = Logger.instance().atInfo();
 
     @Test
-    void canCustomizeBackingThreadPool() {
-        ExecutorService customBackingThreadPool = Executors.newFixedThreadPool(42);
-        ConseqExecutor sut = ConseqExecutor.withThreadPool(customBackingThreadPool);
-
-        String customPoolName = customBackingThreadPool.getClass().getName();
-        assertEquals(customPoolName, sut.getWorkerThreadPoolType());
-    }
-
-    @Test
-    void defaultBackingThreadPool() {
-        ExecutorService expected = ForkJoinPool.commonPool();
-        ConseqExecutor sut = ConseqExecutor.withDefaultThreadPool();
-
-        String expectedPoolName = expected.getClass().getName();
-        assertEquals(expectedPoolName, sut.getWorkerThreadPoolType());
-    }
-
-    @Test
     void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
-        ConseqExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
+        ConseqExecutor conseqExecutor = ConseqExecutor.newInstance();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
         UUID sameSequenceKey = UUID.randomUUID();
 
@@ -88,8 +70,9 @@ class ConseqExecutorTest {
 
     @Test
     void executeRunsAllTasksOfSameSequenceKeyInSequence() {
-        ConseqExecutor conseqExecutor = ConseqExecutor.withThreadPool(newFixedThreadPool(100));
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
+        int concurrency = TASK_COUNT * 2;
+        ConseqExecutor conseqExecutor = ConseqExecutor.newInstance(concurrency);
         UUID sameSequenceKey = UUID.randomUUID();
 
         tasks.forEach(task -> conseqExecutor.execute(task, sameSequenceKey));
@@ -97,16 +80,17 @@ class ConseqExecutorTest {
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
         info.log(
-                "{} sequential tasks of sequence key {} were run by {} threads. unlike the \"summon\" API style, even sequential tasks can be run by different threads, albeit in sequential order",
+                "{} sequential tasks of sequence key {} were run by {} threads, with a backing thread pool of size {}. unlike the \"summon\" API style, even sequential tasks can be run by different threads, albeit in sequential order",
                 TASK_COUNT,
                 sameSequenceKey,
-                actualThreadCount);
+                actualThreadCount,
+                concurrency);
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
     @Test
     void noExecutorLingersOnRandomSequenceKeys() {
-        ConseqExecutor sut = ConseqExecutor.withDefaultThreadPool();
+        ConseqExecutor sut = ConseqExecutor.newInstance();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
@@ -117,7 +101,7 @@ class ConseqExecutorTest {
 
     @Test
     void noExecutorLingersOnSameSequenceKey() {
-        ConseqExecutor sut = ConseqExecutor.withDefaultThreadPool();
+        ConseqExecutor sut = ConseqExecutor.newInstance();
         UUID sameSequenceKey = UUID.randomUUID();
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
@@ -131,7 +115,7 @@ class ConseqExecutorTest {
     void provideConcurrencyAmongDifferentSequenceKeys() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT / 2);
         UUID sameSequenceKey = UUID.randomUUID();
-        ConseqExecutor sut = ConseqExecutor.withDefaultThreadPool();
+        ConseqExecutor sut = ConseqExecutor.newInstance();
 
         long sameKeyStartTimeMillis = System.currentTimeMillis();
         sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
@@ -150,7 +134,7 @@ class ConseqExecutorTest {
     @Test
     void returnMinimalFuture() {
         Future<SpyingTask> result =
-                ConseqExecutor.withDefaultThreadPool().submit(new SpyingTask(1).toCallable(), UUID.randomUUID());
+                ConseqExecutor.newInstance().submit(new SpyingTask(1).toCallable(), UUID.randomUUID());
 
         assertFalse(result instanceof CompletableFuture);
     }
@@ -158,7 +142,7 @@ class ConseqExecutorTest {
     @Test
     void submitConcurrencyBoundedByThreadPoolSize() {
         int threadPoolSize = TASK_COUNT / 10;
-        ConseqExecutor conseqExecutor = ConseqExecutor.withThreadPool(newFixedThreadPool(threadPoolSize));
+        ConseqExecutor conseqExecutor = ConseqExecutor.newInstance(threadPoolSize);
 
         List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
                 .stream()
@@ -176,7 +160,7 @@ class ConseqExecutorTest {
     @Test
     void submitConcurrencyBoundedByTotalTaskCount() {
         int threadPoolSize = TASK_COUNT * 10;
-        ConseqExecutor conseqExecutor = ConseqExecutor.withThreadPool(newFixedThreadPool(threadPoolSize));
+        ConseqExecutor conseqExecutor = ConseqExecutor.newInstance(threadPoolSize);
 
         List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
                 .stream()

@@ -83,14 +83,14 @@ public interface ConcurrentSequencer {
 public class MessageConsumer {
 
     /**
-     * Default conseq's global concurrency is (java.lang.Runtime.availableProcessors + 1).
+     * Default conseq's concurrency is the 16 or java.lang.Runtime.availableProcessors, which ever is larger.
      * <p></p>
      * Or to set the global concurrency to 10, for example:
      * <code>
-     * private ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
+     * private ConcurrentSequencer conseq = Conseq.newInstance(10);
      * </code>
      */
-    private final ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
+    private final ConcurrentSequencer conseq = Conseq.newInstance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -127,15 +127,16 @@ Notes:
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
-- The default global concurrency is 1 plus the JVM
-  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
+- The default concurrency is 16 or the JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
+  which ever is larger:
   ```jshelllanguage
-  ConcurrentSequencer conseq = Conseq.ofDefaultConcurrency();
+  ConcurrentSequencer conseq = Conseq.newInstance();
   ```
 
-  The global concurrency can be customized as needed:
+  The concurrency can be customized:
   ```jshelllanguage
-  ConcurrentSequencer conseq = Conseq.ofConcurrency(10);
+  ConcurrentSequencer conseq = Conseq.newInstance(10);
   ```
 
 ### Style2: Submit Each Task Together With A SequenceKey, Directly To Conseq4J API For Execution
@@ -177,14 +178,14 @@ public interface ConcurrentSequencingExecutor {
 public class MessageConsumer {
 
     /**
-     * Default service uses JDK's ForkJoinPool#commonPool to facilitate async execution.
+     * Default executor concurrency is 16 or java.lang.Runtime.availableProcessors, which ever is larger.
      * <p></p>
-     * Or to provide a custom thread pool of size 10, for example:
+     * Or to provide a custom concurrency of 10, for example:
      * <code>
-     * private ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withThreadPool(newFixedThreadPool(10));
+     * private ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance(10));
      * </code>
      */
-    private final ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.withDefaultThreadPool();
+    private final ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.newInstance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -218,15 +219,16 @@ Notes:
   key could be executed by different pooled threads, albeit in sequential order. This may bring extra performance gain
   compared to the other API style.
 
-  The default thread pool is
-  JDK's [ForkJoinPool#commonPool](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ForkJoinPool.html#commonPool--):
+  The default concurrency or max pool size is 16 or the JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
+  which ever is larger:
   ```jshelllanguage
-  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withDefaultThreadPool();
+  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance();
   ```
 
-  Alternatively, the thread pool can be customized. E.g. this is to use a pool of 10 threads:
+  The concurrency can be customized:
   ```jshelllanguage
-  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.withThreadPool(java.util.concurrent.Executors.newFixedThreadPool(10));
+  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance(10);
   ```
 
 ## Full Disclosure - Asynchronous Conundrum
