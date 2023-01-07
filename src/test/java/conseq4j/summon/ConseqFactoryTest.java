@@ -48,7 +48,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ConseqFactoryTest {
     private static final int TASK_COUNT = 100;
-    private static final Logger info = Logger.instance(ConseqFactoryTest.class);
+    private static final Logger info = Logger.instance().atInfo();
 
     private static List<Callable<SpyingTask>> toCallables(List<SpyingTask> tasks) {
         return tasks.stream().map(SpyingTask::toCallable).collect(Collectors.toList());

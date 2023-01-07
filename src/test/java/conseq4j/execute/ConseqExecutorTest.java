@@ -80,7 +80,7 @@ class ConseqExecutorTest {
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
         info.log(
-                "{} sequential tasks of sequence key {} were run by {} threads, with a backing thread pool of size {}: unlike the \"summon\" API style, even sequential tasks can be run by different threads, albeit in sequential order",
+                "{} sequential tasks of sequence key {} were run by {} threads, with a backing thread pool of size {}: unlike the \"summon\" API style, here sequential tasks can be run by different threads, albeit in sequential order",
                 TASK_COUNT,
                 sameSequenceKey,
                 actualThreadCount,
