@@ -63,8 +63,7 @@ public final class Conseq implements ConcurrentSequencer {
      * @return ExecutorService factory with default concurrency
      */
     public static Conseq newInstance() {
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        return new Conseq(Math.max(availableProcessors, DEFAULT_MINIMUM_CONCURRENCY));
+        return new Conseq(Math.max(Runtime.getRuntime().availableProcessors(), DEFAULT_MINIMUM_CONCURRENCY));
     }
 
     /**

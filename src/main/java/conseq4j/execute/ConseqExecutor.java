@@ -53,8 +53,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * @return conseq executor with default concurrency
      */
     public static ConseqExecutor newInstance() {
-        int availableProcessors = Runtime.getRuntime().availableProcessors();
-        return new ConseqExecutor(Math.max(availableProcessors, DEFAULT_MINIMUM_CONCURRENCY));
+        return new ConseqExecutor(Math.max(Runtime.getRuntime().availableProcessors(), DEFAULT_MINIMUM_CONCURRENCY));
     }
 
     /**
