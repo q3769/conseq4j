@@ -90,7 +90,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     /**
      * Threads managed by the worker thread pool facilitate the overall async execution, independent of the tasks. Any
      * thread from the pool can be used to execute any task, regardless of sequence keys. The max concurrency of
-     * execution is the same as the max worker thread pool capacity.
+     * execution is the same as the worker thread pool's max capacity.
      * <p>
      * Tasks of different sequence keys execute in parallel.
      * <p>
