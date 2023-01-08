@@ -79,13 +79,13 @@ class ConfigTest {
         try {
             sequentialExecutor.shutdown();
         } catch (UnsupportedOperationException e) {
-            info.log(e.getMessage());
+            info.log("Expected error for testing: {}", e.getMessage());
             errors++;
         }
         try {
             sequentialExecutor.shutdownNow();
         } catch (UnsupportedOperationException e) {
-            info.log(e.getMessage());
+            info.log("Expected error for testing: {}", e.getMessage());
             errors++;
         }
 
