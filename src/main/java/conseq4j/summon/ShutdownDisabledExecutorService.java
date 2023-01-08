@@ -39,13 +39,11 @@ import java.util.concurrent.ExecutorService;
 final class ShutdownDisabledExecutorService implements ExecutorService {
 
     private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
-            "Shutdown not supported: tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners.";
+            "Shutdown not supported: Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners";
 
     @Delegate(excludes = ShutdownOperations.class) private final ExecutorService delegate;
 
     /**
-     * <p>Constructor for ShutdownDisallowedExecutorService.</p>
-     *
      * @param delegate the delegate {@link ExecutorService} to run the submitted task(s).
      */
     public ShutdownDisabledExecutorService(ExecutorService delegate) {

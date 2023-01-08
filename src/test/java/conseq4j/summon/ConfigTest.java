@@ -23,6 +23,7 @@
  */
 package conseq4j.summon;
 
+import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -30,7 +31,6 @@ import java.util.UUID;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
 
-import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
@@ -38,10 +38,12 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  * @author q3769
  */
 class ConfigTest {
+    static Logger info = Logger.instance().atInfo();
 
     @Test
     void errorOnNonPositiveConcurrency() {
         int errors = 0;
+
         try {
             Conseq.newInstance(0);
         } catch (IllegalArgumentException e) {
@@ -52,6 +54,7 @@ class ConfigTest {
         } catch (IllegalArgumentException e) {
             errors++;
         }
+
         assertEquals(2, errors);
     }
 
@@ -70,24 +73,22 @@ class ConfigTest {
     @Test
     void shutdownUnsupported() {
         Conseq target = Conseq.newInstance();
-        final ExecutorService sequentialExecutor = target.getSequentialExecutorService("foo");
-        sequentialExecutor.execute(() -> {
-            long runDurationMillis = 100L;
-            long startTimeMillis = System.currentTimeMillis();
-            await().until(() -> System.currentTimeMillis() - startTimeMillis >= runDurationMillis);
-        });
-
+        final ExecutorService sequentialExecutor = target.getSequentialExecutorService("testSequenceKey");
         int errors = 0;
+
         try {
             sequentialExecutor.shutdown();
-        } catch (UnsupportedOperationException ex) {
+        } catch (UnsupportedOperationException e) {
+            info.log(e.getMessage());
             errors++;
-            try {
-                sequentialExecutor.shutdownNow();
-            } catch (UnsupportedOperationException ex2) {
-                errors++;
-            }
         }
+        try {
+            sequentialExecutor.shutdownNow();
+        } catch (UnsupportedOperationException e) {
+            info.log(e.getMessage());
+            errors++;
+        }
+
         assertEquals(2, errors);
     }
 }
