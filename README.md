@@ -43,7 +43,7 @@ whatever order scheduled by the JVM, regardless of sequence keys.
 
 - Concurrency and Sequencing
 
-Tasks submitted to by a single thread - or, by each single thread in a multi-threading scenario - will be managed by
+Tasks submitted by a single thread - or, by each single thread in a multi-threading scenario - will be managed by
 conseq4j. Such single-thread-submitted tasks will be executed sequentially if they have the same sequence key, and
 concurrently if they have different sequence keys. In general, client-side multi-threading is not recommended when
 sequencing is imperative; instead, use conseq4j to provide both concurrency and sequencing.
