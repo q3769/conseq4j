@@ -118,10 +118,11 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * A separate administrative task/stage is triggered to run at the completion of each work task/stage. Under the
      * same sequence key, this admin task will locate the executor entry in the map, and remove the entry if its work
      * stage is complete. Otherwise, if the work stage is not complete, the admin task does nothing; the incomplete work
-     * stage stays in the map under the same sequence key, ready to be trailed by the next work stage. This clean-up
-     * administration ensures that every work stage ever put on the map is eventually removed as long as every work
-     * stage runs to complete. Unlike a work task/stage, the admin task/stage is never added to the task queue or the
-     * executor map, and has no effect on the overall sequential-ness of the work stage executions.
+     * stage stays in the map under the same sequence key, ready to be trailed by the next work stage. This
+     * administration ensures that every executor entry ever put on the map is eventually cleaned up and removed as long
+     * as every work stage runs to complete. Although always chained after the completion of a work stage, the admin
+     * task/stage is never added to the task work queue on the executor map and has no effect on the overall
+     * sequential-ness of the work stage executions.
      *
      * @param task        the task to be called asynchronously with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
