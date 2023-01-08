@@ -95,23 +95,23 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * represents an active sequential executor in-service for all the tasks under the same sequence key; the entry's
      * value is to hold the most recently added task as the tail of the FIFO task queue of the active executor. With
      * this executor map, an active executor can be located by its sequence key so that a subsequent task of the same
-     * key can be queued behind the previous task. If no active executor exists in the map for the submitted task's
-     * sequence key, a new entry/executor will be created. Before added to the tail of the task queue, each task will be
-     * converted to a new corresponding work stage (of type {@link CompletableFuture}). If there already exists an
-     * entry/work stage of the same sequence key in the map, the current work stage will be set to execute behind the
-     * existing work stage and replace the existing stage as the tail of the task queue in the map entry. This new work
-     * stage will not start executing before the previous stage completes, and will have to finish executing before the
-     * next task's work stage can start executing. Such linear progression of the work tasks/stages ensures the
+     * key can be queued/chained behind the previous task. If no active executor exists in the map for the submitted
+     * task's sequence key, a new entry/executor will be created. Before added to the tail of the task queue, each task
+     * will be converted to a new corresponding work stage (of type {@link CompletableFuture}). If there already exists
+     * an entry/work stage of the same sequence key in the map, the current work stage will be chained to execute behind
+     * the existing work stage and replace the existing stage as the tail of the task queue in the map entry. This new
+     * work stage will not start executing before the previous stage completes, and will have to finish executing before
+     * the next task's work stage can start executing. Such linear progression of the work tasks/stages ensures the
      * sequential-ness of task execution under the same sequence key.
      * <p>
      * A separate maintenance task/stage is set up to run after the completion of each work task/stage. Under the same
-     * sequence key, this maintenance stage will locate the executor entry in the map, and sweep the entire executor
-     * entry off of the map if the entry's work stage is complete; otherwise if the work stage is not complete, the
-     * maintenance stage does nothing; the incomplete work stage stays in the map under the same sequence key, ready to
-     * be trailed by the next work stage. This clean up maintenance ensures that every work stage ever put on the map is
-     * eventually removed as long as every work stage runs to complete. Unlike a work task/stage, a maintenance
-     * task/stage is never added in the task queue or the executor map, and has no effect on the overall sequential-ness
-     * of the work stage executions.
+     * sequence key, this maintenance task will locate the executor entry in the map, and sweep the entire entry off of
+     * the map if the entry's work stage is complete; otherwise if the work stage is not complete, the maintenance task
+     * does nothing; the incomplete work stage stays in the map under the same sequence key, ready to be trailed by the
+     * next work stage. This clean-up maintenance ensures that every work stage ever put on the map is eventually
+     * removed as long as every work stage runs to complete. Unlike a work task/stage, a maintenance task/stage is never
+     * added to the task queue or the executor map, and has no effect on the overall sequential-ness of the work stage
+     * executions.
      *
      * @param task        the task to be called asynchronously with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
