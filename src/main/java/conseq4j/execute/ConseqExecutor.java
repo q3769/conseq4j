@@ -125,18 +125,20 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
                         existingWorkStage.handleAsync((completionResult, completionException) -> call(task),
                                 workerThreadPool));
-        sweepExecutorIfTailTaskComplete(sequenceKey, taskWorkStage);
+        sweepExecutorIfTailTaskDone(sequenceKey, taskWorkStage);
         return new MinimalFuture<>((Future<T>) taskWorkStage);
     }
 
     /**
-     * When trigger task is complete, check and de-list the executor entry if all is complete
+     * When trigger task is complete, check and de-list the executor entry if the tail task is done.
      *
      * @param sequenceKey  the key whose tasks are sequentially executed
-     * @param sweepTrigger the task/stage that triggers a check and possible sweep of the executor from the map if
-     *                     executor's tail task in queue is done at the time of checking
+     * @param sweepTrigger the work task/stage that, when complete, triggers an async check and possible sweep of the
+     *                     executor from the map. The trigger work stage may or may not be the same as the tail work
+     *                     stage being checked. Either way, the entire executor entry will be removed from the map if
+     *                     the tail stage is done at the time of checking.
      */
-    private void sweepExecutorIfTailTaskComplete(Object sequenceKey, @NonNull CompletableFuture<?> sweepTrigger) {
+    private void sweepExecutorIfTailTaskDone(Object sequenceKey, @NonNull CompletableFuture<?> sweepTrigger) {
         sweepTrigger.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
                 (sameSequenceKey, tailWorkStage) -> tailWorkStage.isDone() ? null : tailWorkStage), ADMIN_THREAD_POOL);
     }
