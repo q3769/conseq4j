@@ -25,6 +25,7 @@
 package conseq4j.execute;
 
 import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.Delegate;
 
@@ -42,6 +43,12 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     private static final ExecutorService ADMIN_THREAD_POOL = Executors.newCachedThreadPool();
     private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
+
+    /**
+     * The worker thread pool facilitates the overall async execution, independent of the tasks. Any thread from the
+     * pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall max
+     * parallelism of task execution.
+     */
     private final ExecutorService workerThreadPool;
 
     private ConseqExecutor(int concurrency) {
@@ -56,7 +63,8 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     }
 
     /**
-     * @param concurrency max number of tasks that can be run in parallel by the returned executor instance
+     * @param concurrency max number of tasks that can be run in parallel by the returned executor instance. This is set
+     *                    as the max capacity of the {@link #workerThreadPool}
      * @return conseq executor with given concurrency
      */
     public static ConseqExecutor newInstance(int concurrency) {
@@ -88,11 +96,8 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     }
 
     /**
-     * Threads managed by the worker thread pool facilitate the overall async execution, independent of the tasks. Any
-     * thread from the pool can be used to execute any task, regardless of sequence keys. The max concurrency of
-     * execution is the same as the worker thread pool's max capacity.
-     * <p>
-     * Tasks of different sequence keys execute in parallel.
+     * Tasks of different sequence keys execute in parallel, pending thread availability from the backing
+     * {@link #workerThreadPool}.
      * <p>
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly chaining/queuing the
      * task/work stages of the same key, leveraging the {@link CompletableFuture} API.
@@ -110,14 +115,13 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * the next task's work stage can start executing. Such linear progression of the work tasks/stages ensures the
      * sequential-ness of task execution under the same sequence key.
      * <p>
-     * A separate maintenance task/stage is set up to run after the completion of each work task/stage. Under the same
-     * sequence key, this maintenance task will locate the executor entry in the map, and sweep the entire entry off of
-     * the map if the entry's work stage is complete; otherwise if the work stage is not complete, the maintenance task
-     * does nothing; the incomplete work stage stays in the map under the same sequence key, ready to be trailed by the
-     * next work stage. This clean-up maintenance ensures that every work stage ever put on the map is eventually
-     * removed as long as every work stage runs to complete. Unlike a work task/stage, a maintenance task/stage is never
-     * added to the task queue or the executor map, and has no effect on the overall sequential-ness of the work stage
-     * executions.
+     * A separate administrative task/stage is triggered to run at the completion of each work task/stage. Under the
+     * same sequence key, this admin task will locate the executor entry in the map, and remove the entry if its work
+     * stage is complete. Otherwise, if the work stage is not complete, the admin task does nothing; the incomplete work
+     * stage stays in the map under the same sequence key, ready to be trailed by the next work stage. This clean-up
+     * administration ensures that every work stage ever put on the map is eventually removed as long as every work
+     * stage runs to complete. Unlike a work task/stage, the admin task/stage is never added to the task queue or the
+     * executor map, and has no effect on the overall sequential-ness of the work stage executions.
      *
      * @param task        the task to be called asynchronously with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
@@ -131,21 +135,21 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
                         existingWorkStage.handleAsync((completionResult, completionException) -> call(task),
                                 workerThreadPool));
-        sweepExecutorIfTailTaskDone(sequenceKey, taskWorkStage);
+        triggerCleanupAdminWhenComplete(taskWorkStage, sequenceKey);
         return new MinimalFuture<>((Future<T>) taskWorkStage);
     }
 
     /**
      * When trigger task is complete, check and de-list the executor entry if the tail task is done.
      *
-     * @param sequenceKey  the key whose tasks are sequentially executed
-     * @param sweepTrigger the work task/stage that, when complete, triggers an async check and possible sweep of the
-     *                     executor from the map. The trigger work stage may or may not be the same as the tail work
-     *                     stage being checked. Either way, the entire executor entry will be removed from the map if
-     *                     the tail stage is done at the time of checking.
+     * @param cleanupTrigger the work task/stage that, when complete, triggers an async check and possible removal of
+     *                       the executor from the map. The trigger work stage may or may not be the same as the tail
+     *                       work stage being checked. Either way, the entire executor entry will be removed from the
+     *                       map if the tail stage is done at the time of checking.
+     * @param sequenceKey    the key whose tasks are sequentially executed
      */
-    private void sweepExecutorIfTailTaskDone(Object sequenceKey, @NonNull CompletableFuture<?> sweepTrigger) {
-        sweepTrigger.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
+    private void triggerCleanupAdminWhenComplete(@NonNull CompletableFuture<?> cleanupTrigger, Object sequenceKey) {
+        cleanupTrigger.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
                 (sameSequenceKey, tailWorkStage) -> tailWorkStage.isDone() ? null : tailWorkStage), ADMIN_THREAD_POOL);
     }
 
@@ -155,12 +159,9 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      *
      * @param <V> type of result held by the Future
      */
+    @RequiredArgsConstructor
     private static final class MinimalFuture<V> implements Future<V> {
         @Delegate private final Future<V> future;
-
-        MinimalFuture(@NonNull Future<V> future) {
-            this.future = future;
-        }
     }
 
     private static class UncheckedExecutionException extends RuntimeException {
