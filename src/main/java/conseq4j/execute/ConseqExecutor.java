@@ -88,6 +88,12 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     }
 
     /**
+     * Threads managed by the worker thread pool facilitate the overall async execution, independent of the tasks. Any
+     * thread from the pool can be used to execute any task, regardless of sequence keys. The max concurrency of
+     * execution is the same as the max worker thread pool capacity.
+     * <p>
+     * Tasks of different sequence keys execute in parallel.
+     * <p>
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly chaining/queuing the
      * task/work stages of the same key, leveraging the {@link CompletableFuture} API.
      * <p>
