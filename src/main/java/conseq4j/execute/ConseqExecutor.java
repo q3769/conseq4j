@@ -131,13 +131,13 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> taskQueueTail = sequentialExecutors.compute(sequenceKey,
-                (sameSequenceKey, presentQueueTail) -> (presentQueueTail == null) ?
+        CompletableFuture<?> taskFifoQueueTail = sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, presentTail) -> (presentTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
-                        presentQueueTail.handleAsync((presentTailResult, presentTailException) -> call(task),
+                        presentTail.handleAsync((presentTailResult, presentTailException) -> call(task),
                                 workerThreadPool));
-        triggerCleanupAdminWhenComplete(taskQueueTail, sequenceKey);
-        return new MinimalFuture<>((Future<T>) taskQueueTail);
+        triggerCleanupAdminWhenComplete(taskFifoQueueTail, sequenceKey);
+        return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
     }
 
     /**
@@ -151,9 +151,9 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      */
     private void triggerCleanupAdminWhenComplete(@NonNull CompletableFuture<?> cleanupTrigger, Object sequenceKey) {
         cleanupTrigger.whenCompleteAsync((triggerStageResult, triggerStageException) -> sequentialExecutors.computeIfPresent(
-                        sequenceKey,
-                        (sameSequenceKey, checkedTaskQueueTail) -> checkedTaskQueueTail.isDone() ? null : checkedTaskQueueTail),
-                ADMIN_THREAD_POOL);
+                sequenceKey,
+                (sameSequenceKey, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null :
+                        checkedTaskFifoQueueTail), ADMIN_THREAD_POOL);
     }
 
     /**
