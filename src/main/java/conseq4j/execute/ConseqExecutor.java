@@ -126,7 +126,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      *
      * @param task        the task to be called asynchronously with proper sequence
      * @param sequenceKey the key under which this task should be sequenced
-     * @return future result of the task, not downcast-able.
+     * @return future result of the task, not downcast-able from the basic {@link Future} interface.
      */
     @Override
     @SuppressWarnings("unchecked")
