@@ -85,7 +85,7 @@ public interface ConcurrentSequencer {
 public class MessageConsumer {
 
     /**
-     * Default conseq's concurrency is the 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
      * <p></p>
      * Or to set the global concurrency to 10, for example:
      * <code>
@@ -129,7 +129,7 @@ Notes:
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
   workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
-- The default concurrency is 16 or the JVM
+- The default concurrency is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
@@ -180,7 +180,7 @@ public interface ConcurrentSequencingExecutor {
 public class MessageConsumer {
 
     /**
-     * Default executor concurrency is 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * Default executor concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
      * <p></p>
      * Or to provide a custom concurrency of 10, for example:
      * <code>
@@ -221,7 +221,7 @@ Notes:
   key could be executed by different pooled threads, albeit in sequential order. This may bring extra performance gain
   compared to the other API style.
 
-  The default concurrency or max pool size is 16 or the JVM
+  The default concurrency or max pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
