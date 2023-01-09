@@ -131,13 +131,13 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> taskWorkStage = sequentialExecutors.compute(sequenceKey,
-                (sameSequenceKey, existingWorkStage) -> (existingWorkStage == null) ?
+        CompletableFuture<?> taskQueueTail = sequentialExecutors.compute(sequenceKey,
+                (sameSequenceKey, presentQueueTail) -> (presentQueueTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
-                        existingWorkStage.handleAsync((completionResult, completionException) -> call(task),
+                        presentQueueTail.handleAsync((presentTailResult, presentTailException) -> call(task),
                                 workerThreadPool));
-        triggerCleanupAdminWhenComplete(taskWorkStage, sequenceKey);
-        return new MinimalFuture<>((Future<T>) taskWorkStage);
+        triggerCleanupAdminWhenComplete(taskQueueTail, sequenceKey);
+        return new MinimalFuture<>((Future<T>) taskQueueTail);
     }
 
     /**
@@ -150,8 +150,10 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * @param sequenceKey    the key whose tasks are sequentially executed
      */
     private void triggerCleanupAdminWhenComplete(@NonNull CompletableFuture<?> cleanupTrigger, Object sequenceKey) {
-        cleanupTrigger.whenCompleteAsync((anyResult, anyException) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                (sameSequenceKey, tailWorkStage) -> tailWorkStage.isDone() ? null : tailWorkStage), ADMIN_THREAD_POOL);
+        cleanupTrigger.whenCompleteAsync((triggerStageResult, triggerStageException) -> sequentialExecutors.computeIfPresent(
+                        sequenceKey,
+                        (sameSequenceKey, checkedTaskQueueTail) -> checkedTaskQueueTail.isDone() ? null : checkedTaskQueueTail),
+                ADMIN_THREAD_POOL);
     }
 
     /**
