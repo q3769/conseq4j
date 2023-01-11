@@ -46,7 +46,7 @@ individual-task data, into that of meaningful execution order among multiple rel
 
 By definition, there is no such thing as order or sequence among tasks submitted concurrently by different threads.
 Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks submitted
-by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j: These
+by a single thread, or by each single thread in case of multi-threading, will be managed by conseq4j: These
 thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
 different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
 use conseq4j to provide both concurrency and sequencing.
