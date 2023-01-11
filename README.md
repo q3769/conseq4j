@@ -37,9 +37,8 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 **Thread Safety**
 
-The conseq4j implementation is thread-safe in that its own internal state has no data corruption due to concurrent
-modification. The thread-safety programming rules and concerns still apply to the executed tasks, as usual. In the
-context of concurrency and sequencing, though, the thread-safety concern goes beyond concurrent modification of
+The conseq4j implementation is thread-safe in terms of its own internal state. The usual thread-safety programming rules and concerns, however, still apply to the running tasks. Moreover, in the
+context of concurrency and sequencing, the thread-safety concern goes beyond concurrent modification of
 individual-task data, into that of meaningful execution order among multiple related tasks.
 
 **Concurrency And Sequencing**
@@ -52,9 +51,9 @@ different sequence keys. As such, client-side multi-threading is not recommended
 use conseq4j to provide both concurrency and sequencing.
 
 - Technically to form a sequence, the task-submitting thread only needs to be "logically" single. It doesn't have to be
-  the same physical thread, although it can be and often is. The conseq4j API should function as long as the related
-  tasks are submitted by at most one thread at any given time, with the right order of sequence over the time. For
-  example, sometimes one thread may need to be replaced by another for various reasons.
+  the same physical thread. For
+  example, sometimes one thread may need to be replaced by another for various reasons. The conseq4j API should function as long as the related
+  tasks are submitted by at most one thread at any given time, with the right order of sequence over the time. 
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
