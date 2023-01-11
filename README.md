@@ -51,6 +51,9 @@ thread-sequenced tasks will be executed sequentially if they have the same seque
 different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
 use conseq4j to provide both concurrency and sequencing.
 
+- Technically, the task-submitting thread only needs to be "logically" single; it doesn't have to be the same physical
+  thread all the time, as long as only one single thread is submitting the related tasks at any given time.
+
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
 In this API style, sequence keys are used to summon executors of JDK
