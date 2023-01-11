@@ -50,7 +50,7 @@ thread-sequenced tasks will be executed sequentially if they have the same seque
 different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
 use conseq4j to provide both concurrency and sequencing.
 
-- Technically to form a sequence, the task-submitting thread only needs to be "logically" single. It doesn't have to be
+- Technically to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It doesn't have to be
   the same physical thread. For
   example, sometimes one thread may need to be replaced by another for various reasons. The conseq4j API should function as long as the related
   tasks are submitted by at most one thread at any given time, with the right order of sequence over the time. 
