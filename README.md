@@ -52,7 +52,7 @@ different sequence keys. As such, client-side multi-threading is not recommended
 use conseq4j to provide both concurrency and sequencing.
 
 - Technically, the task-submitting thread only needs to be "logically" single; it doesn't have to be the same physical
-  thread, as long as at most one single thread is submitting the related tasks at any given time.
+  thread, as long as the related tasks are submitted by at most one single thread at any given time.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
