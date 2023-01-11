@@ -45,10 +45,10 @@ place, and will execute in whatever order scheduled by the JVM, regardless of se
 
 - Concurrency and Sequencing
 
-Tasks submitted sequentially, i.e. by a single thread - or, by each single thread in a multi-threading scenario - will
-be managed by conseq4j. Such sequentially submitted tasks will be executed sequentially if they have the same sequence
-key, and concurrently if they have different sequence keys. In general, client-side multi-threading is not recommended
-when sequencing is imperative; instead, use conseq4j to provide both concurrency and sequencing.
+Tasks submitted by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j.
+Such thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they
+have different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative;
+instead, use conseq4j to provide both concurrency and sequencing.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
