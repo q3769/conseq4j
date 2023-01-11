@@ -74,10 +74,8 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     private static <T> T call(Callable<T> task) {
         try {
             return task.call();
-        } catch (RuntimeException e) {
-            throw e;
         } catch (Exception e) {
-            throw new UncheckedExecutionException(e);
+            throw new CompletionException(e);
         }
     }
 
@@ -166,12 +164,5 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     @RequiredArgsConstructor
     private static final class MinimalFuture<V> implements Future<V> {
         @Delegate private final Future<V> future;
-    }
-
-    private static class UncheckedExecutionException extends RuntimeException {
-
-        public UncheckedExecutionException(Exception e) {
-            super(e);
-        }
     }
 }
