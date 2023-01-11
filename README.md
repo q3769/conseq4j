@@ -40,17 +40,16 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 The conseq4j implementation is thread-safe in that its own internal state has no data corruption due to concurrent
 modification. The thread-safety programming rules and concerns still apply to the executed tasks, as usual. In the
 context of concurrency and sequencing, though, the thread-safety concern goes beyond concurrent modification of
-individual-task data, into that of meaningful execution order among multiple related tasks. Note that, by definition,
-there is no such thing as order or sequence among tasks submitted concurrently by different threads. Those tasks are not
-submitted in any sequence in the first place; they will execute in whatever order scheduled by the JVM, regardless of
-sequence keys.
+individual-task data, into that of meaningful execution order among multiple related tasks.
 
 **Concurrency And Sequencing**
 
-Tasks submitted by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j.
-Those thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they
-have different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative;
-instead, use conseq4j to provide both concurrency and sequencing.
+By definition, there is no such thing as order or sequence among tasks submitted concurrently by different threads.
+Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks submitted
+by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j: These
+thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
+different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
+use conseq4j to provide both concurrency and sequencing.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
