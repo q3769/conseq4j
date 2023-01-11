@@ -30,12 +30,12 @@ Java 8 or better
 
 ## Use It...
 
-- Sequence Keys
+**Sequence Keys**
 
 A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only
 if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
-- Thread-safety
+**Thread Safety**
 
 The conseq4j implementation is thread-safe in that the API operations themselves will not cause any task data corruption
 due to concurrent modification. In the context of concurrency and sequencing, though, the thread-safety concern goes
@@ -44,7 +44,7 @@ is no such thing as order or sequence among tasks submitted concurrently by diff
 submitted in any sequence in the first place; they will execute in whatever order scheduled by the JVM, regardless of
 sequence keys.
 
-- Concurrency And Sequencing
+**Concurrency And Sequencing**
 
 Tasks submitted by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j.
 Those thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they
