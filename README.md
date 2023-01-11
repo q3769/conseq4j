@@ -37,13 +37,14 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 - Thread-safety
 
-The conseq4j implementation is thread-safe in that there is no task data corruption due to concurrent modification. In
-the context of concurrency and sequencing, though, the thread-safety concern goes above and beyond, into that of
-meaningful execution order among multiple related tasks. Note that, by definition, there is no such thing as order or
-sequence among tasks submitted concurrently by different threads. Those tasks are not submitted sequentially in the
-first place, and will execute in whatever order scheduled by the JVM, regardless of sequence keys.
+The conseq4j implementation is thread-safe in that the API operations themselves will not cause any task data corruption
+due to concurrent modification. In the context of concurrency and sequencing, though, the thread-safety concern goes
+above and beyond, into that of meaningful execution order among multiple related tasks. Note that, by definition, there
+is no such thing as order or sequence among tasks submitted concurrently by different threads. Those tasks are not
+submitted in any sequence in the first place; they will execute in whatever order scheduled by the JVM, regardless of
+sequence keys.
 
-- Concurrency and Sequencing
+- Concurrency And Sequencing
 
 Tasks submitted by a single thread - or by each single thread in case of multi-threading - will be managed by conseq4j.
 Those thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they
