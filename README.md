@@ -37,31 +37,34 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 **Thread Safety**
 
-The conseq4j implementation is thread-safe in terms of its own internal state. The usual thread-safety programming rules and concerns, however, still apply to the running tasks. Moreover, in the
-context of concurrency and sequencing, the thread-safety concern goes beyond concurrent modification of
-individual-task data, into that of meaningful execution order among multiple related tasks.
+The conseq4j implementation is thread-safe in and of itself. The usual thread-safety rules and concerns, nevertheless,
+still apply when programming the executable tasks. Moreover, in the context of concurrency and sequencing, the
+thread-safety concern goes beyond concurrent modification of individual-task data, into that of meaningful execution
+order among multiple related tasks.
 
 **Concurrency And Sequencing**
 
 By definition, there is no such thing as order or sequence among tasks submitted concurrently by different threads.
 Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks submitted
 by a single thread, or by each single thread in case of multi-threading, will be managed by conseq4j: These
-thread-sequenced tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
+per-thread-bound tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
 different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
 use conseq4j to provide both concurrency and sequencing.
 
-- Technically to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It does not always have to be
-  the same physical thread (although it can be and often is). For
-  example, sometimes one thread may need to be replaced by another for various reasons. The conseq4j API should function correctly as long as the related
-  tasks are submitted by at most one thread at any given time, and with the right order of sequence over the time. Fortunately, that is naturally the case for the API client most of the time, e.g. inside a message driven method managed by the messaging provider.
+- Technically to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It
+  does not always have to be the same physical thread (although it can be and often is). For example, sometimes one
+  thread may need to be replaced by another for various reasons. The conseq4j API should function correctly as long as
+  the related tasks are submitted by at most one thread at any given time, and with the right order of sequence over the
+  time. Fortunately, that is naturally the case for the API client most of the time, e.g. inside a message driven method
+  managed by the messaging provider.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
 In this API style, sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
-sequence key always gets back the same executor from the API, no matter when or how many
-times the executor is summoned. All tasks submitted to that executor, no matter when or how many, are considered part of
-the same sequence; therefore, executed sequentially in exactly the same order as submitted.
+sequence key always gets back the same executor from the API, no matter when or how many times the executor is summoned.
+All tasks submitted to that executor, no matter when or how many, are considered part of the same sequence; therefore,
+executed sequentially in exactly the same order as submitted.
 
 There is no limit on the total number of sequence keys the API client can use to summon executors. Behind the scenes,
 tasks of different sequence keys will be managed to execute in parallel, with a configurable global maximum concurrency.

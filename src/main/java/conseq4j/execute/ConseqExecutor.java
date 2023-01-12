@@ -133,8 +133,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
         CompletableFuture<?> taskFifoQueueTail = sequentialExecutors.compute(sequenceKey,
                 (sameSequenceKey, presentTail) -> (presentTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
-                        presentTail.handleAsync((presentTailResult, presentTailException) -> call(task),
-                                workerThreadPool));
+                        presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
         triggerCleanupAdminWhenComplete(taskFifoQueueTail, sequenceKey);
         return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
     }
@@ -149,8 +148,7 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
      * @param sequenceKey    the key whose tasks are sequentially executed
      */
     private void triggerCleanupAdminWhenComplete(@NonNull CompletableFuture<?> cleanupTrigger, Object sequenceKey) {
-        cleanupTrigger.whenCompleteAsync((triggerStageResult, triggerStageException) -> sequentialExecutors.computeIfPresent(
-                sequenceKey,
+        cleanupTrigger.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                 (sameSequenceKey, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null :
                         checkedTaskFifoQueueTail), ADMIN_THREAD_POOL);
     }
