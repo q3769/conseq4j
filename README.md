@@ -37,10 +37,9 @@ if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 **Thread Safety**
 
-The conseq4j implementation is thread-safe in and of itself. The usual thread-safety rules and concerns, nevertheless,
-still apply when programming the executable tasks. Moreover, in the context of concurrency and sequencing, the
-thread-safety concern goes beyond concurrent modification of individual-task data, into that of meaningful execution
-order among multiple related tasks.
+A conseq4j instance is thread-safe. The usual thread-safety rules and concerns, however, still apply when programming
+the executable tasks. Moreover, in the context of concurrency and sequencing, the thread-safety concern goes beyond
+concurrent modification of individual-task data, into that of meaningful execution order among multiple related tasks.
 
 **Concurrency And Sequencing**
 
