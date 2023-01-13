@@ -273,6 +273,6 @@ Compared to preventative measures, corrective ones can be much more complicated 
 runtime performance. E.g. it may help to do a stateful/historical look-up of all the data and other events received so
 far that are related to the incoming event; this forms a correlated and collective session of information for the
 incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of order
-per business rules; corrective (among other reactive) actions can then be taken for the order restoration. This may fall
-into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State
-Machines can also be a useful design in such scenario.
+per business rules; corrective measures can then be taken to restore the right order, among other reactive actions. This
+may fall into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing).
+State Machines can also be a useful design in such scenario.
