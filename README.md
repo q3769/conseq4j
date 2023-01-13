@@ -46,16 +46,15 @@ order among multiple related tasks.
 
 By definition, there is no such thing as order or sequence among tasks submitted concurrently by different threads.
 Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks submitted
-by a single thread, or by each single thread in case of multi-threading, will be managed by conseq4j: These
+to conseq4j by a single thread, or by each single thread in case of multi-threading, will be managed. These
 per-thread-bound tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
-different sequence keys. As such, client-side multi-threading is not recommended when sequencing is imperative; instead,
-use conseq4j to provide both concurrency and sequencing.
+different sequence keys. The conseq4j API will provide both concurrency and sequencing.
 
-- Technically to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It
+- Technically, to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It
   does not always have to be the same physical thread (although it can be and often is). For example, sometimes one
   thread may need to be replaced by another for various reasons. The conseq4j API should function correctly as long as
   the related tasks are submitted by at most one thread at any given time, and with the right order of sequence over the
-  time. Fortunately, that is naturally the case for the API client most of the time, e.g. inside a message driven method
+  time. Fortunately, that is often the case naturally for the API client, e.g. when running in a message-driven method
   managed by the messaging provider.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
