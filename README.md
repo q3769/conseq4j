@@ -44,9 +44,9 @@ order among multiple related tasks.
 
 **Concurrency And Sequencing**
 
-By definition, there is no such thing as order or sequence among tasks submitted concurrently by different threads.
-Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks submitted
-to conseq4j by a single thread, or by each single thread in case of multi-threading, will be managed. These
+First of all, by definition, there is no such thing as order or sequence among tasks submitted concurrently by different
+threads. Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks
+submitted to conseq4j by a single thread, or by each single thread in case of multi-threading, will be managed: These
 per-thread-bound tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
 different sequence keys. The conseq4j API will provide both concurrency and sequencing.
 
