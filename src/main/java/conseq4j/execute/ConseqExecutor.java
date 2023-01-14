@@ -134,23 +134,10 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
                 (sameSequenceKey, presentTail) -> (presentTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
                         presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
-        triggerCleanupAdminWhenComplete(taskFifoQueueTail, sequenceKey);
-        return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
-    }
-
-    /**
-     * When trigger task is complete, check and de-list the executor entry if the tail task is done.
-     *
-     * @param cleanupTrigger the work task/stage that, when complete, triggers an async check and possible removal of
-     *                       the executor from the map. The trigger work stage may or may not be the same as the tail
-     *                       work stage being checked. Either way, the entire executor entry will be removed from the
-     *                       map if the tail stage is done at the time of checking.
-     * @param sequenceKey    the key whose tasks are sequentially executed
-     */
-    private void triggerCleanupAdminWhenComplete(@NonNull CompletableFuture<?> cleanupTrigger, Object sequenceKey) {
-        cleanupTrigger.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
+        taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                 (sameSequenceKey, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null :
                         checkedTaskFifoQueueTail), ADMIN_THREAD_POOL);
+        return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
     }
 
     /**
