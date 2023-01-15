@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 Qingtian Wang
+ * Copyright (c) 2021 Qingtian Wang
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -74,10 +74,6 @@ public final class Conseq implements ConcurrentSequencer {
         return new Conseq(concurrency);
     }
 
-    private int bucketOf(Object sequenceKey) {
-        return floorMod(Objects.hash(sequenceKey), this.concurrency);
-    }
-
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
@@ -85,5 +81,9 @@ public final class Conseq implements ConcurrentSequencer {
     public ExecutorService getSequentialExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
+    }
+
+    private int bucketOf(Object sequenceKey) {
+        return floorMod(Objects.hash(sequenceKey), this.concurrency);
     }
 }

@@ -1,7 +1,7 @@
 /*
  * MIT License
  *
- * Copyright (c) 2023 Qingtian Wang
+ * Copyright (c) 2021 Qingtian Wang
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,10 +79,6 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
         }
     }
 
-    int estimateActiveExecutorCount() {
-        return this.sequentialExecutors.size();
-    }
-
     /**
      * @param command     the command to run asynchronously in proper sequence
      * @param sequenceKey the key under which this task should be sequenced
@@ -138,6 +134,10 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
                 (sameSequenceKey, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null :
                         checkedTaskFifoQueueTail), ADMIN_THREAD_POOL);
         return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
+    }
+
+    int estimateActiveExecutorCount() {
+        return this.sequentialExecutors.size();
     }
 
     /**
