@@ -120,17 +120,17 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of this style relies on hashing of the sequence keys into a fixed number of "buckets". These
-  buckets are each associated with a sequential executor. The same/equal sequence key is always hashed to and summons
-  back the same executor. Single-threaded, each executor ensures the execution order of all its tasks is the same as
-  they are submitted; excessive tasks pending execution are buffered by the executor in a FIFO task queue. Thus, the
-  total number of buckets (a.k.a. the max number of executors and the global concurrency) is the maximum number of tasks
-  that can be executed in parallel at any given time.
+- The implementation of this style loosely takes the form of "thread affinity". It relies on hashing of the sequence
+  keys into a fixed number of "buckets". These buckets are each associated with a sequential executor. The same/equal
+  sequence key is always hashed to and summons back the same executor. Single-threaded, each executor ensures the
+  execution order of all its tasks is the same as they are submitted; excessive tasks pending execution are buffered by
+  the executor in a FIFO task queue. Thus, the total number of buckets (a.k.a. the max number of executors and the
+  global concurrency) is the maximum number of tasks that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
-  execution order for each individual sequence key's tasks. Nevertheless, unrelated tasks of different sequence keys
-  may delay each other's execution inadvertently while waiting in the executor's task queue. To account for hash
-  collision, conseq4j does not support any shutdown action on the
+  execution order for each individual sequence key's tasks. Nevertheless, unrelated tasks of different sequence keys but
+  inside the same bucket may delay each other's execution inadvertently while waiting in the executor's task queue.
+- To account for hash collision, conseq4j does not support any shutdown action on the
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
@@ -217,18 +217,19 @@ Notes:
 
 - The implementation of this style relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
-  behind the scenes to achieve sequential execution of related tasks. A backing thread pool is used to facilitate the
-  overall asynchronous execution. The global concurrency of unrelated tasks are upper-bounded by the execution thread
-  pool size. Compared to the other conseq4j API style, this has the advantage of avoiding the issues associated with
-  hash collision, and may be preferable for simple cases that do not require the syntax and semantic richness
+  behind the scenes to achieve sequential execution of related tasks. One single backing thread pool is used to
+  facilitate the overall asynchronous execution. The overall concurrency of unrelated tasks are upper-bounded by the
+  execution thread pool size.
+- Compared to the other conseq4j API style, this has the advantage of avoiding the issues associated with hash
+  collision, and may be preferable for simple cases that do not require the syntax and semantic richness
   an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
   offer.
-- Since there is no bucket hashing, this API style decouples the submitted tasks from their execution threads. All
-  pooled threads are anonymous and interchangeable to execute any tasks. I.e. even related tasks of the same sequence
-  key could be executed by different pooled threads, albeit in sequential order. This may bring extra performance gain
-  compared to the other API style.
+- There is no "thread affinity" or bucket hashing. Instead, this API style decouples the submitted tasks from their
+  execution threads. All pooled threads are anonymous and interchangeable to execute any tasks. Even related tasks of
+  the same sequence key can be executed by different pooled threads, albeit in sequential order. A task would only be
+  queued behind and blocked by related tasks of the same sequence key, and not by other tasks of the same "bucket".
 
-  The default concurrency or max pool size is either 16 or the JVM
+- The default overall concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
