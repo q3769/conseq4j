@@ -226,8 +226,9 @@ Notes:
   offer.
 - There is no "thread affinity" or bucket hashing. Instead, this API style decouples the submitted tasks from their
   execution threads. All pooled threads are anonymous and interchangeable to execute any tasks. Even related tasks of
-  the same sequence key can be executed by different pooled threads, albeit in sequential order. A task would only be
-  queued behind and blocked by related tasks of the same sequence key, and not by other tasks of the same "bucket".
+  the same sequence key can be executed by different pooled threads, albeit in sequential order. A task awaiting
+  execution will only be queued behind and blocked by related tasks of the same sequence key, and not by other tasks of
+  the same "bucket".
 
 - The default overall concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
