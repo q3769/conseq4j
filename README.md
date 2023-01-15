@@ -2,22 +2,21 @@
 
 # conseq4j
 
-A Java concurrent API to sequence the executions of related tasks while concurring unrelated ones.
+A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
 
 - **conseq** is short for **con**current **seq**uencer.
 
 ## User Stories
 
-1. As a client of the conseq4j API, I want to summon a thread/executor by a sequence key, so that I can sequentially
-   execute all related tasks sequentially submitted with the same sequence key using the same executor; unrelated
-   tasks with different sequence keys can be executed concurrently by different executors even when they are submitted
+1. As an API client, I want to summon a thread/executor by a sequence key, so that I can sequentially execute all
+   related tasks submitted sequentially with the same sequence key using the same executor; meanwhile, unrelated tasks
+   with different sequence keys can be executed concurrently by different executors even when the tasks are submitted
    sequentially.
-2. As a client of the conseq4j API, I want to asynchronously submit a task for execution together with a sequence key,
-   so that, across all such submissions, related tasks submitted sequentially under the same sequence key are executed
-   sequentially; unrelated tasks of different sequence keys are executed concurrently even when they are submitted
-   sequentially.
+2. As an API client, I want to asynchronously submit a task for execution together with a sequence key, so that, across
+   all such submissions, related tasks submitted sequentially under the same sequence key are executed sequentially;
+   unrelated tasks of different sequence keys are executed concurrently even when the tasks are submitted sequentially.
 
-Consider using conseq4j when you want to achieve concurrent processing globally while preserving meaningful local
+Consider using conseq4j to achieve asynchronous concurrent processing globally while preserving meaningful local
 execution order at the same time.
 
 ## Prerequisite
@@ -45,10 +44,11 @@ related tasks.
 **Concurrency And Sequencing**
 
 First of all, by definition, there is no such thing as order or sequence among tasks submitted concurrently by different
-threads. Those tasks will execute in whatever order scheduled by the JVM, regardless of sequence keys. However, tasks
-submitted to conseq4j by a single thread, or by each single thread in case of multi-threading, will be managed: These
-per-thread-bound tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
-different sequence keys. The conseq4j API will provide both concurrency and sequencing.
+threads. No particular execution order is guaranteed on those concurrent tasks, regardless of their sequence keys. The
+conseq4j API only manages the execution order for sequentially-submitted tasks - those that are submitted by a single
+thread, or by each single thread in case of multi-threading. For those sequential tasks, the conseq4j API will provide
+both concurrency and sequencing: The tasks will be executed sequentially if they have the same sequence key, and
+concurrently if they have different sequence keys.
 
 - Technically, to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It
   does not always have to be the same physical thread (although it can be and often is). For example, sometimes one
