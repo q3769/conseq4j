@@ -257,7 +257,7 @@ out of order in a globally concurrent process. This implies:
 (2) The messaging provider ensures that messages are delivered to the message consumer in the same order they are
 received.
 
-(3)The message consumer ensures that related messages are processed in the same order, e.g. by using a
+(3) The message consumer ensures that related messages are processed in the same order, e.g. by using a
 sequence/correlation key as with this API.
 
 **2. Curative**
