@@ -79,8 +79,8 @@ public interface ConcurrentSequencer {
 
     /**
      * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
-     * @return the executor of type {@link ExecutorService} that executes all tasks of this sequence key in the same
-     *         order as they are submitted.
+     * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this 
+     *         sequence key in the same order as they are submitted.
      */
     ExecutorService getSequentialExecutorService(Object sequenceKey);
 }
@@ -93,7 +93,7 @@ public class MessageConsumer {
 
     /**
      * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
-     * <p></p>
+     * <p>
      * Or to set the global concurrency to 10, for example:
      * <code>
      * private ConcurrentSequencer conseq = Conseq.newInstance(10);
@@ -104,12 +104,12 @@ public class MessageConsumer {
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider.
-     * This is usually via a single caller thread.
-     * <p></p>
-     * Concurrency is achieved when shopping events of different shopping cart IDs are 
-     * processed in parallel, by different executors. Sequence is maintained on all 
-     * shopping events of the same shopping cart ID, by the same executor.
+     * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
+     * caller thread.
+     * <p>
+     * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel, by 
+     * different executors. Sequence is maintained on all shopping events of the same shopping cart ID, by the same 
+     * executor.
      */
     public void onMessage(Message shoppingEvent) {
         conseq.getSequentialExecutorService(shoppingEvent.getShoppingCartId())
@@ -188,7 +188,7 @@ public class MessageConsumer {
 
     /**
      * Default executor concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
-     * <p></p>
+     * <p>
      * Or to provide a custom concurrency of 10, for example:
      * <code>
      * private ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance(10));
@@ -199,13 +199,12 @@ public class MessageConsumer {
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
     /**
-     * Suppose run-time invocation of this method is managed by the messaging provider.
-     * This is usually via a single caller thread.
-     * <p></p>
-     * Concurrency is achieved when shopping events of different shopping cart IDs are 
-     * processed in parallel by different backing threads. Sequence is maintained on all 
-     * shopping events of the same shopping cart ID, via linear progressing of the
-     * {@link CompletableFuture}'s completion stages.
+     * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
+     * caller thread.
+     * <p>
+     * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel by 
+     * different backing threads. Sequence is maintained on all shopping events of the same shopping cart ID, via 
+     * linear progression of execution stages with {@link java.util.concurrent.CompletableFuture}.
      */
     public void onMessage(Message shoppingEvent) {
         conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
