@@ -8,13 +8,13 @@ A Java concurrent API to sequence the asynchronous executions of related tasks w
 
 ## User Stories
 
-1. As an API client, I want to summon a thread/executor by a sequence key, so that I can sequentially execute all
-   related tasks submitted sequentially with the same sequence key using the same executor; meanwhile, unrelated tasks
-   with different sequence keys can be executed concurrently by different executors even when the tasks are submitted
+1. As an API client, I want to summon a sequential task executor by a sequence key, so that all the tasks sequentially
+   submitted under the same sequence key will be executed by the same executor in the same order as submitted; tasks
+   with different sequence keys can be executed by different executors in parallel even when the tasks are submitted
    sequentially.
 2. As an API client, I want to asynchronously submit a task for execution together with a sequence key, so that, across
-   all such submissions, related tasks submitted sequentially under the same sequence key are executed sequentially;
-   unrelated tasks of different sequence keys are executed concurrently even when the tasks are submitted sequentially.
+   all such submissions, tasks submitted sequentially under the same sequence key are executed in the same order as
+   submitted; tasks of different sequence keys are executed concurrently even when the tasks are submitted sequentially.
 
 Consider using conseq4j to achieve asynchronous concurrent processing globally while preserving meaningful local
 execution order at the same time.
