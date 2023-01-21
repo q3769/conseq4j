@@ -1,3 +1,5 @@
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Conseq4J)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
+
 # conseq4j
 
 A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
