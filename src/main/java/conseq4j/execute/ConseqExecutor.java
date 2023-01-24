@@ -127,12 +127,12 @@ public final class ConseqExecutor implements ConcurrentSequencingExecutor {
     @SuppressWarnings("unchecked")
     public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         CompletableFuture<?> taskFifoQueueTail = sequentialExecutors.compute(sequenceKey,
-                (sameSequenceKey, presentTail) -> (presentTail == null) ?
+                (k, presentTail) -> (presentTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
                         presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
         taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                (sameSequenceKey, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null :
-                        checkedTaskFifoQueueTail), ADMIN_THREAD_POOL);
+                        (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
+                ADMIN_THREAD_POOL);
         return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
     }
 
