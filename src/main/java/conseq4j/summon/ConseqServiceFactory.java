@@ -43,7 +43,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class Conseq implements ConcurrentSequencer {
+public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
     private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
     private final int concurrency;
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
@@ -52,7 +52,7 @@ public final class Conseq implements ConcurrentSequencer {
      * @param concurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
      *                    concurrently executed at any given time by this conseq instance.
      */
-    private Conseq(int concurrency) {
+    private ConseqServiceFactory(int concurrency) {
         if (concurrency <= 0) {
             throw new IllegalArgumentException("expecting positive concurrency, but given: " + concurrency);
         }
@@ -62,23 +62,24 @@ public final class Conseq implements ConcurrentSequencer {
     /**
      * @return ExecutorService factory with default concurrency
      */
-    public static Conseq newInstance() {
-        return new Conseq(Math.max(Runtime.getRuntime().availableProcessors(), DEFAULT_MINIMUM_CONCURRENCY));
+    public static ConseqServiceFactory newInstance() {
+        return new ConseqServiceFactory(Math.max(Runtime.getRuntime().availableProcessors(),
+                DEFAULT_MINIMUM_CONCURRENCY));
     }
 
     /**
      * @param concurrency max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency
      */
-    public static Conseq newInstance(int concurrency) {
-        return new Conseq(concurrency);
+    public static ConseqServiceFactory newInstance(int concurrency) {
+        return new ConseqServiceFactory(concurrency);
     }
 
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getSequentialExecutorService(Object sequenceKey) {
+    public ExecutorService getExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }

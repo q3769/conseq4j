@@ -28,19 +28,19 @@ import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
 /**
- * Main API of concurrent sequencer executor, bypassing the intermediate executor
- * ({@link java.util.concurrent.ExecutorService}) interface. A public implementation should be thread-safe per its given
- * order of task submissions. In the context of concurrency and sequencing, thread-safety goes beyond the concerns of
- * data corruption due to concurrent modification, into that of execution order across multiple tasks. By definition,
- * though, there is no such thing as order or sequence among tasks submitted concurrently by different threads. Such
- * multi-thread submitted tasks can be executed in any order, regardless of sequence key. However, tasks submitted by a
- * single thread - or, by each single thread in a multi-threading scenario - should be executed sequentially in the same
- * order of submission if they have the same sequence key; otherwise, such single-thread submitted tasks should be
- * managed to execute concurrently by multiple threads if they have different sequence keys.
+ * Main API of conseq executor, bypassing the intermediate ({@link java.util.concurrent.ExecutorService}) API. A public
+ * implementation should be thread-safe per its given order of task submissions. In the context of concurrency and
+ * sequencing, thread-safety goes beyond the concerns of data corruption due to concurrent modification, into that of
+ * execution order across multiple tasks. By definition, though, there is no such thing as order or sequence among tasks
+ * submitted concurrently by different threads. Such multi-thread submitted tasks can be executed in any order,
+ * regardless of sequence key. However, tasks submitted by a single thread - or, by each single thread in a
+ * multi-threading scenario - should be executed sequentially in the same order of submission if they have the same
+ * sequence key; otherwise, such single-thread submitted tasks should be managed to execute concurrently by multiple
+ * threads if they have different sequence keys.
  *
  * @author Qingtian Wang
  */
-public interface ConcurrentSequencingExecutor {
+public interface SequentialExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key

@@ -69,7 +69,7 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
     }
 
     /**
-     * Methods that require decoration instead of delegation
+     * Methods that require complete overriding instead of delegation/decoration
      */
     private interface ShutdownOperations {
         void shutdown();

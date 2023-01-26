@@ -45,12 +45,12 @@ class ConfigTest {
         int errors = 0;
 
         try {
-            Conseq.newInstance(0);
+            ConseqServiceFactory.newInstance(0);
         } catch (IllegalArgumentException e) {
             errors++;
         }
         try {
-            Conseq.newInstance(-999);
+            ConseqServiceFactory.newInstance(-999);
         } catch (IllegalArgumentException e) {
             errors++;
         }
@@ -60,32 +60,32 @@ class ConfigTest {
 
     @Test
     void shouldReturnSameExecutorOnSameName() {
-        Conseq sut = Conseq.newInstance();
+        ConseqServiceFactory sut = ConseqServiceFactory.newInstance();
         UUID sameSequenceKey = UUID.randomUUID();
 
-        Executor e = sut.getSequentialExecutorService(sameSequenceKey);
+        Executor e = sut.getExecutorService(sameSequenceKey);
         int additionalSummonTimes = 1 + new Random().nextInt(100);
         for (int i = 0; i < additionalSummonTimes; i++) {
-            assertSame(e, sut.getSequentialExecutorService(sameSequenceKey));
+            assertSame(e, sut.getExecutorService(sameSequenceKey));
         }
     }
 
     @Test
     void shutdownUnsupported() {
-        Conseq target = Conseq.newInstance();
-        final ExecutorService sequentialExecutor = target.getSequentialExecutorService("testSequenceKey");
+        ConseqServiceFactory target = ConseqServiceFactory.newInstance();
+        final ExecutorService sequentialExecutor = target.getExecutorService("testSequenceKey");
         int errors = 0;
 
         try {
             sequentialExecutor.shutdown();
         } catch (UnsupportedOperationException e) {
-            info.log("Expected error for testing: {}", e.getMessage());
+            info.log("Expected error in testing: {}", e.getMessage());
             errors++;
         }
         try {
             sequentialExecutor.shutdownNow();
         } catch (UnsupportedOperationException e) {
-            info.log("Expected error for testing: {}", e.getMessage());
+            info.log("Expected error in testing: {}", e.getMessage());
             errors++;
         }
 

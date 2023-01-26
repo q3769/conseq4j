@@ -4,7 +4,7 @@
 
 A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
 
-- **conseq** is short for **con**current **seq**uencer.
+- *conseq* is short for *con*current *seq*uencer.
 
 ## User Stories
 
@@ -77,14 +77,14 @@ of the JDK `ExecutorService` API.
 #### API
 
 ```java
-public interface ConcurrentSequencer {
+public interface SequentialExecutorServiceFactory {
 
     /**
      * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
      * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this 
      *         sequence key in the same order as they are submitted.
      */
-    ExecutorService getSequentialExecutorService(Object sequenceKey);
+    ExecutorService getExecutorService(Object sequenceKey);
 }
 ```
 
@@ -98,10 +98,10 @@ public class MessageConsumer {
      * <p>
      * Or to set the global concurrency to 10, for example:
      * <code>
-     * private ConcurrentSequencer conseq = Conseq.newInstance(10);
+     * private SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance(10);
      * </code>
      */
-    private final ConcurrentSequencer conseq = Conseq.newInstance();
+    private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -114,7 +114,8 @@ public class MessageConsumer {
      * executor.
      */
     public void onMessage(Message shoppingEvent) {
-        conseq.getSequentialExecutorService(shoppingEvent.getShoppingCartId())
+
+        conseqServiceFactory.getExecutorService(shoppingEvent.getShoppingCartId())
                 .execute(() -> shoppingEventProcessor.process(shoppingEvent));
     }
 }
@@ -142,20 +143,19 @@ Notes:
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
-  ConcurrentSequencer conseq = Conseq.newInstance();
+  ConseqServiceFactory.newInstance();
   ```
 
   The concurrency can be customized:
   ```jshelllanguage
-  ConcurrentSequencer conseq = Conseq.newInstance(10);
+  ConseqServiceFactory.newInstance(10)
   ```
 
 ### Style2: Submit Each Task Together With A SequenceKey, Directly To Conseq4J API For Execution
 
 This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
 directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
-submission order; tasks of different sequence keys are managed to execute in parallel, by a thread pool of configurable
-size.
+submission order; tasks of different sequence keys are managed to execute in parallel.
 
 Prefer this style when the full-blown syntax and semantic support of
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
@@ -164,7 +164,7 @@ required.
 #### API
 
 ```java
-public interface ConcurrentSequencingExecutor {
+public interface SequentialExecutor {
 
     /**
      * @param command     the Runnable task to run sequentially with others under the same sequence key
@@ -193,10 +193,10 @@ public class MessageConsumer {
      * <p>
      * Or to provide a custom concurrency of 10, for example:
      * <code>
-     * private ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance(10));
+     * private SequentialExecutor conseqExecutor = ConseqExecutor.newInstance(10));
      * </code>
      */
-    private final ConcurrentSequencingExecutor conseqExecutor = ConseqExectuor.newInstance();
+    private final SequentialExecutor conseqExecutor = ConseqExectuor.newInstance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -233,12 +233,12 @@ Notes:
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
-  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance();
+  ConseqExecutor.newInstance()
   ```
 
   The concurrency can be customized:
   ```jshelllanguage
-  ConcurrentSequencingExecutor conseqExecutor = ConseqExecutor.newInstance(10);
+  ConseqExecutor.newInstance(10)
   ```
 
 ## Full Disclosure - Asynchronous Conundrum

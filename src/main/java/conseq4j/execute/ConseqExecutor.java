@@ -39,7 +39,7 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements ConcurrentSequencingExecutor {
+public final class ConseqExecutor implements SequentialExecutor {
     private static final ExecutorService ADMIN_THREAD_POOL = Executors.newCachedThreadPool();
     private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
