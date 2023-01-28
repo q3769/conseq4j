@@ -132,8 +132,8 @@ Notes:
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
   execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys yet
   assigned to the same bucket/executor may delay each other's execution inadvertently while waiting in the executor's
-  task queue. Consider this a trade-off of the
-  executor's [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
+  task queue. Consider this a trade-off of the executor's having the same syntax and semantic richness as a
+  JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - To account for hash collision, conseq4j does not support any shutdown action on the API-provided
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
   instance. That is to prevent unintended task cancellation across different sequence keys.
