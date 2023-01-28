@@ -223,10 +223,10 @@ Notes:
   asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool size.
 - Without "thread affinity" or bucket hashing, this API style decouples tasks from their execution threads. All pooled
   threads are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be
-  executed by different threads, albeit in sequential order. A task awaiting execution must have been queued behind and
-  blocked only by its own related task(s) of the same sequence key, not by unrelated tasks inside the same "bucket".
-  This can be a desired advantage over the other conseq4j API style, at the trade-off of lesser syntax and semantic
-  richness than the
+  executed by different threads, albeit in sequential order. A task awaiting execution must have been blocked only by
+  its own related task(s) of the same sequence key - as it is supposed to be, and not by unrelated tasks of different
+  sequence keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other conseq4j API
+  style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - The default general concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
