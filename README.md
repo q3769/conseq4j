@@ -152,7 +152,7 @@ Notes:
   ConseqServiceFactory.newInstance(10)
   ```
 
-### Style 2: Submit Each Task Together With Its Sequence Key Directly For Execution
+### Style 2: Submit Each Task Directly For Execution, Together With Its Sequence Key
 
 This API style is more concise. Bypassing the JDK ExecutorService API, it services the submitted task directly. The same
 execution semantics holds: Tasks of the same sequence key are executed in the same submission order; tasks of different
