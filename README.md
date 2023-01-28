@@ -60,15 +60,13 @@ sequence keys.
 
 ### Style 1: Summon An Executor By Its Sequence Key, Then Use That Sequential Executor As With A JDK `ExecutorService`
 
-In this API style, sequence keys are used to summon executors of JDK
+This API style loosely takes the form of "thread affinity". Sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
-sequence key always gets back the same executor from the API, no matter when or how many times the executor is summoned.
-All tasks sequentially submitted to that executor are considered part of the same sequence, therefore, executed
-sequentially in exactly the same order as submitted.
+sequence key always gets back the same sequential executor. All tasks of that sequence key can then be "affined" to and
+executed sequentially by that executor in the same submission order.
 
-There is no limit on the number of different sequence keys from the API client to summon executors. The total available
-number of executors are configurable. As each executor is sequential, the total number of executors equals the maximum
-number of tasks that can be executed in parallel.
+The total number of executors concurrently available at runtime is configurable. As each executor is sequential, the
+number of available executors equals the number of tasks that can be executed in parallel.
 
 Consider using this style when the summoned executor needs to provide
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
@@ -123,17 +121,17 @@ public class MessageConsumer {
 
 Notes:
 
-- This API style loosely takes the form of "thread affinity". It relies on hashing of the sequence keys into a fixed
-  number of "buckets". These buckets are each associated with a sequential executor. The same sequence key is always
-  hashed to and summons back the same executor. Single-threaded, each executor ensures the execution order of all its
-  tasks is the same as they are submitted; excessive tasks pending execution are buffered a FIFO task queue. Thus, the
-  total number of buckets (i.e. the max number of available executors and the general concurrency) is the maximum number
-  of tasks that can be executed in parallel at any given time.
+- The implementation of this thread-affinity style relies on hashing of the sequence keys into a fixed number of
+  "buckets". These buckets are each associated with a sequential executor. The same sequence key is always hashed to and
+  summons back the same executor. Single-threaded, each executor ensures the execution order of all its tasks is the
+  same as they are submitted; excessive tasks pending execution are buffered a FIFO task queue. Thus, the total number
+  of buckets (i.e. the max number of available executors and the general concurrency) is the maximum number of tasks
+  that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
-  execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys yet
-  assigned to the same bucket/executor may delay each other's execution inadvertently while waiting in the executor's
-  task queue. Consider this a trade-off of the executor's having the same syntax and semantic richness as a
+  sequential execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence
+  keys now assigned to the same bucket/executor may delay each other's execution inadvertently while waiting in the
+  executor's task queue. Consider this a trade-off of the executor's having the same syntax and semantic richness as a
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - To account for hash collision, conseq4j does not support any shutdown action on the API-provided
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
@@ -218,18 +216,18 @@ public class MessageConsumer {
 
 Notes:
 
-- The interface of this style uses `Future` as the return type, mainly to reduce conceptual weight of the API. The
-  implementation actually returns `CompletableFuture`, and can be used directly if need be.
+- The interface of this direct-execute style uses `Future` as the return type, mainly to reduce conceptual weight of the
+  API. The implementation actually returns `CompletableFuture`, and can be used directly if need be.
 - The implementation relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
   achieve sequential execution of related tasks. One single backing thread pool is used to facilitate the overall
   asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool size.
-- Instead of "thread affinity" or bucket hashing, tasks are decoupled from their execution threads. All pooled threads
-  are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be executed
-  by different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
+- Instead of thread-affinity or bucket hashing, tasks are decoupled from their execution threads. All pooled threads are
+  anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be executed by
+  different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
   related task(s) of the same sequence key - as it is supposed to be, and not by unrelated tasks of different sequence
-  keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other conseq4j API style, at
-  the trade-off of lesser syntax and semantic richness than the
+  keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other thread-affinity style,
+  at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - The default general concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
