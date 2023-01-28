@@ -60,18 +60,6 @@ sequence keys.
 
 ### Style 1: Summon An Executor By Its Sequence Key, Then Use That Sequential Executor As With A JDK `ExecutorService`
 
-This API style loosely takes the form of "thread affinity". Sequence keys are used to summon executors of JDK
-type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
-sequence key always gets back the same sequential executor. All tasks of that sequence key can then be "affined" to and
-executed sequentially by that executor in the same submission order.
-
-The total number of executors concurrently available at runtime is configurable. As each executor is sequential, the
-number of available executors equals the number of tasks that can be executed in parallel.
-
-Consider using this style when the summoned executor needs to provide
-the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
-of the JDK `ExecutorService` API.
-
 #### API
 
 ```java
@@ -85,6 +73,18 @@ public interface SequentialExecutorServiceFactory {
     ExecutorService getExecutorService(Object sequenceKey);
 }
 ```
+
+This API style loosely takes the form of "thread affinity". Sequence keys are used to summon executors of JDK
+type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
+sequence key always gets back the same sequential executor. All tasks of that sequence key can then be "affined" to and
+executed sequentially by that executor in the same submission order.
+
+The total number of executors concurrently available at runtime is configurable. As each executor is sequential, the
+number of available executors equals the number of tasks that can be executed in parallel.
+
+Consider using this style when the summoned executor needs to provide
+the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
+of the JDK `ExecutorService` API.
 
 #### Sample Usage
 
@@ -153,14 +153,6 @@ Notes:
 
 ### Style 2: Submit Each Task Directly For Execution, Together With Its Sequence Key
 
-This API style is more concise. Bypassing the JDK ExecutorService API, it services the submitted task directly. The same
-execution semantics holds: Tasks of the same sequence key are executed in the same submission order; tasks of different
-sequence keys are managed to execute in parallel.
-
-Prefer this style when the full-blown syntax and semantic support of
-JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
-required.
-
 #### API
 
 ```java
@@ -182,6 +174,14 @@ public interface SequentialExecutor {
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 }
 ```
+
+This API style is more concise. Bypassing the JDK ExecutorService API, it services the submitted task directly. The same
+execution semantics holds: Tasks of the same sequence key are executed in the same submission order; tasks of different
+sequence keys are managed to execute in parallel.
+
+Prefer this style when the full-blown syntax and semantic support of
+JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
+required.
 
 #### Sample Usage
 
