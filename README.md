@@ -224,7 +224,7 @@ Notes:
   asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool's
   capacity.
 - Instead of thread-affinity or bucket hashing, tasks are decoupled from their execution threads. All pooled threads are
-  anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be executed by
+  anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key may be executed by
   different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
   related task(s) of the same sequence key - as it is supposed to be, and not by unrelated tasks of different sequence
   keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other thread-affinity style,
