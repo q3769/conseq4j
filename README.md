@@ -123,12 +123,12 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of this style loosely takes the form of "thread affinity". It relies on hashing of the sequence
-  keys into a fixed number of "buckets". These buckets are each associated with a sequential executor. The same/equal
-  sequence key is always hashed to and summons back the same executor. Single-threaded, each executor ensures the
-  execution order of all its tasks is the same as they are submitted; excessive tasks pending execution are buffered a
-  FIFO task queue. Thus, the total number of buckets (i.e. the max number of available executors and the general
-  concurrency) is the maximum number of tasks that can be executed in parallel at any given time.
+- This API style loosely takes the form of "thread affinity". It relies on hashing of the sequence keys into a fixed
+  number of "buckets". These buckets are each associated with a sequential executor. The same sequence key is always
+  hashed to and summons back the same executor. Single-threaded, each executor ensures the execution order of all its
+  tasks is the same as they are submitted; excessive tasks pending execution are buffered a FIFO task queue. Thus, the
+  total number of buckets (i.e. the max number of available executors and the general concurrency) is the maximum number
+  of tasks that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
   execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys yet
@@ -218,16 +218,18 @@ public class MessageConsumer {
 
 Notes:
 
-- The implementation of this style relies on
+- The interface of this style uses `Future` as the return type, mainly to reduce conceptual weight of the API. The
+  implementation actually returns `CompletableFuture`, and can be used directly if need be.
+- The implementation relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
   achieve sequential execution of related tasks. One single backing thread pool is used to facilitate the overall
   asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool size.
-- Without "thread affinity" or bucket hashing, this API style decouples tasks from their execution threads. All pooled
-  threads are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be
-  executed by different threads, albeit in sequential order. A task awaiting execution must have been blocked only by
-  its own related task(s) of the same sequence key - as it is supposed to be, and not by unrelated tasks of different
-  sequence keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other conseq4j API
-  style, at the trade-off of lesser syntax and semantic richness than the
+- Instead of "thread affinity" or bucket hashing, tasks are decoupled from their execution threads. All pooled threads
+  are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be executed
+  by different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
+  related task(s) of the same sequence key - as it is supposed to be, and not by unrelated tasks of different sequence
+  keys in the same "bucket" - as is unnecessary. This can be a desired advantage over the other conseq4j API style, at
+  the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - The default general concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),

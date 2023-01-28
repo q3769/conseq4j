@@ -33,14 +33,14 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
 import static conseq4j.TestUtils.awaitTasks;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConseqExecutorTest {
     private static final int TASK_COUNT = 100;
@@ -129,14 +129,6 @@ class ConseqExecutorTest {
         long runtimeConcurrent = differentKeysEndTimeMillis - differentKeysStartTimeMillis;
         long runtimeSequential = sameKeyEndTimeMillis - sameKeyStartTimeMillis;
         assertTrue(runtimeConcurrent < runtimeSequential);
-    }
-
-    @Test
-    void returnMinimalFuture() {
-        Future<SpyingTask> result =
-                ConseqExecutor.newInstance().submit(new SpyingTask(1).toCallable(), UUID.randomUUID());
-
-        assertFalse(result instanceof CompletableFuture);
     }
 
     @Test

@@ -25,9 +25,7 @@
 package conseq4j.execute;
 
 import lombok.NonNull;
-import lombok.RequiredArgsConstructor;
 import lombok.ToString;
-import lombok.experimental.Delegate;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.*;
@@ -86,7 +84,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      * @see ConseqExecutor#submit(Callable, Object)
      */
     @Override
-    public Future<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
+    public CompletableFuture<Void> execute(@NonNull Runnable command, @NonNull Object sequenceKey) {
         return submit(Executors.callable(command, null), sequenceKey);
     }
 
@@ -125,7 +123,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      */
     @Override
     @SuppressWarnings("unchecked")
-    public <T> Future<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
+    public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         CompletableFuture<?> taskFifoQueueTail = sequentialExecutors.compute(sequenceKey,
                 (k, presentTail) -> (presentTail == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
@@ -133,21 +131,10 @@ public final class ConseqExecutor implements SequentialExecutor {
         taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                         (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
                 ADMIN_THREAD_POOL);
-        return new MinimalFuture<>((Future<T>) taskFifoQueueTail);
+        return (CompletableFuture<T>) taskFifoQueueTail;
     }
 
     int estimateActiveExecutorCount() {
         return this.sequentialExecutors.size();
-    }
-
-    /**
-     * Making it impossible to downcast the wrapped instance any further from the minimum implementation of
-     * {@link Future}
-     *
-     * @param <V> type of result held by the Future
-     */
-    @RequiredArgsConstructor
-    private static final class MinimalFuture<V> implements Future<V> {
-        @Delegate private final Future<V> future;
     }
 }
