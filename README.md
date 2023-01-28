@@ -220,7 +220,7 @@ Notes:
 - The implementation of this style relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
   achieve sequential execution of related tasks. One single backing thread pool is used to facilitate the overall
-  asynchronous execution. The execution concurrency of unrelated tasks are only limited by the backing thread pool size.
+  asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool size.
 - Without "thread affinity" or bucket hashing, this API style decouples tasks from their execution threads. All pooled
   threads are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be
   executed by different threads, albeit in sequential order. A task awaiting execution must have been queued behind and
