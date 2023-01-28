@@ -14,7 +14,7 @@ A Java concurrent API to sequence the asynchronous executions of related tasks w
    sequentially.
 2. As an API client, I want to asynchronously submit a task for execution together with a sequence key, so that, across
    all such submissions, tasks submitted sequentially under the same sequence key are executed in the same order as
-   submitted; tasks of different sequence keys are executed concurrently even when the tasks are submitted sequentially.
+   submitted; tasks of different sequence keys are executed concurrently even when submitted sequentially.
 
 Consider using conseq4j to achieve asynchronous concurrent processing globally while preserving meaningful local
 execution order at the same time.
@@ -25,16 +25,15 @@ Java 8 or better
 
 ## Get It...
 
-Available at:
-
-[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
+Available
+at: [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
 ## Use It...
 
 **Sequence Keys**
 
-A sequence key cannot be `null`. Any two keys are considered "the same sequence key" if and only
-if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
+A sequence key cannot be `null`. Any two keys, `sequenceKey1` and `sequenceKey2`, are considered "the same sequence key"
+if and only if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
 **Thread Safety**
 
@@ -47,28 +46,28 @@ related tasks.
 
 First of all, by definition, there is no such thing as order or sequence among tasks submitted concurrently by different
 threads. No particular execution order is guaranteed on those concurrent tasks, regardless of their sequence keys. The
-conseq4j API only manages the execution order for sequentially-submitted tasks - those that are submitted by a single
-thread, or by each single thread in case of multi-threading. For those sequential tasks, the conseq4j API will provide
-both concurrency and sequencing: The tasks will be executed sequentially if they have the same sequence key, and
-concurrently if they have different sequence keys.
+conseq4j API only manages sequentially-submitted tasks - those that are submitted by a single thread, or by each single
+thread in case of multi-threading. To execute those tasks, the conseq4j API provides both concurrency and sequencing:
+The tasks will be executed sequentially if they have the same sequence key, and concurrently if they have different
+sequence keys.
 
-- Technically, to form a sequence on the client side, the task-submitting thread only needs to be "logically" single. It
-  does not always have to be the same physical thread (although it can be and often is). For example, sometimes one
-  thread may need to be replaced by another for various reasons. The conseq4j API should function correctly as long as
-  the related tasks are submitted by at most one thread at any given time, and with the right order of sequence over the
-  time. Fortunately, that is often the case naturally for the API client, e.g. when running in the message-driven method
-  managed by a messaging provider.
+- Technically, to form a sequence, the client task-submitting thread only needs to be "logically" single. It
+  does not always have to be the same physical thread e.g. sometimes one thread may need to be replaced by another for
+  various reasons. The conseq4j API should function correctly as long as the related tasks are submitted by at most one
+  thread at any given time, and with the right order of submission sequence over the time. Fortunately, that is often
+  the case naturally for the API client, e.g. when running in the message-driven method managed by a messaging provider.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
 
 In this API style, sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
 sequence key always gets back the same executor from the API, no matter when or how many times the executor is summoned.
-All tasks submitted to that executor, no matter when or how many, are considered part of the same sequence; therefore,
-executed sequentially in exactly the same order as submitted.
+All tasks sequentially submitted to that executor are considered part of the same sequence, therefore, executed
+sequentially in exactly the same order as submitted.
 
-There is no limit on the total number of sequence keys the API client can use to summon executors. Behind the scenes,
-tasks of different sequence keys will be managed to execute in parallel, with a configurable global maximum concurrency.
+There is no limit on the number of different sequence keys from the API client to summon executors. The total available
+number of executors are configurable. As each executor is sequential, the total number of executors equals the maximum
+number of tasks that can be executed in parallel.
 
 Consider using this style when the summoned executor needs to provide
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
@@ -126,20 +125,22 @@ Notes:
 - The implementation of this style loosely takes the form of "thread affinity". It relies on hashing of the sequence
   keys into a fixed number of "buckets". These buckets are each associated with a sequential executor. The same/equal
   sequence key is always hashed to and summons back the same executor. Single-threaded, each executor ensures the
-  execution order of all its tasks is the same as they are submitted; excessive tasks pending execution are buffered by
-  the executor in a FIFO task queue. Thus, the total number of buckets (a.k.a. the max number of executors and the
-  global concurrency) is the maximum number of tasks that can be executed in parallel at any given time.
+  execution order of all its tasks is the same as they are submitted; excessive tasks pending execution are buffered a
+  FIFO task queue. Thus, the total number of buckets (i.e. the max number of available executors and the general
+  concurrency) is the maximum number of tasks that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
-  execution order for each individual sequence key's tasks. Nevertheless, unrelated tasks of different sequence keys but
-  inside the same bucket may delay each other's execution inadvertently while waiting in the executor's task queue.
-- To account for hash collision, conseq4j does not support any shutdown action on the
+  execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence keys yet
+  assigned to the same bucket/executor may delay each other's execution inadvertently while waiting in the executor's
+  task queue. Consider this a trade-off of the
+  executor's [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
+- To account for hash collision, conseq4j does not support any shutdown action on the API-provided
   executor ([ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html))
-  instance created by the API; that is to prevent unintended task cancellation across different sequence keys.
+  instance. That is to prevent unintended task cancellation across different sequence keys.
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
-  returned by the executor, though, is still cancellable. In general, the hash collision may not be an issue for those
-  workloads that are asynchronous and focused on overall through-put, but is something to be aware of.
-- The default concurrency is either 16 or the JVM
+  returned by the executor, though, is still cancellable. The hash collision may not be an issue for workloads that are
+  asynchronous and focused on overall through-put, but is something to be aware of.
+- The default general concurrency is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
@@ -153,9 +154,9 @@ Notes:
 
 ### Style2: Submit Each Task Together With A SequenceKey, Directly To Conseq4J API For Execution
 
-This API style is more concise. It bypasses the JDK ExecutorService API and, instead, services the submitted task
-directly. The same execution semantics holds: Tasks submitted with the same sequence key are executed in the same
-submission order; tasks of different sequence keys are managed to execute in parallel.
+This API style is more concise. Bypassing the JDK ExecutorService API, it services the submitted task directly. The same
+execution semantics holds: Tasks of the same sequence key are executed in the same submission order; tasks of different
+sequence keys are managed to execute in parallel.
 
 Prefer this style when the full-blown syntax and semantic support of
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
@@ -217,19 +218,16 @@ public class MessageConsumer {
 Notes:
 
 - The implementation of this style relies on
-  JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html)
-  behind the scenes to achieve sequential execution of related tasks. One single backing thread pool is used to
-  facilitate the overall asynchronous execution. The overall concurrency of unrelated tasks are upper-bounded by the
-  execution thread pool size.
-- Compared to the other conseq4j API style, this has the advantage of avoiding the issues associated with hash
-  collision, and may be preferable for simple cases that do not require the syntax and semantic richness
-  an [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) has to
-  offer.
-- There is no "thread affinity" or bucket hashing. Instead, this API style decouples tasks from their execution threads.
-  All pooled threads are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence
-  key can be executed by different threads, albeit in sequential order. A task awaiting execution must have been queued
-  behind and blocked by only the related task(s) of the same sequence key, and not by other tasks of the same "bucket".
-- The default overall concurrency or max execution thread pool size is either 16 or the JVM
+  JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
+  achieve sequential execution of related tasks. One single backing thread pool is used to facilitate the overall
+  asynchronous execution. The execution concurrency of unrelated tasks are only limited by the backing thread pool size.
+- Without "thread affinity" or bucket hashing, this API style decouples tasks from their execution threads. All pooled
+  threads are anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key can be
+  executed by different threads, albeit in sequential order. A task awaiting execution must have been queued behind and
+  blocked by only the related task(s) of the same sequence key, and not by unrelated tasks inside the same "bucket" - an
+  advantage over the other conseq4j API style, at the trade-off of lesser syntax and semantic richness than the
+  JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
+- The default general concurrency or max execution thread pool size is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
@@ -264,16 +262,16 @@ sequence/correlation key as with this API.
 
 **2. Curative**
 
-This is more on the business rule level. Sometimes preventative measures for messaging order preservation are either not
-possible or not worthwhile to pursue. By the time the consumer receives the messages, things can be out of order
-already. E.g. when the messages are coming in from independent producers and sources, there may be no guarantee of
-correct ordering in the first place. In such cases, the message consumer's job would be to detect and make amends when
-things do go out of order, by applying business rules to restore the proper sequence.
+This is more on the business rule level. Sometimes preventative measures are either not possible or not worthwhile to
+pursue. By the time messages arrive at the consumer, they may be intrinsically out of order. E.g. when the messages are
+coming in from independent producers and sources, there may be no guarantee of correct ordering in the first place. In
+such cases, the message consumer may be able to take a curative approach, by applying business rules to restore
+necessary order and properly handle the out-of-order messages.
 
 Compared to preventative measures, corrective ones can be much more complicated in terms of design, implementation and
-runtime performance. E.g. it may help to do a stateful/historical look-up of all the data and other events received so
-far that are related to the incoming event; this forms a correlated and collective session of information for the
-incoming event. A comprehensive review of such session can detect and determine if the incoming event is out of order
-per business rules; corrective measures can then be taken to restore the right order, among other reactive actions. This
-may fall into the scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing).
-State Machines can also be a useful design in such scenario.
+runtime performance. E.g. for each incoming event, it may help to do a stateful/historical look-up of all the data and
+other events that are related; this forms a correlated and collective information session of the incoming event. A
+comprehensive review of such session can detect and determine if the incoming event is out of order per business rules;
+corrective measures can then be taken to restore the right order, among other reactive actions. This may fall into the
+scope of [Complex Event Processing (CEP)](https://en.wikipedia.org/wiki/Complex_event_processing). State Machines can
+also be a useful design in such scenario.
