@@ -57,7 +57,7 @@ sequence keys.
   thread at any given time, and with the right order of submission sequence over the time. Fortunately, that is often
   the case naturally for the API client, e.g. when running in the message-driven method managed by a messaging provider.
 
-### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK ExecutorService
+### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK `ExecutorService`
 
 In this API style, sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
