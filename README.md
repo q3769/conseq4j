@@ -55,7 +55,8 @@ sequence keys.
   does not always have to be the same physical thread e.g. sometimes one thread may need to be replaced by another for
   various reasons. The conseq4j API should function correctly as long as the related tasks are submitted by at most one
   thread at any given time, and with the right order of submission sequence over the time. Fortunately, that is often
-  the case naturally for the API client, e.g. when running in the message-driven method managed by a messaging provider.
+  the case naturally for the API client, e.g. in the message-driven method invoked by a caller-thread managed by the
+  messaging provider.
 
 ### Style 1: Summon A Sequential Executor By Its Sequence Key, Then Use The Executor As With A JDK `ExecutorService`
 
