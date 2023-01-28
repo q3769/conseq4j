@@ -227,7 +227,7 @@ Notes:
   anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key may be executed by
   different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
   related task(s) of the same sequence key - as is necessary, and not by unrelated tasks of different sequence keys in
-  the same "bucket" - as is unnecessary. This can be a desired advantage over the other thread-affinity style, at the
+  the same "bucket" - as is unnecessary. This can be a desired advantage over the thread-affinity API style, at the
   trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - The default general concurrency or max execution thread pool size is either 16 or the JVM
