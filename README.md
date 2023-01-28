@@ -77,7 +77,7 @@ public interface SequentialExecutorServiceFactory {
 This API style loosely takes the form of "thread affinity". Sequence keys are used to summon executors of JDK
 type [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html). The same
 sequence key always gets back the same sequential executor. All tasks of that sequence key can then be "affined" to and
-executed sequentially by that executor in the same submission order.
+executed sequentially by the summoned executor in the same submission order.
 
 The total number of executors concurrently available at runtime is configurable. As each executor is sequential, the
 number of available executors equals the number of tasks that can be executed in parallel.
