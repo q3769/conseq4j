@@ -220,9 +220,9 @@ Notes:
   API. The implementation actually returns `CompletableFuture`, and can be used directly if need be.
 - The implementation relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
-  achieve sequential execution of related tasks. One single backing thread pool is used to facilitate the overall
-  asynchronous execution. The concurrency to execute unrelated tasks is only limited by the backing thread pool's
-  capacity.
+  achieve sequential execution of related tasks. One single pool of threads is used to facilitate the overall
+  asynchronous execution. The concurrency to execute unrelated tasks is generally limited only by the backing thread
+  pool's capacity.
 - Instead of thread-affinity or bucket hashing, tasks are decoupled from their execution threads. All pooled threads are
   anonymous and interchangeable to execute any tasks. Even sequential tasks of the same sequence key may be executed by
   different threads, albeit in sequential order. A task awaiting execution must have been blocked only by its own
