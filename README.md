@@ -124,9 +124,9 @@ Notes:
 - The implementation of this thread-affinity style relies on hashing of the sequence keys into a fixed number of
   "buckets". These buckets are each associated with a sequential executor. The same sequence key is always hashed to and
   summons back the same executor. Single-threaded, each executor ensures the execution order of all its tasks is the
-  same as they are submitted; excessive tasks pending execution are buffered a FIFO task queue. Thus, the total number
-  of buckets (i.e. the max number of available executors and the general concurrency) is the maximum number of tasks
-  that can be executed in parallel at any given time.
+  same as they are submitted; excessive tasks pending execution are buffered in a FIFO task queue. Thus, the total
+  number of buckets (i.e. the max number of available executors and the general concurrency) is the maximum number of
+  tasks that can be executed in parallel at any given time.
 - As with hashing, collision may occur among different sequence keys. When hash collision happens, tasks of different
   sequence keys are assigned to the same executor. Due to the single-thread setup, the executor still ensures the local
   sequential execution order for each individual sequence key's tasks. However, unrelated tasks of different sequence
