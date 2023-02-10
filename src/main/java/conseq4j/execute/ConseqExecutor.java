@@ -131,7 +131,7 @@ public final class ConseqExecutor implements SequentialExecutor {
         taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                         (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
                 ADMIN_THREAD_POOL);
-        return (CompletableFuture<T>) taskFifoQueueTail;
+        return (CompletableFuture<T>) taskFifoQueueTail.thenApply(r -> r);
     }
 
     int estimateActiveExecutorCount() {
