@@ -55,7 +55,7 @@ Technically, to form a sequence, the client task-submitting thread only needs to
 always have to be the same physical thread e.g. sometimes one thread may need to be replaced by another for various
 reasons. The conseq4j API should function correctly as long as the related tasks are submitted by at most one thread at
 any time, and with the right order of submission sequence over time. Fortunately, that is often the case naturally for
-the API client, e.g. when the task submission is managed by a messaging provider such as Kafka, JMS, x-MQ, TIBCO EMS
+the API client, e.g. when the task submission is managed by a messaging provider such as Kafka, JMS, x-MQ, TIBCO EMS,
 etc...
 
 ### Style 1: Summon An Executor By Its Sequence Key, Then Use That Sequential Executor As With A JDK `ExecutorService`
