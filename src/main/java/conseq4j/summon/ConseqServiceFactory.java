@@ -44,9 +44,9 @@ import static java.lang.Math.floorMod;
 @ThreadSafe
 @ToString
 public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
-    private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
+    private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private final int concurrency;
-    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors = new ConcurrentHashMap<>();
+    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
 
     /**
      * @param concurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
@@ -57,14 +57,14 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
             throw new IllegalArgumentException("expecting positive concurrency, but given: " + concurrency);
         }
         this.concurrency = concurrency;
+        this.sequentialExecutors = new ConcurrentHashMap<>(concurrency);
     }
 
     /**
      * @return ExecutorService factory with default concurrency
      */
     public static ConseqServiceFactory newInstance() {
-        return new ConseqServiceFactory(Math.max(Runtime.getRuntime().availableProcessors(),
-                DEFAULT_MINIMUM_CONCURRENCY));
+        return new ConseqServiceFactory(DEFAULT_CONCURRENCY);
     }
 
     /**

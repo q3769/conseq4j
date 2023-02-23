@@ -39,8 +39,8 @@ import java.util.concurrent.*;
 @ToString
 public final class ConseqExecutor implements SequentialExecutor {
     private static final ExecutorService ADMIN_THREAD_POOL = Executors.newCachedThreadPool();
-    private static final int DEFAULT_MINIMUM_CONCURRENCY = 16;
-    private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
+    private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
+    private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
     /**
      * The worker thread pool facilitates the overall async execution, independent of the tasks. Any thread from the
@@ -51,13 +51,14 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     private ConseqExecutor(int concurrency) {
         this.workerThreadPool = Executors.newFixedThreadPool(concurrency);
+        sequentialExecutors = new ConcurrentHashMap<>(concurrency);
     }
 
     /**
      * @return conseq executor with default concurrency
      */
     public static ConseqExecutor newInstance() {
-        return new ConseqExecutor(Math.max(Runtime.getRuntime().availableProcessors(), DEFAULT_MINIMUM_CONCURRENCY));
+        return new ConseqExecutor(DEFAULT_CONCURRENCY);
     }
 
     /**
