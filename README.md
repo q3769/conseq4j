@@ -1,3 +1,5 @@
+[![](https://img.shields.io/static/v1?label=github&message=repo&color=blue)](https://github.com/q3769/conseq4j)
+
 A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
 
 - *conseq* is short for *con*current *seq*uencer.
@@ -21,8 +23,7 @@ Java 8 or better
 
 # Get It...
 
-Available
-at [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
 # Use It...
 
