@@ -31,7 +31,7 @@ import java.util.List;
 import java.util.concurrent.ExecutorService;
 
 /**
- * An {@link ExecutorService} that cannot be shut down at run-time.
+ * An {@link ExecutorService} that doesn't support shut down.
  *
  * @author Qingtian Wang
  */
@@ -44,7 +44,8 @@ final class ShutdownDisabledExecutorService implements ExecutorService {
     @Delegate(excludes = ShutdownOperations.class) private final ExecutorService delegate;
 
     /**
-     * @param delegate the delegate {@link ExecutorService} to run the submitted task(s).
+     * @param delegate
+     *         the delegate {@link ExecutorService} to run the submitted task(s).
      */
     public ShutdownDisabledExecutorService(ExecutorService delegate) {
         this.delegate = delegate;

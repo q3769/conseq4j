@@ -62,8 +62,9 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     /**
-     * @param concurrency max number of tasks that can be run in parallel by the returned executor instance. This is set
-     *                    as the max capacity of the {@link #workerThreadPool}
+     * @param concurrency
+     *         max number of tasks that can be run in parallel by the returned executor instance. This is set as the max
+     *         capacity of the {@link #workerThreadPool}
      * @return conseq executor with given concurrency
      */
     public static ConseqExecutor newInstance(int concurrency) {
@@ -79,8 +80,10 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     /**
-     * @param command     the command to run asynchronously in proper sequence
-     * @param sequenceKey the key under which this task should be sequenced
+     * @param command
+     *         the command to run asynchronously in proper sequence
+     * @param sequenceKey
+     *         the key under which this task should be sequenced
      * @return future result of the command, not downcast-able from the basic {@link Future} interface.
      * @see ConseqExecutor#submit(Callable, Object)
      */
@@ -118,8 +121,10 @@ public final class ConseqExecutor implements SequentialExecutor {
      * task/stage is never added to the task work queue on the executor map and has no effect on the overall
      * sequential-ness of the work stage executions.
      *
-     * @param task        the task to be called asynchronously with proper sequence
-     * @param sequenceKey the key under which this task should be sequenced
+     * @param task
+     *         the task to be called asynchronously with proper sequence
+     * @param sequenceKey
+     *         the key under which this task should be sequenced
      * @return future result of the task, not downcast-able from the basic {@link Future} interface.
      */
     @Override

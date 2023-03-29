@@ -49,8 +49,9 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
 
     /**
-     * @param concurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
-     *                    concurrently executed at any given time by this conseq instance.
+     * @param concurrency
+     *         max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be concurrently
+     *         executed at any given time by this conseq instance.
      */
     private ConseqServiceFactory(int concurrency) {
         if (concurrency <= 0) {
@@ -68,7 +69,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     }
 
     /**
-     * @param concurrency max number of tasks possible to be executed in parallel
+     * @param concurrency
+     *         max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency
      */
     public static ConseqServiceFactory newInstance(int concurrency) {
