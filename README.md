@@ -61,11 +61,11 @@ etc...
 
 ```java
 public interface SequentialExecutorServiceFactory {
-
     /**
-     * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
-     * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this 
-     *         sequence key in the same order as they are submitted.
+     * @param sequenceKey
+     *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
+     * @return the sequential executor of type {@link ExecutorService} that executes all tasks of this sequence key in
+     *         the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
 }
@@ -87,7 +87,6 @@ of the JDK `ExecutorService` API.
 
 ```java
 public class MessageConsumer {
-
     /**
      * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
      * <p>
@@ -153,18 +152,22 @@ Notes:
 
 ```java
 public interface SequentialExecutor {
-
     /**
-     * @param command     the Runnable task to run sequentially with others under the same sequence key
-     * @param sequenceKey the key under which all tasks are executed sequentially
-     * @return future holding run status of the executing command
+     * @param command
+     *         the Runnable task to run sequentially with others under the same sequence key
+     * @param sequenceKey
+     *         the key under which all tasks are executed sequentially
+     * @return future holding run status of the submitted command
      */
     Future<Void> execute(Runnable command, Object sequenceKey);
 
     /**
-     * @param task        the Callable task to run sequentially with others under the same sequence key
-     * @param sequenceKey the key under which all tasks are executed sequentially
-     * @param <T>         the type of the task's result
+     * @param task
+     *         the Callable task to run sequentially with others under the same sequence key
+     * @param sequenceKey
+     *         the key under which all tasks are executed sequentially
+     * @param <T>
+     *         the type of the task's result
      * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
