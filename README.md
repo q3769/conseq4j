@@ -1,10 +1,10 @@
-[![](https://img.shields.io/static/v1?label=github&message=repo&color=blue)](https://github.com/q3769/conseq4j)
+# conseq4j
 
 A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
 
 - *conseq* is short for *con*current *seq*uencer.
 
-# User Stories
+## User Stories
 
 1. As an API client, I want to summon a sequential task executor by a sequence key, so that all the tasks sequentially
    submitted under the same sequence key will be executed by the same executor in the same order as submitted;
@@ -17,15 +17,15 @@ A Java concurrent API to sequence the asynchronous executions of related tasks w
 Consider using conseq4j to achieve asynchronous concurrent processing globally while preserving meaningful local
 execution order at the same time.
 
-# Prerequisite
+## Prerequisite
 
 Java 8 or better
 
-# Get It...
+## Get It...
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
-# Use It...
+## Use It...
 
 **Sequence Keys**
 
@@ -55,19 +55,19 @@ any time, and with the right order of submission sequence over time. Fortunately
 the API client, e.g. when the task submission is managed by a messaging provider such as Kafka, JMS, x-MQ, TIBCO EMS,
 etc...
 
-## Style 1: Summon An Executor By Its Sequence Key, Then Use That Sequential Executor As With A JDK `ExecutorService`
+### Style 1: Summon a Sequential Executor by its Sequence Key, then Use the Executor as with a JDK `ExecutorService`
 
-### API
+#### API
 
 ```java
 public interface SequentialExecutorServiceFactory {
 
-	/**
-	 * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
-	 * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this 
-	 *         sequence key in the same order as they are submitted.
-	 */
-	ExecutorService getExecutorService(Object sequenceKey);
+    /**
+     * @param sequenceKey an {@link Object} whose hash code is used to summon the corresponding executor.
+     * @return the executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of this 
+     *         sequence key in the same order as they are submitted.
+     */
+    ExecutorService getExecutorService(Object sequenceKey);
 }
 ```
 
@@ -83,36 +83,35 @@ Consider using this style when the summoned executor needs to provide
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
 of the JDK `ExecutorService` API.
 
-### Sample Usage
+#### Sample Usage
 
 ```java
 public class MessageConsumer {
 
-	/**
-	 * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
-	 * <p>
-	 * Or to set the global concurrency to 10, for example:
-	 * <code>
-	 * private SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance(10);
-	 * </code>
-	 */
-	private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance();
+    /**
+     * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * <p>
+     * Or to set the global concurrency to 10, for example:
+     * <code>
+     * private SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance(10);
+     * </code>
+     */
+    private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance();
 
-	@Autowired private ShoppingEventProcessor shoppingEventProcessor;
+    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
-	/**
-	 * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
-	 * caller thread.
-	 * <p>
-	 * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel, by 
-	 * different executors. Sequence is maintained on all shopping events of the same shopping cart ID, by the same 
-	 * executor.
-	 */
-	public void onMessage(Message shoppingEvent) {
-
-		conseqServiceFactory.getExecutorService(shoppingEvent.getShoppingCartId())
-			.execute(() -> shoppingEventProcessor.process(shoppingEvent));
-	}
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
+     * caller thread.
+     * <p>
+     * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel, by 
+     * different executors. Sequence is maintained on all shopping events of the same shopping cart ID, by the same 
+     * executor.
+     */
+    public void onMessage(Message shoppingEvent) {
+        conseqServiceFactory.getExecutorService(shoppingEvent.getShoppingCartId())
+                .execute(() -> shoppingEventProcessor.process(shoppingEvent));
+    }
 }
 ```
 
@@ -148,27 +147,27 @@ Notes:
   ConseqServiceFactory.newInstance(10)
   ```
 
-## Style 2: Submit Each Task Directly For Execution, Together With Its Sequence Key
+### Style 2: Submit Each Task Directly for Execution, together with its Sequence Key
 
-### API
+#### API
 
 ```java
 public interface SequentialExecutor {
 
-	/**
-	 * @param command     the Runnable task to run sequentially with others under the same sequence key
-	 * @param sequenceKey the key under which all tasks are executed sequentially
-	 * @return future holding run status of the executing command
-	 */
-	Future<Void> execute(Runnable command, Object sequenceKey);
+    /**
+     * @param command     the Runnable task to run sequentially with others under the same sequence key
+     * @param sequenceKey the key under which all tasks are executed sequentially
+     * @return future holding run status of the executing command
+     */
+    Future<Void> execute(Runnable command, Object sequenceKey);
 
-	/**
-	 * @param task        the Callable task to run sequentially with others under the same sequence key
-	 * @param sequenceKey the key under which all tasks are executed sequentially
-	 * @param <T>         the type of the task's result
-	 * @return a Future representing pending completion of the submitted task
-	 */
-	<T> Future<T> submit(Callable<T> task, Object sequenceKey);
+    /**
+     * @param task        the Callable task to run sequentially with others under the same sequence key
+     * @param sequenceKey the key under which all tasks are executed sequentially
+     * @param <T>         the type of the task's result
+     * @return a Future representing pending completion of the submitted task
+     */
+    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 }
 ```
 
@@ -180,34 +179,34 @@ Prefer this style when the full-blown syntax and semantic support of
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
 required.
 
-### Sample Usage
+#### Sample Usage
 
 ```java
 public class MessageConsumer {
 
-	/**
-	 * Default executor concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
-	 * <p>
-	 * Or to provide a custom concurrency of 10, for example:
-	 * <code>
-	 * private SequentialExecutor conseqExecutor = ConseqExecutor.newInstance(10));
-	 * </code>
-	 */
-	private final SequentialExecutor conseqExecutor = ConseqExectuor.newInstance();
+    /**
+     * Default executor concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * <p>
+     * Or to provide a custom concurrency of 10, for example:
+     * <code>
+     * private SequentialExecutor conseqExecutor = ConseqExecutor.newInstance(10));
+     * </code>
+     */
+    private final SequentialExecutor conseqExecutor = ConseqExectuor.newInstance();
 
-	@Autowired private ShoppingEventProcessor shoppingEventProcessor;
+    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
-	/**
-	 * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
-	 * caller thread.
-	 * <p>
-	 * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel by 
-	 * different backing threads. Sequence is maintained for all shopping events of the same shopping cart ID, via 
-	 * linear progression of execution stages with {@link java.util.concurrent.CompletableFuture}.
-	 */
-	public void onMessage(Message shoppingEvent) {
-		conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
-	}
+    /**
+     * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
+     * caller thread.
+     * <p>
+     * Concurrency is achieved when shopping events of different shopping cart IDs are processed in parallel by 
+     * different backing threads. Sequence is maintained for all shopping events of the same shopping cart ID, via 
+     * linear progression of execution stages with {@link java.util.concurrent.CompletableFuture}.
+     */
+    public void onMessage(Message shoppingEvent) {
+        conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
+    }
 }
 ```
 
@@ -239,7 +238,7 @@ Notes:
   ConseqExecutor.newInstance(10)
   ```
 
-# Full Disclosure - Asynchronous Conundrum
+## Full Disclosure - Asynchronous Conundrum
 
 The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
 execution do not come together naturally; in asynchronous systems, certain limits and impedance mismatch exist between
