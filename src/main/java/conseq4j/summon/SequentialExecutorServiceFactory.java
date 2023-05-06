@@ -42,4 +42,14 @@ public interface SequentialExecutorServiceFactory {
      *         the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
+
+    /**
+     *
+     */
+    void shutdown();
+
+    /**
+     * @return true if all executors have been shutdown
+     */
+    boolean isTerminated();
 }

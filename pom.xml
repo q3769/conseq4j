@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20230128.0.4</version>
+    <version>20230128.20230506.0</version>
     <packaging>jar</packaging>
     <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
@@ -129,7 +129,7 @@
             <plugin>
                 <groupId>io.github.q3769</groupId>
                 <artifactId>semver-maven-plugin</artifactId>
-                <version>20221011.1.0</version>
+                <version>20221011.20230506.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -166,7 +166,7 @@
         <dependency>
             <groupId>io.github.elf4j</groupId>
             <artifactId>elf4j-provider</artifactId>
-            <version>6.0.3</version>
+            <version>6.0.4</version>
             <scope>test</scope>
         </dependency>
         <dependency>

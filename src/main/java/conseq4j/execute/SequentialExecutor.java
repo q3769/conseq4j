@@ -62,4 +62,14 @@ public interface SequentialExecutor {
      * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
+
+    /**
+     *
+     */
+    void shutdown();
+
+    /**
+     * @return true if the executor has been shutdown
+     */
+    boolean isTerminated();
 }

@@ -86,6 +86,16 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
                 bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
+    @Override
+    public void shutdown() {
+        this.sequentialExecutors.values().parallelStream().forEach(ExecutorService::shutdown);
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return this.sequentialExecutors.values().parallelStream().allMatch(ExecutorService::isTerminated);
+    }
+
     private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hash(sequenceKey), this.concurrency);
     }

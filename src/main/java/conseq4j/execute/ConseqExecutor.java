@@ -27,6 +27,7 @@ package conseq4j.execute;
 import lombok.NonNull;
 import lombok.ToString;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.concurrent.*;
 
@@ -38,8 +39,9 @@ import java.util.concurrent.*;
 @ThreadSafe
 @ToString
 public final class ConseqExecutor implements SequentialExecutor {
-    private static final ExecutorService ADMIN_THREAD_POOL = Executors.newCachedThreadPool();
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
+    private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
 
     /**
@@ -49,16 +51,27 @@ public final class ConseqExecutor implements SequentialExecutor {
      */
     private final ExecutorService workerThreadPool;
 
-    private ConseqExecutor(int concurrency) {
-        this.workerThreadPool = Executors.newFixedThreadPool(concurrency);
+    private ConseqExecutor(int concurrency, int workQueueCapacity) {
+        this.workerThreadPool =
+                workQueueCapacity == DEFAULT_WORK_QUEUE_CAPACITY ? Executors.newFixedThreadPool(concurrency) :
+                        new ThreadPoolExecutor(concurrency,
+                                concurrency,
+                                0,
+                                TimeUnit.MILLISECONDS,
+                                new ArrayBlockingQueue<>(workQueueCapacity),
+                                new BlockingRetryHandler());
         sequentialExecutors = new ConcurrentHashMap<>(concurrency);
+    }
+
+    private ConseqExecutor(@Nonnull Builder builder) {
+        this(builder.concurrency, builder.workQueueCapacity);
     }
 
     /**
      * @return conseq executor with default concurrency
      */
-    public static ConseqExecutor newInstance() {
-        return new ConseqExecutor(DEFAULT_CONCURRENCY);
+    public static @Nonnull ConseqExecutor newInstance() {
+        return new ConseqExecutor(DEFAULT_CONCURRENCY, DEFAULT_WORK_QUEUE_CAPACITY);
     }
 
     /**
@@ -67,8 +80,8 @@ public final class ConseqExecutor implements SequentialExecutor {
      *         capacity of the {@link #workerThreadPool}
      * @return conseq executor with given concurrency
      */
-    public static ConseqExecutor newInstance(int concurrency) {
-        return new ConseqExecutor(concurrency);
+    public static @Nonnull ConseqExecutor newInstance(int concurrency) {
+        return new ConseqExecutor(concurrency, DEFAULT_WORK_QUEUE_CAPACITY);
     }
 
     private static <T> T call(Callable<T> task) {
@@ -136,11 +149,103 @@ public final class ConseqExecutor implements SequentialExecutor {
                         presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
         taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                         (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
-                ADMIN_THREAD_POOL);
+                adminThreadPool);
         return (CompletableFuture<T>) taskFifoQueueTail.thenApply(r -> r);
+    }
+
+    @Override
+    public void shutdown() {
+        this.workerThreadPool.shutdown();
+        this.adminThreadPool.shutdown();
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return this.workerThreadPool.isTerminated() && this.adminThreadPool.isTerminated();
     }
 
     int estimateActiveExecutorCount() {
         return this.sequentialExecutors.size();
+    }
+
+    static class BlockingRetryHandler implements RejectedExecutionHandler {
+        private static void forceRetry(Runnable r, @NonNull ThreadPoolExecutor executor) {
+            if (executor.isTerminated()) {
+                return;
+            }
+            BlockingQueue<Runnable> workQueue = executor.getQueue();
+            if (workQueue.offer(r)) {
+                return;
+            }
+            boolean interrupted = false;
+            try {
+                while (true) {
+                    try {
+                        workQueue.put(r);
+                        break;
+                    } catch (InterruptedException e) {
+                        interrupted = true;
+                    }
+                }
+            } finally {
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
+        @Override
+        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
+            forceRetry(r, executor);
+        }
+    }
+
+    /**
+     * {@code ConseqExecutor} builder static inner class.
+     */
+    public static final class Builder {
+        private int concurrency;
+        private int workQueueCapacity;
+
+        /**
+         *
+         */
+        public Builder() {
+            concurrency = DEFAULT_CONCURRENCY;
+            workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
+        }
+
+        /**
+         * Sets the {@code concurrency} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param concurrency
+         *         the {@code concurrency} to set
+         * @return a reference to this Builder
+         */
+        public Builder concurrency(int concurrency) {
+            this.concurrency = concurrency;
+            return this;
+        }
+
+        /**
+         * Sets the {@code workQueueCapacity} and returns a reference to this Builder enabling method chaining.
+         *
+         * @param workQueueCapacity
+         *         the {@code workQueueCapacity} to set
+         * @return a reference to this Builder
+         */
+        public Builder workQueueCapacity(int workQueueCapacity) {
+            this.workQueueCapacity = workQueueCapacity;
+            return this;
+        }
+
+        /**
+         * Returns a {@code ConseqExecutor} built from the parameters previously set.
+         *
+         * @return a {@code ConseqExecutor} built with parameters of this {@code ConseqExecutor.Builder}
+         */
+        public @Nonnull ConseqExecutor build() {
+            return new ConseqExecutor(this);
+        }
     }
 }
