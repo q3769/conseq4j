@@ -267,6 +267,17 @@ Notes:
   ```jshelllanguage
   ConseqExecutor.newInstance(10)
   ```
+- The default work queue capacity for any executor is unlimited, which ensures the asynchronous semantics to the caller.
+  However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized:
+  ```jshelllanguage
+  ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).build();
+  ```  
+  ```jshelllanguage
+  ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).concurrency(10).build();
+  ```
+  When the work queue is full at capacity, the caller thread will be blocked until more room becomes available. This
+  temporarily alters the asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired
+  behavior in some cases.
 
 ## Full Disclosure - Asynchronous Conundrum
 
