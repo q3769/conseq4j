@@ -44,12 +44,17 @@ public interface SequentialExecutorServiceFactory {
     ExecutorService getExecutorService(Object sequenceKey);
 
     /**
-     *
+     * Nonblocking, initiates an orderly shutdown of all sequential executor managed by this factory. Previously
+     * submitted tasks are executed, but no new tasks will be accepted. Invocation has no additional effect if already
+     * shut down.
      */
     void shutdown();
 
     /**
-     * @return true if all executors have been shutdown
+     * Nonblocking
+     *
+     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
+     *         never true unless shutdown was called first.
      */
     boolean isTerminated();
 }

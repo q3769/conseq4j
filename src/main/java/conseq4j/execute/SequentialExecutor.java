@@ -64,12 +64,14 @@ public interface SequentialExecutor {
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 
     /**
-     *
+     * Nonblocking, initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks
+     * will be accepted. Invocation has no additional effect if already shut down.
      */
     void shutdown();
 
     /**
-     * @return true if the executor has been shutdown
+     * @return true if all tasks have completed following shut down. Note that isTerminated is never true unless
+     *         shutdown was called first.
      */
     boolean isTerminated();
 }

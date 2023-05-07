@@ -44,9 +44,9 @@ related tasks.
 First of all, by definition, there is no such thing as order or sequence among tasks submitted concurrently by different
 threads. No particular execution order is guaranteed on those concurrent tasks, regardless of their sequence keys. The
 conseq4j API only manages sequentially-submitted tasks - those that are submitted by a single thread, or by each single
-thread in case of multi-threading. To execute those tasks, the conseq4j API provides both concurrency and sequencing:
-The tasks will be executed sequentially if they have the same sequence key, and concurrently if they have different
-sequence keys.
+thread in case of multi-threading. To execute those sequential tasks, the conseq4j API provides both concurrency and
+sequencing: The tasks will be executed sequentially if they have the same sequence key, and concurrently if they have
+different sequence keys.
 
 Technically, to form a sequence, the client task-submitting thread only needs to be "logically" single. It does not
 always have to be the same physical thread e.g. sometimes one thread may need to be replaced by another for various
@@ -68,6 +68,21 @@ public interface SequentialExecutorServiceFactory {
      *         the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
+
+    /**
+     * Nonblocking, initiates an orderly shutdown of all sequential executor managed by this factory. Previously
+     * submitted tasks are executed, but no new tasks will be accepted. Invocation has no additional effect if already
+     * shut down.
+     */
+    void shutdown();
+
+    /**
+     * Nonblocking
+     *
+     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
+     *         never true unless shutdown was called first.
+     */
+    boolean isTerminated();
 }
 ```
 
@@ -171,6 +186,18 @@ public interface SequentialExecutor {
      * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
+
+    /**
+     * Nonblocking, initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks
+     * will be accepted. Invocation has no additional effect if already shut down.
+     */
+    void shutdown();
+
+    /**
+     * @return true if all tasks have completed following shut down. Note that isTerminated is never true unless
+     *         shutdown was called first.
+     */
+    boolean isTerminated();
 }
 ```
 
