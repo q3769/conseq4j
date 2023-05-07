@@ -41,15 +41,14 @@ import java.util.concurrent.*;
 public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
     private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
-
     /**
-     * The worker thread pool facilitates the overall async execution, independent of the tasks. Any thread from the
-     * pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall max
-     * parallelism of task execution.
+     * The worker thread pool facilitates the overall async execution, independent of the submitted tasks. Any thread
+     * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
+     * max parallelism of task execution.
      */
     private final ExecutorService workerThreadPool;
+    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
 
     private ConseqExecutor(int concurrency, int workQueueCapacity) {
         this.workerThreadPool =
@@ -169,7 +168,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     static class BlockingRetryHandler implements RejectedExecutionHandler {
-        private static void forceRetry(Runnable r, @NonNull ThreadPoolExecutor executor) {
+        private static void blockingRetry(Runnable r, @NonNull ThreadPoolExecutor executor) {
             if (executor.isTerminated()) {
                 return;
             }
@@ -196,7 +195,7 @@ public final class ConseqExecutor implements SequentialExecutor {
 
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            forceRetry(r, executor);
+            blockingRetry(r, executor);
         }
     }
 
