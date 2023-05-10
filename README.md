@@ -262,22 +262,36 @@ Notes:
   ```jshelllanguage
   ConseqExecutor.newInstance()
   ```
+  or
+  ```jshelllanguage
+  new ConseqExecutor.Builder().build();
+  ```
 
   The concurrency can be customized:
   ```jshelllanguage
   ConseqExecutor.newInstance(10)
   ```
+  or
+  ```jshelllanguage
+  new ConseqExecutor.Builder().concurrency(10).build();
+  ```
+
 - The default work queue capacity for any executor is unlimited, which ensures the asynchronous semantics to the caller.
-  However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized:
+  However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized, e.g.:
   ```jshelllanguage
   ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).build(); // default concurrency with work queue capacity of 256
   ```  
   ```jshelllanguage
   ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).concurrency(10).build(); 
   ```
-  When the work queue is full at capacity, the caller thread will be blocked until more room becomes available. This
-  temporarily alters the asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired
-  behavior in some cases.
+- When the executor work queue is full at capacity, the async task will be rejected. The default handling policy of
+  rejection is the JDK `AbortPolicy` which raises the `RejectedExecutionException`. However, in the case
+  of `ConseqExecutor` (API Style 2), the policy can be customized with any `RejectedExecutionHandler` policy, e.g.:
+  ```jshelllanguage
+  new ConseqExecutor.builder().rejectedPolicy(conseq4j.util.MorePolicies.blockingRetryPolicy()).build(); 
+  ```
+  where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
+  asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
 
 ## Full Disclosure - Asynchronous Conundrum
 

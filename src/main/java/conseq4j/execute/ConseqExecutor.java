@@ -29,6 +29,7 @@ import lombok.ToString;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Map;
 import java.util.concurrent.*;
 
 /**
@@ -41,36 +42,36 @@ import java.util.concurrent.*;
 public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private final ConcurrentMap<Object, CompletableFuture<?>> sequentialExecutors;
+    private static final ThreadPoolExecutor.AbortPolicy DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
+    private final Map<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
+    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
     /**
      * The worker thread pool facilitates the overall async execution, independent of the submitted tasks. Any thread
      * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
      * max parallelism of task execution.
      */
     private final ExecutorService workerThreadPool;
-    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
-
-    private ConseqExecutor(int concurrency, int workQueueCapacity) {
-        this.workerThreadPool =
-                workQueueCapacity == DEFAULT_WORK_QUEUE_CAPACITY ? Executors.newFixedThreadPool(concurrency) :
-                        new ThreadPoolExecutor(concurrency,
-                                concurrency,
-                                0,
-                                TimeUnit.MILLISECONDS,
-                                new ArrayBlockingQueue<>(workQueueCapacity),
-                                new BlockingRetryHandler());
-        sequentialExecutors = new ConcurrentHashMap<>(concurrency);
-    }
 
     private ConseqExecutor(@Nonnull Builder builder) {
-        this(builder.concurrency, builder.workQueueCapacity);
+        this(new ThreadPoolExecutor(builder.concurrency,
+                builder.concurrency,
+                0,
+                TimeUnit.MILLISECONDS,
+                builder.workQueueCapacity == DEFAULT_WORK_QUEUE_CAPACITY ? new LinkedBlockingQueue<>() :
+                        new ArrayBlockingQueue<>(builder.workQueueCapacity),
+                Executors.defaultThreadFactory(),
+                builder.rejectedPolicy));
+    }
+
+    private ConseqExecutor(ThreadPoolExecutor workerThreadPool) {
+        this.workerThreadPool = workerThreadPool;
     }
 
     /**
      * @return conseq executor with default concurrency
      */
     public static @Nonnull ConseqExecutor newInstance() {
-        return new ConseqExecutor(DEFAULT_CONCURRENCY, DEFAULT_WORK_QUEUE_CAPACITY);
+        return new Builder().build();
     }
 
     /**
@@ -80,7 +81,16 @@ public final class ConseqExecutor implements SequentialExecutor {
      * @return conseq executor with given concurrency
      */
     public static @Nonnull ConseqExecutor newInstance(int concurrency) {
-        return new ConseqExecutor(concurrency, DEFAULT_WORK_QUEUE_CAPACITY);
+        return new Builder().concurrency(concurrency).build();
+    }
+
+    /**
+     * @param workerThreadPool
+     *         the worker thread pool that facilitates the overall async execution, independent of the submitted tasks.
+     * @return new ConseqExecutor instance backed by the specified workerThreadPool
+     */
+    public static ConseqExecutor from(ThreadPoolExecutor workerThreadPool) {
+        return new ConseqExecutor(workerThreadPool);
     }
 
     private static <T> T call(Callable<T> task) {
@@ -155,6 +165,15 @@ public final class ConseqExecutor implements SequentialExecutor {
     @Override
     public void shutdown() {
         this.workerThreadPool.shutdown();
+        while (true) {
+            try {
+                if (this.workerThreadPool.awaitTermination(100, TimeUnit.MILLISECONDS)) {
+                    break;
+                }
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
         this.adminThreadPool.shutdown();
     }
 
@@ -167,44 +186,13 @@ public final class ConseqExecutor implements SequentialExecutor {
         return this.sequentialExecutors.size();
     }
 
-    static class BlockingRetryHandler implements RejectedExecutionHandler {
-        private static void blockingRetry(Runnable r, @NonNull ThreadPoolExecutor executor) {
-            if (executor.isTerminated()) {
-                return;
-            }
-            BlockingQueue<Runnable> workQueue = executor.getQueue();
-            if (workQueue.offer(r)) {
-                return;
-            }
-            boolean interrupted = false;
-            try {
-                while (true) {
-                    try {
-                        workQueue.put(r);
-                        break;
-                    } catch (InterruptedException e) {
-                        interrupted = true;
-                    }
-                }
-            } finally {
-                if (interrupted) {
-                    Thread.currentThread().interrupt();
-                }
-            }
-        }
-
-        @Override
-        public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            blockingRetry(r, executor);
-        }
-    }
-
     /**
      * {@code ConseqExecutor} builder static inner class.
      */
     public static final class Builder {
         private int concurrency;
         private int workQueueCapacity;
+        private RejectedExecutionHandler rejectedPolicy;
 
         /**
          *
@@ -212,6 +200,7 @@ public final class ConseqExecutor implements SequentialExecutor {
         public Builder() {
             concurrency = DEFAULT_CONCURRENCY;
             workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
+            rejectedPolicy = DEFAULT_REJECTED_HANDLER;
         }
 
         /**
@@ -235,6 +224,17 @@ public final class ConseqExecutor implements SequentialExecutor {
          */
         public Builder workQueueCapacity(int workQueueCapacity) {
             this.workQueueCapacity = workQueueCapacity;
+            return this;
+        }
+
+        /**
+         * @param rejectedPolicy
+         *         handler executed by the caller thread if a task is rejected by the conseq executor, maybe e.g.
+         *         because of work queue is full. Default is {@link ThreadPoolExecutor.AbortPolicy}
+         * @return a reference to this Builder
+         */
+        public Builder rejectedPolicy(RejectedExecutionHandler rejectedPolicy) {
+            this.rejectedPolicy = rejectedPolicy;
             return this;
         }
 
