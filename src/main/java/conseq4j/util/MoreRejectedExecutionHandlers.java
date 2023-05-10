@@ -30,8 +30,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 /**
  *
  */
-public class MorePolicies {
-    private MorePolicies() {
+public class MoreRejectedExecutionHandlers {
+    private MoreRejectedExecutionHandlers() {
     }
 
     /**

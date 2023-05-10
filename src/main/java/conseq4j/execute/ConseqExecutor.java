@@ -60,7 +60,7 @@ public final class ConseqExecutor implements SequentialExecutor {
                 builder.workQueueCapacity == DEFAULT_WORK_QUEUE_CAPACITY ? new LinkedBlockingQueue<>() :
                         new ArrayBlockingQueue<>(builder.workQueueCapacity),
                 Executors.defaultThreadFactory(),
-                builder.rejectedPolicy));
+                builder.rejectedExecutionHandler));
     }
 
     private ConseqExecutor(ThreadPoolExecutor workerThreadPool) {
@@ -192,7 +192,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     public static final class Builder {
         private int concurrency;
         private int workQueueCapacity;
-        private RejectedExecutionHandler rejectedPolicy;
+        private RejectedExecutionHandler rejectedExecutionHandler;
 
         /**
          *
@@ -200,7 +200,7 @@ public final class ConseqExecutor implements SequentialExecutor {
         public Builder() {
             concurrency = DEFAULT_CONCURRENCY;
             workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
-            rejectedPolicy = DEFAULT_REJECTED_HANDLER;
+            rejectedExecutionHandler = DEFAULT_REJECTED_HANDLER;
         }
 
         /**
@@ -228,13 +228,13 @@ public final class ConseqExecutor implements SequentialExecutor {
         }
 
         /**
-         * @param rejectedPolicy
+         * @param rejectedExecutionHandler
          *         handler executed by the caller thread if a task is rejected by the conseq executor, maybe e.g.
          *         because of work queue is full. Default is {@link ThreadPoolExecutor.AbortPolicy}
          * @return a reference to this Builder
          */
-        public Builder rejectedPolicy(RejectedExecutionHandler rejectedPolicy) {
-            this.rejectedPolicy = rejectedPolicy;
+        public Builder rejectedExecutionHandler(RejectedExecutionHandler rejectedExecutionHandler) {
+            this.rejectedExecutionHandler = rejectedExecutionHandler;
             return this;
         }
 

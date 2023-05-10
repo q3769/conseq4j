@@ -288,7 +288,7 @@ Notes:
   rejection is the JDK `AbortPolicy` which raises the `RejectedExecutionException`. However, in the case
   of `ConseqExecutor` (API Style 2), the policy can be customized with any `RejectedExecutionHandler` policy, e.g.:
   ```jshelllanguage
-  new ConseqExecutor.builder().rejectedPolicy(conseq4j.util.MorePolicies.blockingRetryPolicy()).build(); 
+  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.blockingRetryPolicy()).build(); 
   ```
   where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
   asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
