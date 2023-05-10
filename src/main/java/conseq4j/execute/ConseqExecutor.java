@@ -63,7 +63,7 @@ public final class ConseqExecutor implements SequentialExecutor {
                 builder.rejectedExecutionHandler));
     }
 
-    private ConseqExecutor(ThreadPoolExecutor workerThreadPool) {
+    private ConseqExecutor(ExecutorService workerThreadPool) {
         this.workerThreadPool = workerThreadPool;
     }
 
@@ -89,7 +89,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      *         the worker thread pool that facilitates the overall async execution, independent of the submitted tasks.
      * @return new ConseqExecutor instance backed by the specified workerThreadPool
      */
-    public static ConseqExecutor from(ThreadPoolExecutor workerThreadPool) {
+    public static ConseqExecutor from(ExecutorService workerThreadPool) {
         return new ConseqExecutor(workerThreadPool);
     }
 
@@ -164,17 +164,21 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     @Override
     public void shutdown() {
-        this.workerThreadPool.shutdown();
-        while (true) {
-            try {
-                if (this.workerThreadPool.awaitTermination(100, TimeUnit.MILLISECONDS)) {
-                    break;
+        ExecutorService shutdownThread = Executors.newSingleThreadExecutor();
+        shutdownThread.execute(() -> {
+            this.workerThreadPool.shutdown();
+            while (true) {
+                try {
+                    if (this.workerThreadPool.awaitTermination(5, TimeUnit.MINUTES)) {
+                        break;
+                    }
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
                 }
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
             }
-        }
-        this.adminThreadPool.shutdown();
+            this.adminThreadPool.shutdown();
+        });
+        shutdownThread.shutdown();
     }
 
     @Override
