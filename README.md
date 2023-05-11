@@ -258,7 +258,7 @@ public class MessageConsumer {
   by unrelated tasks of different sequence keys in the same "bucket" - as is unnecessary. This can be a desired
   advantage over the thread-affinity API style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
-- The default general concurrency or max execution thread pool size is either 16 or the JVM
+- The default general concurrency (i.e. the execution work thread pool capacity is either 16 or the JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
@@ -294,8 +294,8 @@ public class MessageConsumer {
   ```
   where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
   asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
-- For a complete customization on the `ConseqExecutor` instance's asynchronous facilitation, directly supply a work
-  thread pool of type `ExecutorService` using the static factory API:
+- For a fully-customized the work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation,
+  directly supply the work thread pool of type `ExecutorService` using the static factory API:
 
   `ConseqExecutor.from(ExecutorService workThreadPool)`
 
