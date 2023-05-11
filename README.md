@@ -294,8 +294,8 @@ public class MessageConsumer {
   ```
   where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
   asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
-- For a fully-customized the work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation,
-  directly supply the work thread pool of type `ExecutorService` using the static factory API:
+- For a fully-customized work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation, directly
+  supply the desired pool of `ExecutorService` type using the static factory API:
 
   `ConseqExecutor.from(ExecutorService workThreadPool)`
 
