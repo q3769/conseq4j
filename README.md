@@ -307,7 +307,7 @@ maintaining meaningful local execution order and maximizing global concurrency.
 
 In asynchronous concurrent messaging, there are generally two approaches to achieve necessary order:
 
-**1. Preventive**
+### 1. Preventive
 
 This is more on the technical level. Sometimes it is possible to prevent related messages from ever being executed
 out of order in a globally concurrent process. This implies:
@@ -320,7 +320,7 @@ received.
 (3) The message consumer ensures that related messages are processed in the same order, e.g. by using a
 sequence/correlation key as with this API.
 
-**2. Curative**
+### 2. Curative
 
 This is more on the business rule level. Sometimes preventative measures are either not possible or not worthwhile to
 pursue. By the time messages arrive at the consumer, they may be intrinsically out of order. E.g. when the messages are
