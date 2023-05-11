@@ -245,7 +245,7 @@ public class MessageConsumer {
 ```
 
 - The interface of this direct-execute style uses `Future` as the return type, mainly to reduce conceptual weight of the
-  API. The implementation actually returns `CompletableFuture`, and can be used directly if need be.
+  API. The implementation actually returns `CompletableFuture`, and can be used/cast as such if need be.
 - The implementation relies on
   JDK's [CompletableFuture](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/CompletableFuture.html) to
   achieve sequential execution of related tasks. One single pool of threads is used to facilitate the overall
