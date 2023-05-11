@@ -1,10 +1,12 @@
+[![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
+
 # conseq4j
 
 A Java concurrent API to sequence the asynchronous executions of related tasks while concurring unrelated ones.
 
 - *conseq* is short for *con*current *seq*uencer.
 
-## User Stories
+## User stories
 
 1. As an API client, I want to summon a sequential task executor by a sequence key, so that all the tasks sequentially
    submitted under the same sequence key will be executed by the same executor in the same order as submitted;
@@ -21,25 +23,29 @@ execution order at the same time.
 
 Java 8 or better
 
-## Get It...
+## Get it...
 
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.q3769/conseq4j.svg?label=Maven%20Central)](https://search.maven.org/search?q=g:%22io.github.q3769%22%20AND%20a:%22conseq4j%22)
 
-## Use It...
+Install as a compile-scope dependency in Maven or other build tools alike.
 
-**Sequence Keys**
+## Use it...
+
+### General notes
+
+#### Sequence keys
 
 A sequence key cannot be `null`. Any two keys, `sequenceKey1` and `sequenceKey2`, are considered "the same sequence key"
 if and only if `Objects.equals(sequenceKey1, sequenceKey2)` returns `true`.
 
-**Thread Safety**
+#### Thread safety
 
 A conseq4j instance is thread-safe in and of itself. The usual thread-safety rules and concerns, however, still apply
 when programming the executable tasks. Moreover, in the context of concurrency and sequencing, the thread-safety concern
 goes beyond concurrent modification of individual-task data, into that of meaningful execution order among multiple
 related tasks.
 
-**Concurrency And Sequencing**
+#### Concurrency and sequencing
 
 First of all, by definition, there is no such thing as order or sequence among tasks submitted concurrently by different
 threads. No particular execution order is guaranteed on those concurrent tasks, regardless of their sequence keys. The
@@ -55,7 +61,7 @@ any time, and with the right order of submission sequence over time. Fortunately
 the API client, e.g. when the task submission is managed by a messaging provider such as Kafka, JMS, x-MQ, TIBCO EMS,
 etc...
 
-### Style 1: Summon a Sequential Executor by its Sequence Key, then Use the Executor as with a JDK `ExecutorService`
+### Style 1: summon a sequential executor by its sequence key, then use the executor as with a JDK `ExecutorService`
 
 #### API
 
@@ -98,7 +104,7 @@ Consider using this style when the summoned executor needs to provide
 the [syntax and semantic richness](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html#method.summary)
 of the JDK `ExecutorService` API.
 
-#### Sample Usage
+#### Sample usage
 
 ```java
 public class MessageConsumer {
@@ -128,8 +134,6 @@ public class MessageConsumer {
     }
 }
 ```
-
-Notes:
 
 - The implementation of this thread-affinity style relies on hashing of the sequence keys into a fixed number of
   "buckets". These buckets are each associated with a sequential executor. The same sequence key is always hashed to and
@@ -161,7 +165,7 @@ Notes:
   ConseqServiceFactory.newInstance(10)
   ```
 
-### Style 2: Submit Each Task Directly for Execution, together with its Sequence Key
+### Style 2: submit each task directly for execution, together with its sequence key
 
 #### API
 
@@ -209,7 +213,7 @@ Prefer this style when the full-blown syntax and semantic support of
 JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html) is not
 required.
 
-#### Sample Usage
+#### Sample usage
 
 ```java
 public class MessageConsumer {
@@ -240,8 +244,6 @@ public class MessageConsumer {
 }
 ```
 
-Notes:
-
 - The interface of this direct-execute style uses `Future` as the return type, mainly to reduce conceptual weight of the
   API. The implementation actually returns `CompletableFuture`, and can be used directly if need be.
 - The implementation relies on
@@ -264,7 +266,7 @@ Notes:
   ```
   or
   ```jshelllanguage
-  new ConseqExecutor.Builder().build();
+  new ConseqExecutor.Builder().build()
   ```
 
   The concurrency can be customized:
@@ -273,7 +275,7 @@ Notes:
   ```
   or
   ```jshelllanguage
-  new ConseqExecutor.Builder().concurrency(10).build();
+  new ConseqExecutor.Builder().concurrency(10).build()
   ```
 
 - The default work queue capacity for any executor is unlimited, which ensures the asynchronous semantics to the caller.
@@ -288,12 +290,16 @@ Notes:
   rejection is the JDK `AbortPolicy` which raises the `RejectedExecutionException`. However, in the case
   of `ConseqExecutor` (API Style 2), the policy can be customized with any `RejectedExecutionHandler` policy, e.g.:
   ```jshelllanguage
-  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.blockingRetryPolicy()).build(); 
+  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.blockingRetryPolicy()).build()
   ```
   where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
   asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
+- For a complete customization on the `ConseqExecutor` instance's asynchronous facilitation, directly supply a work
+  thread pool of type `ExecutorService` using the static factory API:
 
-## Full Disclosure - Asynchronous Conundrum
+  `ConseqExecutor.from(ExecutorService workThreadPool)`
+
+## Full disclosure - Asynchronous Conundrum
 
 The Asynchronous Conundrum refers to the fact that asynchronous concurrent processing and deterministic order of
 execution do not come together naturally; in asynchronous systems, certain limits and impedance mismatch exist between
