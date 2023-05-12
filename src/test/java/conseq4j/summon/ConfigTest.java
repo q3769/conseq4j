@@ -23,7 +23,6 @@
  */
 package conseq4j.summon;
 
-import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.util.Random;
@@ -38,7 +37,6 @@ import static org.junit.jupiter.api.Assertions.assertSame;
  * @author q3769
  */
 class ConfigTest {
-    static Logger info = Logger.instance().atInfo();
 
     @Test
     void errorOnNonPositiveConcurrency() {
@@ -79,13 +77,11 @@ class ConfigTest {
         try {
             sequentialExecutor.shutdown();
         } catch (UnsupportedOperationException e) {
-            info.log("Expected error in testing: {}", e.getMessage());
             errors++;
         }
         try {
             sequentialExecutor.shutdownNow();
         } catch (UnsupportedOperationException e) {
-            info.log("Expected error in testing: {}", e.getMessage());
             errors++;
         }
 

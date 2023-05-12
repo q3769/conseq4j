@@ -27,7 +27,6 @@ package conseq4j.execute;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -44,7 +43,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConseqExecutorTest {
     private static final int TASK_COUNT = 100;
-    private static final Logger info = Logger.instance().atInfo();
 
     @Test
     void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
@@ -79,12 +77,6 @@ class ConseqExecutorTest {
 
         TestUtils.assertConsecutiveRuntimes(tasks);
         int actualThreadCount = TestUtils.actualExecutionThreadCount(tasks);
-        info.log(
-                "{} sequential tasks of sequence key {} were run by {} threads, with a backing thread pool of size {}: unlike the \"summon\" API style, here sequential tasks can be run by different threads, albeit in sequential order",
-                TASK_COUNT,
-                sameSequenceKey,
-                actualThreadCount,
-                concurrency);
         assertTrue(Range.closed(1, TASK_COUNT).contains(actualThreadCount));
     }
 
@@ -142,10 +134,6 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
-        info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
-                TASK_COUNT,
-                actualThreadCount,
-                threadPoolSize);
         assertEquals(threadPoolSize, actualThreadCount);
     }
 
@@ -160,10 +148,6 @@ class ConseqExecutorTest {
                 .collect(toList());
 
         final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
-        info.log("[{}] tasks were run by [{}] threads, with thread pool size [{}]",
-                TASK_COUNT,
-                actualThreadCount,
-                threadPoolSize);
         assertEquals(TASK_COUNT, actualThreadCount);
     }
 }

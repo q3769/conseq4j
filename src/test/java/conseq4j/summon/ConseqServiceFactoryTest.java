@@ -26,10 +26,8 @@ package conseq4j.summon;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import elf4j.Logger;
 import org.junit.jupiter.api.Test;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -48,7 +46,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class ConseqServiceFactoryTest {
     private static final int TASK_COUNT = 100;
-    private static final Logger info = Logger.instance().atInfo();
 
     private static List<Callable<SpyingTask>> toCallables(List<SpyingTask> tasks) {
         return tasks.stream().map(SpyingTask::toCallable).collect(Collectors.toList());
@@ -58,7 +55,6 @@ class ConseqServiceFactoryTest {
         List<String> distinctThreads =
                 tasks.stream().map(SpyingTask::getRunThreadName).distinct().collect(Collectors.toList());
         assertEquals(1, distinctThreads.size());
-        info.log("[{}] tasks executed by single thread: [{}]", tasks.size(), distinctThreads.get(0));
     }
 
     @Test
@@ -72,7 +68,6 @@ class ConseqServiceFactoryTest {
 
         final long totalRunThreads =
                 getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-        info.log("[{}] tasks were run by [{}] threads", TASK_COUNT, totalRunThreads);
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -98,11 +93,6 @@ class ConseqServiceFactoryTest {
         TestUtils.awaitFutures(highConcurrencyFutures);
         long highConcurrencyTime = System.nanoTime() - highConcurrencyStart;
 
-        info.log("low concurrency: {}, ran duration: {}; high concurrency: {}, ran duration: {}",
-                lowConcurrency,
-                Duration.ofNanos(lowConcurrencyTime),
-                highConcurrency,
-                Duration.ofNanos(highConcurrencyTime));
         assertTrue(lowConcurrencyTime > highConcurrencyTime);
     }
 
@@ -129,7 +119,6 @@ class ConseqServiceFactoryTest {
                 defaultConseqServiceFactory.getExecutorService(sameSequenceKey).invokeAny(toCallables(tasks));
 
         final Integer scheduledSequenceIndex = doneTask.getScheduledSequenceIndex();
-        info.log("chosen task sequence index: [{}]", scheduledSequenceIndex);
         assertTrue(Range.closedOpen(0, TASK_COUNT).contains(scheduledSequenceIndex));
     }
 

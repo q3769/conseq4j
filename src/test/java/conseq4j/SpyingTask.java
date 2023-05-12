@@ -23,7 +23,6 @@
  */
 package conseq4j;
 
-import elf4j.Logger;
 import lombok.Getter;
 import lombok.ToString;
 
@@ -43,7 +42,6 @@ public class SpyingTask implements Runnable {
     private static final int MAX_RUN_TIME_MILLIS = 20;
     private static final Random RANDOM = new Random();
     private static final long UNSET_TIME_STAMP = Long.MIN_VALUE;
-    private static final Logger trace = Logger.instance().atTrace();
     final Integer scheduledSequenceIndex;
     final long targetRunDurationMillis;
     String runThreadName;
@@ -78,7 +76,6 @@ public class SpyingTask implements Runnable {
                 .pollInterval(Duration.ofMillis(1))
                 .until(() -> (System.currentTimeMillis() - this.runTimeStartMillis) >= this.targetRunDurationMillis);
         this.runTimeEndMillis = System.currentTimeMillis();
-        trace.log("task: {}, ran duration: {}", this, this.getActualRunDuration());
     }
 
     public Callable<SpyingTask> toCallable() {
