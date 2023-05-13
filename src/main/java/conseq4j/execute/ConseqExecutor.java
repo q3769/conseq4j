@@ -43,6 +43,8 @@ public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
     private static final ThreadPoolExecutor.AbortPolicy DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
+    private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
+    
     private final Map<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
     private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
     /**
@@ -57,8 +59,9 @@ public final class ConseqExecutor implements SequentialExecutor {
                 builder.concurrency,
                 0,
                 TimeUnit.MILLISECONDS,
-                builder.workQueueCapacity == DEFAULT_WORK_QUEUE_CAPACITY ? new LinkedBlockingQueue<>() :
-                        new ArrayBlockingQueue<>(builder.workQueueCapacity),
+                builder.workQueueType == Builder.WorkQueueType.ARRAY ?
+                        new ArrayBlockingQueue<>(builder.workQueueCapacity) :
+                        new LinkedBlockingQueue<>(builder.workQueueCapacity),
                 Executors.defaultThreadFactory(),
                 builder.rejectedExecutionHandler));
     }
@@ -196,6 +199,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     public static final class Builder {
         private int concurrency;
         private int workQueueCapacity;
+        private WorkQueueType workQueueType;
         private RejectedExecutionHandler rejectedExecutionHandler;
 
         /**
@@ -205,6 +209,7 @@ public final class ConseqExecutor implements SequentialExecutor {
             concurrency = DEFAULT_CONCURRENCY;
             workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
             rejectedExecutionHandler = DEFAULT_REJECTED_HANDLER;
+            workQueueType = DEFAULT_WORK_QUEUE_TYPE;
         }
 
         /**
@@ -249,6 +254,31 @@ public final class ConseqExecutor implements SequentialExecutor {
          */
         public @Nonnull ConseqExecutor build() {
             return new ConseqExecutor(this);
+        }
+
+        /**
+         * @param workQueueType
+         *         {@link WorkQueueType#LINKED} meaning {@link LinkedBlockingQueue}, or  {@link WorkQueueType#ARRAY}
+         *         meaning {@link ArrayBlockingQueue}, default to {@link WorkQueueType#LINKED}
+         * @return a reference to this Builder
+         */
+        public Builder workQueueType(WorkQueueType workQueueType) {
+            this.workQueueType = workQueueType;
+            return this;
+        }
+
+        /**
+         *
+         */
+        public enum WorkQueueType {
+            /**
+             *
+             */
+            LINKED,
+            /**
+             *
+             */
+            ARRAY
         }
     }
 }
