@@ -42,11 +42,12 @@ import java.util.concurrent.*;
 public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
+    private static final int FOREVER = Integer.MAX_VALUE;
     private static final ThreadPoolExecutor.AbortPolicy DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
     private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
-    
+
     private final Map<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
-    private final ExecutorService adminThreadPool = Executors.newCachedThreadPool();
+    private final ExecutorService adminThread = Executors.newSingleThreadExecutor();
     /**
      * The worker thread pool facilitates the overall async execution, independent of the submitted tasks. Any thread
      * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
@@ -161,7 +162,7 @@ public final class ConseqExecutor implements SequentialExecutor {
                         presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
         taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
                         (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
-                adminThreadPool);
+                adminThread);
         return (CompletableFuture<T>) taskFifoQueueTail.thenApply(r -> r);
     }
 
@@ -172,21 +173,21 @@ public final class ConseqExecutor implements SequentialExecutor {
             this.workerThreadPool.shutdown();
             while (true) {
                 try {
-                    if (this.workerThreadPool.awaitTermination(5, TimeUnit.MINUTES)) {
+                    if (this.workerThreadPool.awaitTermination(FOREVER, TimeUnit.SECONDS)) {
                         break;
                     }
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
             }
-            this.adminThreadPool.shutdown();
+            this.adminThread.shutdown();
         });
         shutdownThread.shutdown();
     }
 
     @Override
     public boolean isTerminated() {
-        return this.workerThreadPool.isTerminated() && this.adminThreadPool.isTerminated();
+        return this.workerThreadPool.isTerminated() && this.adminThread.isTerminated();
     }
 
     int estimateActiveExecutorCount() {

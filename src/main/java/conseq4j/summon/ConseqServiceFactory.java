@@ -24,13 +24,17 @@
 package conseq4j.summon;
 
 import lombok.ToString;
+import lombok.experimental.Delegate;
 
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.stream.Collectors;
 
 import static java.lang.Math.floorMod;
 
@@ -88,7 +92,15 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
 
     @Override
     public void shutdown() {
-        this.sequentialExecutors.values().parallelStream().forEach(ExecutorService::shutdown);
+        List<ExecutorService> executorServices = new ArrayList<>(this.sequentialExecutors.values());
+        List<ExecutorService> shutdownDisabledExecutorServices = executorServices.stream()
+                .filter(ShutdownDisabledExecutorService.class::isInstance)
+                .collect(Collectors.toList());
+        shutdownDisabledExecutorServices.stream()
+                .map(ShutdownDisabledExecutorService.class::cast)
+                .forEach(ShutdownDisabledExecutorService::shutdownDelegate);
+        executorServices.removeAll(shutdownDisabledExecutorServices);
+        executorServices.forEach(ExecutorService::shutdown);
     }
 
     @Override
@@ -98,5 +110,58 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
 
     private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hash(sequenceKey), this.concurrency);
+    }
+
+    /**
+     * An {@link ExecutorService} that doesn't support shut down.
+     *
+     * @author Qingtian Wang
+     */
+    @ToString
+    static final class ShutdownDisabledExecutorService implements ExecutorService {
+
+        private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
+                "Shutdown not supported: Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners";
+
+        @Delegate(excludes = ShutdownOperations.class) private final ExecutorService delegate;
+
+        /**
+         * @param delegate
+         *         the delegate {@link ExecutorService} to run the submitted task(s).
+         */
+        public ShutdownDisabledExecutorService(ExecutorService delegate) {
+            this.delegate = delegate;
+        }
+
+        /**
+         * Does not allow shutdown because the same executor could be running task(s) for different sequence keys,
+         * albeit in sequential/FIFO order. Shutdown of the executor would stop executions for all tasks, which is
+         * disallowed to prevent undesired task-execute coordination.
+         */
+        @Override
+        public void shutdown() {
+            throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
+        }
+
+        /**
+         * @see #shutdown()
+         */
+        @Override
+        public List<Runnable> shutdownNow() {
+            throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
+        }
+
+        void shutdownDelegate() {
+            this.delegate.shutdown();
+        }
+
+        /**
+         * Methods that require complete overriding instead of delegation/decoration
+         */
+        private interface ShutdownOperations {
+            void shutdown();
+
+            List<Runnable> shutdownNow();
+        }
     }
 }
