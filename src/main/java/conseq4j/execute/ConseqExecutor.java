@@ -53,7 +53,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
      * max parallelism of task execution.
      */
-    private final ExecutorService workerThreadPool;
+    private final ThreadPoolExecutor workerThreadPool;
 
     private ConseqExecutor(@Nonnull Builder builder) {
         this(new ThreadPoolExecutor(builder.concurrency,
@@ -67,7 +67,7 @@ public final class ConseqExecutor implements SequentialExecutor {
                 builder.rejectedExecutionHandler));
     }
 
-    private ConseqExecutor(ExecutorService workerThreadPool) {
+    private ConseqExecutor(ThreadPoolExecutor workerThreadPool) {
         this.workerThreadPool = workerThreadPool;
     }
 
@@ -93,7 +93,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      *         the worker thread pool that facilitates the overall async execution, independent of the submitted tasks.
      * @return new ConseqExecutor instance backed by the specified workerThreadPool
      */
-    public static ConseqExecutor from(ExecutorService workerThreadPool) {
+    public static ConseqExecutor from(ThreadPoolExecutor workerThreadPool) {
         return new ConseqExecutor(workerThreadPool);
     }
 
@@ -188,6 +188,11 @@ public final class ConseqExecutor implements SequentialExecutor {
     @Override
     public boolean isTerminated() {
         return this.workerThreadPool.isTerminated() && this.adminThread.isTerminated();
+    }
+
+    @Override
+    public boolean isActive() {
+        return workerThreadPool.getActiveCount() > 0;
     }
 
     int estimateActiveExecutorCount() {

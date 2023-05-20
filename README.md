@@ -202,6 +202,11 @@ public interface SequentialExecutor {
      *         shutdown was called first.
      */
     boolean isTerminated();
+
+    /**
+     * @return true if, by estimation, some threads are actively executing tasks
+     */
+    boolean isActive();
 }
 ```
 
@@ -295,9 +300,9 @@ public class MessageConsumer {
   where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
   asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
 - For a fully-customized work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation, directly
-  supply the desired pool of `ExecutorService` type using the static factory API:
+  supply the desired work pool of type `ThreadPoolExecutor` using the static factory API:
 
-  `ConseqExecutor.from(ExecutorService workThreadPool)`
+  `ConseqExecutor.from(ThreadPoolExecutor workerThreadPool)`
 
 ## Full disclosure - Asynchronous Conundrum
 

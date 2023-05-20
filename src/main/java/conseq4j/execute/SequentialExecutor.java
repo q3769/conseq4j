@@ -74,4 +74,9 @@ public interface SequentialExecutor {
      *         shutdown was called first.
      */
     boolean isTerminated();
+
+    /**
+     * @return true if, by estimation, some threads are actively executing tasks
+     */
+    boolean isActive();
 }
