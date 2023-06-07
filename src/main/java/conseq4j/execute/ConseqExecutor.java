@@ -26,6 +26,8 @@ package conseq4j.execute;
 
 import lombok.NonNull;
 import lombok.ToString;
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -42,11 +44,10 @@ import java.util.concurrent.*;
 public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final int FOREVER = Integer.MAX_VALUE;
     private static final ThreadPoolExecutor.AbortPolicy DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
     private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
 
-    private final Map<Object, CompletableFuture<?>> sequentialExecutors = new ConcurrentHashMap<>();
+    private final Map<Object, CompletableFuture<?>> latestSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminThread = Executors.newSingleThreadExecutor();
     /**
      * The worker thread pool facilitates the overall async execution, independent of the submitted tasks. Any thread
@@ -54,6 +55,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      * max parallelism of task execution.
      */
     private final ThreadPoolExecutor workerThreadPool;
+    private final ConditionFactory await = Awaitility.await().forever();
 
     private ConseqExecutor(@Nonnull Builder builder) {
         this(new ThreadPoolExecutor(builder.concurrency,
@@ -156,30 +158,22 @@ public final class ConseqExecutor implements SequentialExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> taskFifoQueueTail = sequentialExecutors.compute(sequenceKey,
-                (k, presentTail) -> (presentTail == null) ?
+        CompletableFuture<?> latestTask = latestSequentialTasks.compute(sequenceKey,
+                (k, presentTask) -> (presentTask == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
-                        presentTail.handleAsync((r, e) -> call(task), workerThreadPool));
-        taskFifoQueueTail.whenCompleteAsync((r, e) -> sequentialExecutors.computeIfPresent(sequenceKey,
-                        (k, checkedTaskFifoQueueTail) -> checkedTaskFifoQueueTail.isDone() ? null : checkedTaskFifoQueueTail),
-                adminThread);
-        return (CompletableFuture<T>) taskFifoQueueTail.thenApply(r -> r);
+                        presentTask.handleAsync((r, e) -> call(task), workerThreadPool));
+        latestTask.whenCompleteAsync((r, e) -> latestSequentialTasks.computeIfPresent(sequenceKey,
+                (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminThread);
+        return (CompletableFuture<T>) latestTask.thenApply(r -> r);
     }
 
     @Override
     public void shutdown() {
         ExecutorService shutdownThread = Executors.newSingleThreadExecutor();
         shutdownThread.execute(() -> {
+            await.until(() -> this.latestSequentialTasks.size() == 0);
             this.workerThreadPool.shutdown();
-            while (true) {
-                try {
-                    if (this.workerThreadPool.awaitTermination(FOREVER, TimeUnit.SECONDS)) {
-                        break;
-                    }
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }
+            await.until(this.workerThreadPool::isShutdown);
             this.adminThread.shutdown();
         });
         shutdownThread.shutdown();
@@ -196,7 +190,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     int estimateActiveExecutorCount() {
-        return this.sequentialExecutors.size();
+        return this.latestSequentialTasks.size();
     }
 
     /**

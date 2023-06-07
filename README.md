@@ -297,8 +297,8 @@ public class MessageConsumer {
   ```jshelllanguage
   new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.blockingRetryPolicy()).build()
   ```
-  where the caller thread will block and retry until the task is put in the work queue. This temporarily alters the
-  asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
+  where the caller thread will block and retry until the task is accepted. This temporarily alters the asynchronous
+  semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
 - For a fully-customized work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation, directly
   supply the desired work pool of type `ThreadPoolExecutor` using the static factory API:
 

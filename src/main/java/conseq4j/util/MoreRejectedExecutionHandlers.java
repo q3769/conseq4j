@@ -24,6 +24,10 @@
 
 package conseq4j.util;
 
+import org.awaitility.Awaitility;
+import org.awaitility.core.ConditionFactory;
+
+import java.time.Duration;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -35,28 +39,42 @@ public class MoreRejectedExecutionHandlers {
     }
 
     /**
-     * @return a {@link RejectedExecutionHandler} that uses/blocks the caller thread to retry the rejected task, or drop
-     *         the task if the executor has been terminated.
+     * @return a {@link RejectedExecutionHandler} that uses/blocks the caller thread to retry the rejected task until it
+     *         is accepted, or drop the task if the executor has been shut down.
      */
     public static RejectedExecutionHandler blockingRetryPolicy() {
-        return new BlockingRetryPolicy();
+        return blockingRetryPolicy(null);
+    }
+
+    /**
+     * @param retryPeriod
+     *         Duration to pause/block the calling thread before each retry
+     * @return a {@link RejectedExecutionHandler} that uses/blocks the caller thread to retry the rejected task until it
+     *         is accepted, or drop the task if the executor has been shut down.
+     */
+    public static RejectedExecutionHandler blockingRetryPolicy(Duration retryPeriod) {
+        return new BlockingRetryPolicy(retryPeriod);
     }
 
     /**
      *
      */
     private static class BlockingRetryPolicy implements RejectedExecutionHandler {
+        private static final Duration DEFAULT_RETRY_PERIOD = Duration.ofMillis(10);
+        private final ConditionFactory await = Awaitility.await().forever();
+        private final Duration retryPeriod;
+
+        private BlockingRetryPolicy(Duration retryPeriod) {
+            this.retryPeriod = retryPeriod == null ? DEFAULT_RETRY_PERIOD : retryPeriod;
+        }
 
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
-            if (executor.isTerminated()) {
+            if (executor.isShutdown()) {
                 return;
             }
-            try {
-                executor.getQueue().put(r);
-            } catch (InterruptedException e) {
-                Thread.currentThread().interrupt();
-            }
+            await.with().pollDelay(retryPeriod).until(() -> true);
+            executor.execute(r);
         }
     }
 }
