@@ -44,7 +44,7 @@ import java.util.concurrent.*;
 public final class ConseqExecutor implements SequentialExecutor {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final ThreadPoolExecutor.AbortPolicy DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
+    private static final RejectedExecutionHandler DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
     private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
 
     private final Map<Object, CompletableFuture<?>> latestSequentialTasks = new ConcurrentHashMap<>();
