@@ -171,6 +171,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     public void shutdown() {
         ExecutorService shutdownThread = Executors.newSingleThreadExecutor();
         shutdownThread.execute(() -> {
+            await.until(() -> this.workerThreadPool.getActiveCount() == 0);
             await.until(() -> this.latestSequentialTasks.size() == 0);
             this.workerThreadPool.shutdown();
             await.until(this.workerThreadPool::isShutdown);
