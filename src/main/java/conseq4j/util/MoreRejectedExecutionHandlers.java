@@ -73,7 +73,7 @@ public class MoreRejectedExecutionHandlers {
             if (executor.isShutdown()) {
                 return;
             }
-            await.with().pollDelay(retryPeriod).until(() -> true);
+            await.with().pollInterval(retryPeriod).until(() -> true);
             executor.execute(r);
         }
     }
