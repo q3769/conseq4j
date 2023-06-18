@@ -283,22 +283,24 @@ public class MessageConsumer {
   new ConseqExecutor.Builder().concurrency(10).build()
   ```
 
-- The default work queue capacity for any executor is unlimited, which ensures the asynchronous semantics to the caller.
-  However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized, e.g.:
+- The default work queue capacity for the backing thread pool is unlimited, which ensures the asynchronous semantics to
+  the caller. However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized, e.g.:
   ```jshelllanguage
   ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).build(); // default concurrency with work queue capacity of 256
   ```  
   ```jshelllanguage
   ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).concurrency(10).build(); 
   ```
-- When the executor work queue is full at capacity, the async task will be rejected. The default handling policy of
-  rejection is the JDK `AbortPolicy` which raises the `RejectedExecutionException`. However, in the case
-  of `ConseqExecutor` (API Style 2), the policy can be customized with any `RejectedExecutionHandler` policy, e.g.:
+- The thread pool may reject tasks when no more threads or queue slots are available because their bounds would be
+  exceeded. The default handling policy of rejection is the JDK `AbortPolicy` which raises `RejectedExecutionException`.
+  However, in the case of `ConseqExecutor` (API Style 2), the policy can be customized
+  with any `RejectedExecutionHandler` policy, e.g.:
   ```jshelllanguage
-  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.blockingRetryPolicy()).build()
+  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.forceEnqueuePolicy()).build()
   ```
-  where the caller thread will block and retry until the task is accepted. This temporarily alters the asynchronous
-  semantics and imposes "back pressure" to caller thread, which may be a desired behavior in some cases.
+  where the caller thread will block and re-submit the task until it is put into the thread pool's work queue. This
+  temporarily alters the asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired
+  behavior in some cases.
 - For a fully-customized work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation, directly
   supply the desired work pool of type `ThreadPoolExecutor` using the static factory API:
 

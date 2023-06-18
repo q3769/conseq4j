@@ -24,6 +24,8 @@
 
 package conseq4j.execute;
 
+import conseq4j.Terminable;
+
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -42,7 +44,7 @@ import java.util.concurrent.Future;
  *
  * @author Qingtian Wang
  */
-public interface SequentialExecutor {
+public interface SequentialExecutor extends Terminable {
     /**
      * @param command
      *         the Runnable task to run sequentially with others under the same sequence key
@@ -62,21 +64,4 @@ public interface SequentialExecutor {
      * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);
-
-    /**
-     * Nonblocking, initiates an orderly shutdown in which previously submitted tasks are executed, but no new tasks
-     * will be accepted. Invocation has no additional effect if already shut down.
-     */
-    void shutdown();
-
-    /**
-     * @return true if all tasks have completed following shut down. Note that isTerminated is never true unless
-     *         shutdown was called first.
-     */
-    boolean isTerminated();
-
-    /**
-     * @return true if, by estimation, some threads are actively executing tasks
-     */
-    boolean isActive();
 }

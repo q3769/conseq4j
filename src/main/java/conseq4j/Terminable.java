@@ -21,27 +21,25 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
-package conseq4j.summon;
 
-import conseq4j.Terminable;
-
-import java.util.concurrent.ExecutorService;
+package conseq4j;
 
 /**
- * Main API of conseq service factory, producing sequential executor instances summoned by sequence keys.
- * <p>
- * For sequencing, the executor of the same sequence key should execute all tasks sequentially in the same order of
- * submissions. For concurrency, executor instances of different sequence keys should run in parallel by different
- * threads.
  *
- * @author Qingtian Wang
  */
-public interface SequentialExecutorServiceFactory extends Terminable {
+public interface Terminable {
     /**
-     * @param sequenceKey
-     *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
-     * @return the sequential executor of type {@link ExecutorService} that executes all tasks of this sequence key in
-     *         the same order as they are submitted.
+     * Nonblocking, initiates an orderly shutdown of all sequential executor managed by this factory. Previously
+     * submitted tasks are executed, but no new tasks will be accepted. Invocation has no additional effect if already
+     * shut down.
      */
-    ExecutorService getExecutorService(Object sequenceKey);
+    void shutdown();
+
+    /**
+     * Nonblocking
+     *
+     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
+     *         never true unless shutdown was called first.
+     */
+    boolean isTerminated();
 }

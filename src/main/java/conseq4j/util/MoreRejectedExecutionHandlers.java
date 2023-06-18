@@ -24,10 +24,6 @@
 
 package conseq4j.util;
 
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionFactory;
-
-import java.time.Duration;
 import java.util.concurrent.RejectedExecutionHandler;
 import java.util.concurrent.ThreadPoolExecutor;
 
@@ -42,39 +38,24 @@ public class MoreRejectedExecutionHandlers {
      * @return a {@link RejectedExecutionHandler} that uses/blocks the caller thread to retry the rejected task until it
      *         is accepted, or drop the task if the executor has been shut down.
      */
-    public static RejectedExecutionHandler blockingRetryPolicy() {
-        return blockingRetryPolicy(null);
-    }
-
-    /**
-     * @param retryPeriod
-     *         Duration to pause/block the calling thread before each retry
-     * @return a {@link RejectedExecutionHandler} that uses/blocks the caller thread to retry the rejected task until it
-     *         is accepted, or drop the task if the executor has been shut down.
-     */
-    public static RejectedExecutionHandler blockingRetryPolicy(Duration retryPeriod) {
-        return new BlockingRetryPolicy(retryPeriod);
+    public static RejectedExecutionHandler forceEnqueuePolicy() {
+        return new ForceEnqueuePolicy();
     }
 
     /**
      *
      */
-    private static class BlockingRetryPolicy implements RejectedExecutionHandler {
-        private static final Duration DEFAULT_RETRY_PERIOD = Duration.ofMillis(10);
-        private final ConditionFactory await = Awaitility.await().forever();
-        private final Duration retryPeriod;
-
-        private BlockingRetryPolicy(Duration retryPeriod) {
-            this.retryPeriod = retryPeriod == null ? DEFAULT_RETRY_PERIOD : retryPeriod;
-        }
-
+    public static class ForceEnqueuePolicy implements RejectedExecutionHandler {
         @Override
         public void rejectedExecution(Runnable r, ThreadPoolExecutor executor) {
             if (executor.isShutdown()) {
                 return;
             }
-            await.with().pollInterval(retryPeriod).until(() -> true);
-            executor.execute(r);
+            try {
+                executor.getQueue().put(r);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 }
