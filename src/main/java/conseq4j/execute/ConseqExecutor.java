@@ -185,6 +185,11 @@ public final class ConseqExecutor implements SequentialExecutor {
         return this.workerThreadPool.isTerminated() && this.adminThread.isTerminated();
     }
 
+    @Override
+    public boolean isIdle() {
+        return workerThreadPool.getActiveCount() == 0;
+    }
+
     int estimateActiveExecutorCount() {
         return this.latestSequentialTasks.size();
     }

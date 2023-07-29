@@ -41,4 +41,9 @@ public interface Terminable {
      *         never true unless shutdown was called first.
      */
     boolean isTerminated();
+
+    /**
+     * @return true if, by estimation, no worker/thread is actively executing tasks.
+     */
+    boolean isIdle();
 }

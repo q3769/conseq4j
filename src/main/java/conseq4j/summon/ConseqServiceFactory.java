@@ -30,10 +30,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.floorMod;
@@ -50,7 +47,7 @@ import static java.lang.Math.floorMod;
 public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
     private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private final int concurrency;
-    private final ConcurrentMap<Object, ExecutorService> sequentialExecutors;
+    private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
     /**
      * @param concurrency
@@ -87,7 +84,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     @Override
     public ExecutorService getExecutorService(Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
+                bucket -> new ShutdownDisabledExecutorService(Executors.newFixedThreadPool(1)));
     }
 
     @Override
@@ -106,6 +103,11 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     @Override
     public boolean isTerminated() {
         return this.sequentialExecutors.values().parallelStream().allMatch(ExecutorService::isTerminated);
+    }
+
+    @Override
+    public boolean isIdle() {
+        return sequentialExecutors.values().stream().allMatch(e -> e.getActiveCount() == 0);
     }
 
     private int bucketOf(Object sequenceKey) {
@@ -149,6 +151,14 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
         @Override
         public List<Runnable> shutdownNow() {
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
+        }
+
+        public int getActiveCount() {
+            if (!(delegate instanceof ThreadPoolExecutor)) {
+                throw new UnsupportedOperationException(
+                        "Delegate " + delegate + " is not of type " + ThreadPoolExecutor.class);
+            }
+            return ((ThreadPoolExecutor) delegate).getActiveCount();
         }
 
         void shutdownDelegate() {
