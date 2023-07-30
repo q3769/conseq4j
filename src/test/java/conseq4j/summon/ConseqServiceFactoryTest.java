@@ -36,7 +36,7 @@ import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static conseq4j.TestUtils.createSpyingTasks;
-import static conseq4j.TestUtils.getResultsIfAllNormal;
+import static conseq4j.TestUtils.getIfAllCompleteNormal;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -67,7 +67,7 @@ class ConseqServiceFactoryTest {
                 .collect(toList());
 
         final long totalRunThreads =
-                getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+                getIfAllCompleteNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
         assertTrue(totalRunThreads <= TASK_COUNT);
     }
 
@@ -105,7 +105,7 @@ class ConseqServiceFactoryTest {
         final List<Future<SpyingTask>> completedFutures =
                 defaultConseqServiceFactory.getExecutorService(sameSequenceKey).invokeAll(toCallables(tasks));
 
-        final List<SpyingTask> doneTasks = getResultsIfAllNormal(completedFutures);
+        final List<SpyingTask> doneTasks = getIfAllCompleteNormal(completedFutures);
         assertSingleThread(doneTasks);
     }
 
@@ -130,7 +130,7 @@ class ConseqServiceFactoryTest {
 
         tasks.forEach(task -> defaultConseqServiceFactory.getExecutorService(sameSequenceKey).execute(task));
 
-        TestUtils.awaitTasks(tasks);
+        TestUtils.awaitAllComplete(tasks);
         assertSingleThread(tasks);
     }
 }

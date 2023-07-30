@@ -47,8 +47,8 @@ public final class ConseqExecutor implements SequentialExecutor {
     private static final RejectedExecutionHandler DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
     private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
 
-    private final Map<Object, CompletableFuture<?>> latestSequentialTasks = new ConcurrentHashMap<>();
-    private final ExecutorService adminThread = Executors.newSingleThreadExecutor();
+    private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
+    private final ExecutorService adminService = Executors.newSingleThreadExecutor();
     /**
      * The worker thread pool facilitates the overall async execution, independent of the submitted tasks. Any thread
      * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
@@ -158,40 +158,38 @@ public final class ConseqExecutor implements SequentialExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> latestTask = latestSequentialTasks.compute(sequenceKey,
+        CompletableFuture<?> latestTask = activeSequentialTasks.compute(sequenceKey,
                 (k, presentTask) -> (presentTask == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
                         presentTask.handleAsync((r, e) -> call(task), workerThreadPool));
-        latestTask.whenCompleteAsync((r, e) -> latestSequentialTasks.computeIfPresent(sequenceKey,
-                (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminThread);
+        latestTask.whenCompleteAsync((r, e) -> activeSequentialTasks.computeIfPresent(sequenceKey,
+                (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminService);
         return (CompletableFuture<T>) latestTask.thenApply(r -> r);
     }
 
     @Override
     public void shutdown() {
-        ExecutorService shutdownThread = Executors.newSingleThreadExecutor();
-        shutdownThread.execute(() -> {
-            await.until(() -> this.workerThreadPool.getActiveCount() == 0);
-            await.until(() -> this.latestSequentialTasks.size() == 0);
-            this.workerThreadPool.shutdown();
-            await.until(this.workerThreadPool::isTerminated);
-            this.adminThread.shutdown();
+        ExecutorService asyncThread = Executors.newSingleThreadExecutor();
+        asyncThread.execute(() -> {
+            workerThreadPool.shutdown();
+            await.until(this::isIdle);
+            adminService.shutdown();
         });
-        shutdownThread.shutdown();
+        asyncThread.shutdown();
     }
 
     @Override
     public boolean isTerminated() {
-        return this.workerThreadPool.isTerminated() && this.adminThread.isTerminated();
+        return this.workerThreadPool.isTerminated() && this.adminService.isTerminated();
     }
 
     @Override
     public boolean isIdle() {
-        return workerThreadPool.getActiveCount() == 0;
+        return activeSequentialTasks.isEmpty() && workerThreadPool.getActiveCount() == 0;
     }
 
     int estimateActiveExecutorCount() {
-        return this.latestSequentialTasks.size();
+        return activeSequentialTasks.size();
     }
 
     /**

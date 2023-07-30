@@ -39,8 +39,8 @@ public class TestUtils {
     private TestUtils() {
     }
 
-    public static long actualCompletionThreadCountIfAllNormal(List<Future<SpyingTask>> futures) {
-        return getResultsIfAllNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
+    public static long actualExecutionThreadCountIfAllCompleteNormal(List<Future<SpyingTask>> futures) {
+        return getIfAllCompleteNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
     public static int actualExecutionThreadCount(List<SpyingTask> tasks) {
@@ -59,7 +59,7 @@ public class TestUtils {
         Awaitility.await().until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
-    public static void awaitTasks(List<SpyingTask> tasks) {
+    public static void awaitAllComplete(List<SpyingTask> tasks) {
         Awaitility.await().until(() -> tasks.parallelStream().allMatch(SpyingTask::isDone));
     }
 
@@ -72,7 +72,7 @@ public class TestUtils {
         return IntStream.range(0, taskCount).mapToObj(SpyingTask::new).collect(toList());
     }
 
-    public static <T> List<T> getResultsIfAllNormal(List<Future<T>> futures) {
+    public static <T> List<T> getIfAllCompleteNormal(List<Future<T>> futures) {
         return futures.stream().map(f -> {
             try {
                 return f.get();

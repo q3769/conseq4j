@@ -34,7 +34,7 @@ import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Future;
 
-import static conseq4j.TestUtils.awaitTasks;
+import static conseq4j.TestUtils.awaitAllComplete;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
@@ -86,7 +86,7 @@ class ConseqExecutorTest {
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
-        TestUtils.awaitTasks(tasks);
+        TestUtils.awaitAllComplete(tasks);
 
         await().until(() -> sut.estimateActiveExecutorCount() == 0);
     }
@@ -98,7 +98,7 @@ class ConseqExecutorTest {
         List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
         tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
-        TestUtils.awaitTasks(tasks);
+        TestUtils.awaitAllComplete(tasks);
 
         await().until(() -> sut.estimateActiveExecutorCount() == 0);
     }
@@ -111,11 +111,11 @@ class ConseqExecutorTest {
 
         long sameKeyStartTimeMillis = System.currentTimeMillis();
         sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
-        awaitTasks(sameTasks);
+        awaitAllComplete(sameTasks);
         long sameKeyEndTimeMillis = System.currentTimeMillis();
         long differentKeysStartTimeMillis = System.currentTimeMillis();
         sameTasks.forEach(t -> sut.execute(t, UUID.randomUUID()));
-        awaitTasks(sameTasks);
+        awaitAllComplete(sameTasks);
         long differentKeysEndTimeMillis = System.currentTimeMillis();
 
         long runtimeConcurrent = differentKeysEndTimeMillis - differentKeysStartTimeMillis;
@@ -133,7 +133,7 @@ class ConseqExecutorTest {
                 .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
-        final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
+        final long actualThreadCount = TestUtils.actualExecutionThreadCountIfAllCompleteNormal(futures);
         assertEquals(threadPoolSize, actualThreadCount);
     }
 
@@ -147,7 +147,7 @@ class ConseqExecutorTest {
                 .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                 .collect(toList());
 
-        final long actualThreadCount = TestUtils.actualCompletionThreadCountIfAllNormal(futures);
+        final long actualThreadCount = TestUtils.actualExecutionThreadCountIfAllCompleteNormal(futures);
         assertEquals(TASK_COUNT, actualThreadCount);
     }
 }
