@@ -123,10 +123,10 @@ public class MessageConsumer {
      * <p>
      * Or to set the global concurrency to 10, for example:
      * <code>
-     * private SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance(10);
+     * private SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.instance(10);
      * </code>
      */
-    private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.newInstance();
+    private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.instance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -167,12 +167,12 @@ public class MessageConsumer {
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
-  ConseqServiceFactory.newInstance();
+  ConseqServiceFactory.instance();
   ```
 
   The concurrency can be customized:
   ```jshelllanguage
-  ConseqServiceFactory.newInstance(10)
+  ConseqServiceFactory.instance(10)
   ```
 
 ### Style 2: submit each task directly for execution, together with its sequence key
@@ -221,10 +221,10 @@ public class MessageConsumer {
      * <p>
      * Or to provide a custom concurrency of 10, for example:
      * <code>
-     * private SequentialExecutor conseqExecutor = ConseqExecutor.newInstance(10));
+     * private SequentialExecutor conseqExecutor = ConseqExecutor.instance(10));
      * </code>
      */
-    private final SequentialExecutor conseqExecutor = ConseqExectuor.newInstance();
+    private final SequentialExecutor conseqExecutor = ConseqExectuor.instance();
 
     @Autowired private ShoppingEventProcessor shoppingEventProcessor;
 
@@ -260,7 +260,7 @@ public class MessageConsumer {
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
   which ever is larger:
   ```jshelllanguage
-  ConseqExecutor.newInstance()
+  ConseqExecutor.instance()
   ```
   or
   ```jshelllanguage
@@ -269,7 +269,7 @@ public class MessageConsumer {
 
   The concurrency can be customized:
   ```jshelllanguage
-  ConseqExecutor.newInstance(10)
+  ConseqExecutor.instance(10)
   ```
   or
   ```jshelllanguage
