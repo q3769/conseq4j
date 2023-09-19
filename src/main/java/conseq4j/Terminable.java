@@ -24,6 +24,8 @@
 
 package conseq4j;
 
+import java.util.List;
+
 /**
  *
  */
@@ -43,7 +45,7 @@ public interface Terminable {
     boolean isTerminated();
 
     /**
-     * @return true if, by estimation, no worker/thread is actively executing tasks.
+     * @return Tasks submitted but never started executing
      */
-    boolean isIdle();
+    List<Runnable> shutdownNow();
 }

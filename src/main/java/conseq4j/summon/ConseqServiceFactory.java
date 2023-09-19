@@ -26,11 +26,15 @@ package conseq4j.summon;
 import lombok.ToString;
 import lombok.experimental.Delegate;
 
+import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 
 import static java.lang.Math.floorMod;
@@ -89,25 +93,21 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
 
     @Override
     public void shutdown() {
-        List<ExecutorService> executorServices = new ArrayList<>(this.sequentialExecutors.values());
-        List<ExecutorService> shutdownDisabledExecutorServices = executorServices.stream()
-                .filter(ShutdownDisabledExecutorService.class::isInstance)
-                .collect(Collectors.toList());
-        shutdownDisabledExecutorServices.stream()
-                .map(ShutdownDisabledExecutorService.class::cast)
-                .forEach(ShutdownDisabledExecutorService::shutdownDelegate);
-        executorServices.removeAll(shutdownDisabledExecutorServices);
-        executorServices.forEach(ExecutorService::shutdown);
+        this.sequentialExecutors.values().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
     }
 
     @Override
     public boolean isTerminated() {
-        return this.sequentialExecutors.values().parallelStream().allMatch(ExecutorService::isTerminated);
+        return this.sequentialExecutors.values().stream().allMatch(ExecutorService::isTerminated);
     }
 
     @Override
-    public boolean isIdle() {
-        return sequentialExecutors.values().stream().allMatch(e -> e.getActiveCount() == 0);
+    public List<Runnable> shutdownNow() {
+        return sequentialExecutors.values()
+                .parallelStream()
+                .map(ShutdownDisabledExecutorService::shutdownDelegateNow)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     private int bucketOf(Object sequenceKey) {
@@ -149,20 +149,18 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
          * @see #shutdown()
          */
         @Override
+        @Nonnull
         public List<Runnable> shutdownNow() {
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
         }
 
-        public int getActiveCount() {
-            if (!(delegate instanceof ThreadPoolExecutor)) {
-                throw new UnsupportedOperationException(
-                        "Delegate " + delegate + " is not of type " + ThreadPoolExecutor.class);
-            }
-            return ((ThreadPoolExecutor) delegate).getActiveCount();
-        }
-
         void shutdownDelegate() {
             this.delegate.shutdown();
+        }
+
+        @Nonnull
+        List<Runnable> shutdownDelegateNow() {
+            return this.delegate.shutdownNow();
         }
 
         /**

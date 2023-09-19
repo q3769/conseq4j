@@ -31,6 +31,7 @@ import org.awaitility.core.ConditionFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -42,10 +43,6 @@ import java.util.concurrent.*;
 @ThreadSafe
 @ToString
 public final class ConseqExecutor implements SequentialExecutor {
-    private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
-    private static final int DEFAULT_WORK_QUEUE_CAPACITY = Integer.MAX_VALUE;
-    private static final RejectedExecutionHandler DEFAULT_REJECTED_HANDLER = new ThreadPoolExecutor.AbortPolicy();
-    private static final Builder.WorkQueueType DEFAULT_WORK_QUEUE_TYPE = Builder.WorkQueueType.LINKED;
 
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();
@@ -54,49 +51,36 @@ public final class ConseqExecutor implements SequentialExecutor {
      * from the pool can be used to execute any task, regardless of sequence keys. The pool capacity decides the overall
      * max parallelism of task execution.
      */
-    private final ThreadPoolExecutor workerThreadPool;
+    private final ExecutorService workerExecutorService;
     private final ConditionFactory await = Awaitility.await().forever();
 
-    private ConseqExecutor(@Nonnull Builder builder) {
-        this(new ThreadPoolExecutor(builder.concurrency,
-                builder.concurrency,
-                0,
-                TimeUnit.MILLISECONDS,
-                builder.workQueueType == Builder.WorkQueueType.ARRAY ?
-                        new ArrayBlockingQueue<>(builder.workQueueCapacity) :
-                        new LinkedBlockingQueue<>(builder.workQueueCapacity),
-                Executors.defaultThreadFactory(),
-                builder.rejectedExecutionHandler));
-    }
-
-    private ConseqExecutor(ThreadPoolExecutor workerThreadPool) {
-        this.workerThreadPool = workerThreadPool;
+    private ConseqExecutor(ExecutorService workerExecutorService) {
+        this.workerExecutorService = workerExecutorService;
     }
 
     /**
      * @return conseq executor with default concurrency
      */
-    public static @Nonnull ConseqExecutor newInstance() {
-        return new Builder().build();
+    public static @Nonnull ConseqExecutor instance() {
+        return instance(Runtime.getRuntime().availableProcessors());
     }
 
     /**
      * @param concurrency
-     *         max number of tasks that can be run in parallel by the returned executor instance. This is set as the max
-     *         capacity of the {@link #workerThreadPool}
+     *         max number of tasks that can be run in parallel by the returned executor instance.
      * @return conseq executor with given concurrency
      */
-    public static @Nonnull ConseqExecutor newInstance(int concurrency) {
-        return new Builder().concurrency(concurrency).build();
+    public static @Nonnull ConseqExecutor instance(int concurrency) {
+        return instance(new ForkJoinPool(concurrency, ForkJoinPool.defaultForkJoinWorkerThreadFactory, null, true));
     }
 
     /**
-     * @param workerThreadPool
-     *         the worker thread pool that facilitates the overall async execution, independent of the submitted tasks.
-     * @return new ConseqExecutor instance backed by the specified workerThreadPool
+     * @param workerExecutorService
+     *         ExecutorService that backs the async operations of worker threads
+     * @return instance of {@link ConseqExecutor}
      */
-    public static ConseqExecutor from(ThreadPoolExecutor workerThreadPool) {
-        return new ConseqExecutor(workerThreadPool);
+    public static @Nonnull ConseqExecutor instance(ExecutorService workerExecutorService) {
+        return new ConseqExecutor(workerExecutorService);
     }
 
     private static <T> T call(Callable<T> task) {
@@ -122,7 +106,7 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     /**
      * Tasks of different sequence keys execute in parallel, pending thread availability from the backing
-     * {@link #workerThreadPool}.
+     * {@link #workerExecutorService}.
      * <p>
      * Sequential execution of tasks under the same/equal sequence key is achieved by linearly chaining/queuing the
      * task/work stages of the same key, leveraging the {@link CompletableFuture} API.
@@ -160,8 +144,8 @@ public final class ConseqExecutor implements SequentialExecutor {
     public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
         CompletableFuture<?> latestTask = activeSequentialTasks.compute(sequenceKey,
                 (k, presentTask) -> (presentTask == null) ?
-                        CompletableFuture.supplyAsync(() -> call(task), workerThreadPool) :
-                        presentTask.handleAsync((r, e) -> call(task), workerThreadPool));
+                        CompletableFuture.supplyAsync(() -> call(task), workerExecutorService) :
+                        presentTask.handleAsync((r, e) -> call(task), workerExecutorService));
         latestTask.whenCompleteAsync((r, e) -> activeSequentialTasks.computeIfPresent(sequenceKey,
                 (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminService);
         return (CompletableFuture<T>) latestTask.thenApply(r -> r);
@@ -171,8 +155,8 @@ public final class ConseqExecutor implements SequentialExecutor {
     public void shutdown() {
         ExecutorService asyncThread = Executors.newSingleThreadExecutor();
         asyncThread.execute(() -> {
-            workerThreadPool.shutdown();
-            await.until(this::isIdle);
+            workerExecutorService.shutdown();
+            await.until(activeSequentialTasks::isEmpty);
             adminService.shutdown();
         });
         asyncThread.shutdown();
@@ -180,104 +164,17 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     @Override
     public boolean isTerminated() {
-        return this.workerThreadPool.isTerminated() && this.adminService.isTerminated();
+        return this.workerExecutorService.isTerminated() && this.adminService.isTerminated();
     }
 
     @Override
-    public boolean isIdle() {
-        return activeSequentialTasks.isEmpty() && workerThreadPool.getActiveCount() == 0;
+    public List<Runnable> shutdownNow() {
+        List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
+        adminService.shutdownNow();
+        return neverStartedTasks;
     }
 
     int estimateActiveExecutorCount() {
         return activeSequentialTasks.size();
-    }
-
-    /**
-     * {@code ConseqExecutor} builder static inner class.
-     */
-    public static final class Builder {
-        private int concurrency;
-        private int workQueueCapacity;
-        private WorkQueueType workQueueType;
-        private RejectedExecutionHandler rejectedExecutionHandler;
-
-        /**
-         *
-         */
-        public Builder() {
-            concurrency = DEFAULT_CONCURRENCY;
-            workQueueCapacity = DEFAULT_WORK_QUEUE_CAPACITY;
-            rejectedExecutionHandler = DEFAULT_REJECTED_HANDLER;
-            workQueueType = DEFAULT_WORK_QUEUE_TYPE;
-        }
-
-        /**
-         * Sets the {@code concurrency} and returns a reference to this Builder enabling method chaining.
-         *
-         * @param concurrency
-         *         the {@code concurrency} to set
-         * @return a reference to this Builder
-         */
-        public Builder concurrency(int concurrency) {
-            this.concurrency = concurrency;
-            return this;
-        }
-
-        /**
-         * Sets the {@code workQueueCapacity} and returns a reference to this Builder enabling method chaining.
-         *
-         * @param workQueueCapacity
-         *         the {@code workQueueCapacity} to set
-         * @return a reference to this Builder
-         */
-        public Builder workQueueCapacity(int workQueueCapacity) {
-            this.workQueueCapacity = workQueueCapacity;
-            return this;
-        }
-
-        /**
-         * @param rejectedExecutionHandler
-         *         handler executed by the caller thread if a task is rejected by the conseq executor, maybe e.g.
-         *         because of work queue is full. Default is {@link ThreadPoolExecutor.AbortPolicy}
-         * @return a reference to this Builder
-         */
-        public Builder rejectedExecutionHandler(RejectedExecutionHandler rejectedExecutionHandler) {
-            this.rejectedExecutionHandler = rejectedExecutionHandler;
-            return this;
-        }
-
-        /**
-         * Returns a {@code ConseqExecutor} built from the parameters previously set.
-         *
-         * @return a {@code ConseqExecutor} built with parameters of this {@code ConseqExecutor.Builder}
-         */
-        public @Nonnull ConseqExecutor build() {
-            return new ConseqExecutor(this);
-        }
-
-        /**
-         * @param workQueueType
-         *         {@link WorkQueueType#LINKED} meaning {@link LinkedBlockingQueue}, or  {@link WorkQueueType#ARRAY}
-         *         meaning {@link ArrayBlockingQueue}, default to {@link WorkQueueType#LINKED}
-         * @return a reference to this Builder
-         */
-        public Builder workQueueType(WorkQueueType workQueueType) {
-            this.workQueueType = workQueueType;
-            return this;
-        }
-
-        /**
-         *
-         */
-        public enum WorkQueueType {
-            /**
-             *
-             */
-            LINKED,
-            /**
-             *
-             */
-            ARRAY
-        }
     }
 }
