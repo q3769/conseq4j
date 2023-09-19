@@ -43,12 +43,12 @@ class ConfigTest {
         int errors = 0;
 
         try {
-            ConseqServiceFactory.newInstance(0);
+            ConseqServiceFactory.instance(0);
         } catch (IllegalArgumentException e) {
             errors++;
         }
         try {
-            ConseqServiceFactory.newInstance(-999);
+            ConseqServiceFactory.instance(-999);
         } catch (IllegalArgumentException e) {
             errors++;
         }
@@ -58,7 +58,7 @@ class ConfigTest {
 
     @Test
     void shouldReturnSameExecutorOnSameName() {
-        ConseqServiceFactory sut = ConseqServiceFactory.newInstance();
+        ConseqServiceFactory sut = ConseqServiceFactory.instance();
         UUID sameSequenceKey = UUID.randomUUID();
 
         Executor e = sut.getExecutorService(sameSequenceKey);
@@ -70,7 +70,7 @@ class ConfigTest {
 
     @Test
     void shutdownUnsupported() {
-        ConseqServiceFactory target = ConseqServiceFactory.newInstance();
+        ConseqServiceFactory target = ConseqServiceFactory.instance();
         final ExecutorService sequentialExecutor = target.getExecutorService("testSequenceKey");
         int errors = 0;
 

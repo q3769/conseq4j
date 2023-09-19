@@ -69,7 +69,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     /**
      * @return ExecutorService factory with default concurrency
      */
-    public static ConseqServiceFactory newInstance() {
+    public static ConseqServiceFactory instance() {
         return new ConseqServiceFactory(DEFAULT_CONCURRENCY);
     }
 
@@ -78,7 +78,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      *         max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency
      */
-    public static ConseqServiceFactory newInstance(int concurrency) {
+    public static ConseqServiceFactory instance(int concurrency) {
         return new ConseqServiceFactory(concurrency);
     }
 
