@@ -94,6 +94,11 @@ public interface Terminable {
      *         never true unless shutdown was called first.
      */
     boolean isTerminated();
+
+    /**
+     * @return Tasks submitted but never started executing
+     */
+    List<Runnable> shutdownNow();
 }
 ```
 
