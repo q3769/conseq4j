@@ -256,48 +256,18 @@ public class MessageConsumer {
   by unrelated tasks of different sequence keys in the same "bucket" - as is unnecessary. This can be a desired
   advantage over the thread-affinity API style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
-- The default general concurrency (i.e. the execution work thread pool capacity is either 16 or the JVM
-  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
-  which ever is larger:
+- The default general concurrency (i.e. the execution work thread pool capacity is the JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--)
   ```jshelllanguage
   ConseqExecutor.instance()
   ```
-  or
-  ```jshelllanguage
-  new ConseqExecutor.Builder().build()
-  ```
-
   The concurrency can be customized:
   ```jshelllanguage
   ConseqExecutor.instance(10)
   ```
-  or
-  ```jshelllanguage
-  new ConseqExecutor.Builder().concurrency(10).build()
-  ```
+- The `ConseqExecutor` instance can also be powered by a fully-customized `ExecutorService`:
 
-- The default work queue capacity for the backing thread pool is unlimited, which ensures the asynchronous semantics to
-  the caller. However, in the case of `ConseqExecutor` (API Style 2), the work queue capacity can be customized, e.g.:
-  ```jshelllanguage
-  ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).build(); // default concurrency with work queue capacity of 256
-  ```  
-  ```jshelllanguage
-  ConseqExecutor conseqExecutor = new ConseqExecutor.builder().workQueueCapacity(256).concurrency(10).build(); 
-  ```
-- The thread pool may reject tasks when no more threads or queue slots are available because their bounds would be
-  exceeded. The default handling policy of rejection is the JDK `AbortPolicy` which raises `RejectedExecutionException`.
-  However, in the case of `ConseqExecutor` (API Style 2), the policy can be customized
-  with any `RejectedExecutionHandler` policy, e.g.:
-  ```jshelllanguage
-  new ConseqExecutor.builder().rejectedExecutionHandler(conseq4j.util.MoreRejectedExecutionHandlers.forceEnqueuePolicy()).build()
-  ```
-  where the caller thread will block and re-submit the task until it is put into the thread pool's work queue. This
-  temporarily alters the asynchronous semantics and imposes "back pressure" to caller thread, which may be a desired
-  behavior in some cases.
-- For a fully-customized work thread pool to facilitate the `ConseqExecutor` instance's asynchronous operation, directly
-  supply the desired work pool of type `ThreadPoolExecutor` using the static factory API:
-
-  `ConseqExecutor.from(ThreadPoolExecutor workerThreadPool)`
+  `ConseqExecutor.instance(ExecutorService workerExecutorService)`
 
 ## Full disclosure - Asynchronous Conundrum
 
