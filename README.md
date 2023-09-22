@@ -70,8 +70,8 @@ public interface SequentialExecutorServiceFactory extends Terminable {
     /**
      * @param sequenceKey
      *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
-     * @return the sequential executor of type {@link ExecutorService} that executes all tasks of this sequence key in
-     *         the same order as they are submitted.
+     * @return the sequential executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of
+     *         this sequence key in the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
 }
@@ -180,26 +180,34 @@ public class MessageConsumer {
 #### API
 
 ```java
-public interface SequentialExecutor extends Terminable {
+public interface Terminable {
     /**
-     * @param command
-     *         the Runnable task to run sequentially with others under the same sequence key
-     * @param sequenceKey
-     *         the key under which all tasks are executed sequentially
-     * @return future holding run status of the submitted command
+     * Initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are executed, but no
+     * new tasks will be accepted. Invocation has no additional effect if already shut down.
+     * <p>
+     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
+     * mechanism to do that, with the help of {@link #isTerminated()}.
      */
-    Future<Void> execute(Runnable command, Object sequenceKey);
+    void shutdown();
 
     /**
-     * @param task
-     *         the Callable task to run sequentially with others under the same sequence key
-     * @param sequenceKey
-     *         the key under which all tasks are executed sequentially
-     * @param <T>
-     *         the type of the task's result
-     * @return a Future representing pending completion of the submitted task
+     * Non-blocking
+     *
+     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
+     *         never true unless shutdown was called first.
      */
-    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
+    boolean isTerminated();
+
+    /**
+     * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the
+     * tasks that were awaiting execution.
+     * <p>
+     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
+     * mechanism to do that, with the help of {@link #isTerminated()}.
+     *
+     * @return Tasks submitted but never started executing
+     */
+    List<Runnable> shutdownNow();
 }
 ```
 

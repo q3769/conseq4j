@@ -40,8 +40,8 @@ public interface SequentialExecutorServiceFactory extends Terminable {
     /**
      * @param sequenceKey
      *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
-     * @return the sequential executor of type {@link ExecutorService} that executes all tasks of this sequence key in
-     *         the same order as they are submitted.
+     * @return the sequential executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of
+     *         this sequence key in the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
 }

@@ -33,11 +33,14 @@ public interface Terminable {
     /**
      * Initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are executed, but no
      * new tasks will be accepted. Invocation has no additional effect if already shut down.
+     * <p>
+     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
+     * mechanism to do that, with the help of {@link #isTerminated()}.
      */
     void shutdown();
 
     /**
-     * Nonblocking
+     * Non-blocking
      *
      * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
      *         never true unless shutdown was called first.
@@ -45,6 +48,12 @@ public interface Terminable {
     boolean isTerminated();
 
     /**
+     * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the
+     * tasks that were awaiting execution.
+     * <p>
+     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
+     * mechanism to do that, with the help of {@link #isTerminated()}.
+     *
      * @return Tasks submitted but never started executing
      */
     List<Runnable> shutdownNow();
