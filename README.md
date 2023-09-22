@@ -246,7 +246,7 @@ public class MessageConsumer {
      * linear progression of execution stages with {@link java.util.concurrent.CompletableFuture}.
      */
     public void onMessage(Message shoppingEvent) {
-        conseqExecutor.submit(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
+        conseqExecutor.execute(() -> shoppingEventProcessor.process(shoppingEvent), shoppingEvent.getShoppingCartId());
     }
 }
 ```
