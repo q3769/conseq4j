@@ -168,7 +168,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     @Override
-    public List<Runnable> shutdownNow() {
+    public @Nonnull List<Runnable> shutdownNow() {
         List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
         adminService.shutdownNow();
         return neverStartedTasks;

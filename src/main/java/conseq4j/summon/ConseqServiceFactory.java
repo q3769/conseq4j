@@ -23,6 +23,7 @@
  */
 package conseq4j.summon;
 
+import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
 
@@ -49,7 +50,6 @@ import static java.lang.Math.floorMod;
 @ThreadSafe
 @ToString
 public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
-    private static final int DEFAULT_CONCURRENCY = Math.max(16, Runtime.getRuntime().availableProcessors());
     private final int concurrency;
     private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
@@ -70,7 +70,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      * @return ExecutorService factory with default concurrency
      */
     public static ConseqServiceFactory instance() {
-        return new ConseqServiceFactory(DEFAULT_CONCURRENCY);
+        return new ConseqServiceFactory(Runtime.getRuntime().availableProcessors());
     }
 
     /**
@@ -86,14 +86,14 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      * @return a single-thread executor that does not support any shutdown action.
      */
     @Override
-    public ExecutorService getExecutorService(Object sequenceKey) {
+    public ExecutorService getExecutorService(@NonNull Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
                 bucket -> new ShutdownDisabledExecutorService(Executors.newFixedThreadPool(1)));
     }
 
     @Override
     public void shutdown() {
-        this.sequentialExecutors.values().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
+        this.sequentialExecutors.values().parallelStream().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
     }
 
     @Override
@@ -149,8 +149,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
          * @see #shutdown()
          */
         @Override
-        @Nonnull
-        public List<Runnable> shutdownNow() {
+        public @Nonnull List<Runnable> shutdownNow() {
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
         }
 

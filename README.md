@@ -128,7 +128,7 @@ of the JDK `ExecutorService` API.
 ```java
 public class MessageConsumer {
     /**
-     * Default conseq's concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * Default conseq's concurrency is java.lang.Runtime.availableProcessors.
      * <p>
      * Or to set the global concurrency to 10, for example:
      * <code>
@@ -226,7 +226,7 @@ required.
 public class MessageConsumer {
 
     /**
-     * Default executor concurrency is either 16 or java.lang.Runtime.availableProcessors, which ever is larger.
+     * Default executor concurrency is java.lang.Runtime.availableProcessors.
      * <p>
      * Or to provide a custom concurrency of 10, for example:
      * <code>
