@@ -189,34 +189,26 @@ public class MessageConsumer {
 #### API
 
 ```java
-public interface Terminable {
+public interface SequentialExecutor extends Terminable {
     /**
-     * Initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are executed, but no
-     * new tasks will be accepted. Invocation has no additional effect if already shut down.
-     * <p>
-     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
-     * mechanism to do that, with the help of {@link #isTerminated()}.
+     * @param command
+     *         the Runnable task to run sequentially with others under the same sequence key
+     * @param sequenceKey
+     *         the key under which all tasks are executed sequentially
+     * @return future holding run status of the submitted command
      */
-    void shutdown();
+    Future<Void> execute(Runnable command, Object sequenceKey);
 
     /**
-     * Non-blocking
-     *
-     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
-     *         never true unless shutdown was called first.
+     * @param task
+     *         the Callable task to run sequentially with others under the same sequence key
+     * @param sequenceKey
+     *         the key under which all tasks are executed sequentially
+     * @param <T>
+     *         the type of the task's result
+     * @return a Future representing pending completion of the submitted task
      */
-    boolean isTerminated();
-
-    /**
-     * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the
-     * tasks that were awaiting execution.
-     * <p>
-     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
-     * mechanism to do that, with the help of {@link #isTerminated()}.
-     *
-     * @return Tasks submitted but never started executing
-     */
-    List<Runnable> shutdownNow();
+    <T> Future<T> submit(Callable<T> task, Object sequenceKey);
 }
 ```
 
