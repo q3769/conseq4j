@@ -31,8 +31,8 @@ import java.util.List;
  */
 public interface Terminable {
     /**
-     * Nonblocking, initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are
-     * executed, but no new tasks will be accepted. Invocation has no additional effect if already shut down.
+     * Initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are executed, but no
+     * new tasks will be accepted. Invocation has no additional effect if already shut down.
      */
     void shutdown();
 
