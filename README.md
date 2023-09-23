@@ -272,7 +272,8 @@ public class MessageConsumer {
   ```jshelllanguage
   ConseqExecutor.instance()
   ```
-  If the concurrency is customized, ConseqExecutor instance uses a `ForkJoinPool` of such concurrency/parallelism:
+  If the concurrency is customized, the ConseqExecutor instance uses a `ForkJoinPool` of the specified
+  concurrency/parallelism:
   ```jshelllanguage
   ConseqExecutor.instance(10)
   ```
