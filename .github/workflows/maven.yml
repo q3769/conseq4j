@@ -10,9 +10,9 @@ name: Java CI with Maven
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "main" ]
+    branches: [ "*" ]
 
 jobs:
   build:
@@ -21,15 +21,15 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Set up JDK 11
+      - name: Set up JDK
         uses: actions/setup-java@v3
         with:
-          java-version: '11'
-          distribution: 'temurin'
+          java-version: '21'
+          distribution: 'corretto'
           cache: maven
-      - name: Build with Maven
+      - name: Build
         run: mvn -B package --file pom.xml
 
       # Optional: Uploads the full dependency graph to GitHub to improve the quality of Dependabot alerts this repository can receive
-      - name: Maven Dependency Tree Dependency Submission
-        uses: advanced-security/maven-dependency-submission-action@v3.0.2
+#      - name: Maven Dependency Tree Dependency Submission
+#        uses: advanced-security/maven-dependency-submission-action@v3.0.2

@@ -62,7 +62,7 @@ public final class ConseqExecutor implements SequentialExecutor {
      * @return conseq executor with default concurrency
      */
     public static @Nonnull ConseqExecutor instance() {
-        return instance(Runtime.getRuntime().availableProcessors());
+        return instance(Executors.newVirtualThreadPerTaskExecutor());
     }
 
     /**
@@ -142,13 +142,14 @@ public final class ConseqExecutor implements SequentialExecutor {
     @Override
     @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        CompletableFuture<?> latestTask = activeSequentialTasks.compute(sequenceKey,
+        var latestTask = activeSequentialTasks.compute(sequenceKey,
                 (k, presentTask) -> (presentTask == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerExecutorService) :
                         presentTask.handleAsync((r, e) -> call(task), workerExecutorService));
+        var copy = latestTask.copy();
         latestTask.whenCompleteAsync((r, e) -> activeSequentialTasks.computeIfPresent(sequenceKey,
                 (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminService);
-        return (CompletableFuture<T>) latestTask.thenApply(r -> r);
+        return (CompletableFuture<T>) copy;
     }
 
     @Override

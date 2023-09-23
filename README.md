@@ -21,7 +21,8 @@ execution order at the same time.
 
 ## Prerequisite
 
-Java 8 or better
+Java 21 or better (version 20230923.0.0 or newer)
+Java 8 or better (versions older than 20230923.0.0)
 
 ## Get it...
 
@@ -172,9 +173,8 @@ public class MessageConsumer {
   The [Future](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/Future.html) instance(s) subsequently
   returned by the executor, though, is still cancellable. The hash collision may not be an issue for workloads that are
   asynchronous and focused on overall through-put, but is something to be aware of.
-- The default general concurrency is either 16 or the JVM
-  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--),
-  which ever is larger:
+- The default general concurrency is the JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
   ```jshelllanguage
   ConseqServiceFactory.instance();
   ```
@@ -265,16 +265,16 @@ public class MessageConsumer {
   by unrelated tasks of different sequence keys in the same "bucket" - as is unnecessary. This can be a desired
   advantage over the thread-affinity API style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
-- The default general concurrency (i.e. the execution work thread pool capacity is the JVM
-  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--)
+- The default ConseqExecutor instance uses `Executors.newVirtualThreadPerTaskExecutor()` to facilitate the async
+  operations
   ```jshelllanguage
   ConseqExecutor.instance()
   ```
-  The concurrency can be customized:
+  When the concurrency can be customized, ConseqExecutor instance uses a `ForkJoinPool` of such concurrency/parallelism
   ```jshelllanguage
   ConseqExecutor.instance(10)
   ```
-- The `ConseqExecutor` instance can also be powered by a fully-customized `ExecutorService`:
+- The `ConseqExecutor` instance can also use a fully-customized `ExecutorService`:
 
   `ConseqExecutor.instance(ExecutorService workerExecutorService)`
 

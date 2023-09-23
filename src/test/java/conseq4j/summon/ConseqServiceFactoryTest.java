@@ -52,8 +52,7 @@ class ConseqServiceFactoryTest {
     }
 
     void assertSingleThread(List<SpyingTask> tasks) {
-        List<String> distinctThreads =
-                tasks.stream().map(SpyingTask::getRunThreadName).distinct().collect(Collectors.toList());
+        List<String> distinctThreads = tasks.stream().map(SpyingTask::getRunThreadName).distinct().toList();
         assertEquals(1, distinctThreads.size());
     }
 

@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20230922.0.0</version>
+    <version>20230923.0.0</version>
     <packaging>jar</packaging>
     <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>
@@ -202,6 +202,6 @@
     </dependencies>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.release>8</maven.compiler.release>
+        <maven.compiler.release>21</maven.compiler.release>
     </properties>
 </project>
