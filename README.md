@@ -266,15 +266,17 @@ public class MessageConsumer {
   advantage over the thread-affinity API style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
 - The default ConseqExecutor instance uses `Executors.newVirtualThreadPerTaskExecutor()` to facilitate the async
-  operations
+  operations since Java 21. With earlier JDK and conseq4j versions, the default instance uses a `ForkJoinPool` with
+  parallelism equal to JVM
+  run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
   ```jshelllanguage
   ConseqExecutor.instance()
   ```
-  When the concurrency can be customized, ConseqExecutor instance uses a `ForkJoinPool` of such concurrency/parallelism
+  If the concurrency is customized, ConseqExecutor instance uses a `ForkJoinPool` of such concurrency/parallelism:
   ```jshelllanguage
   ConseqExecutor.instance(10)
   ```
-- The `ConseqExecutor` instance can also use a fully-customized `ExecutorService`:
+- The `ConseqExecutor` instance can also use a fully-customized `ExecutorService` to power its async operations:
 
   `ConseqExecutor.instance(ExecutorService workerExecutorService)`
 
