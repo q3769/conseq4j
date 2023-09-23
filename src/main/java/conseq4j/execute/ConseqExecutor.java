@@ -146,9 +146,10 @@ public final class ConseqExecutor implements SequentialExecutor {
                 (k, presentTask) -> (presentTask == null) ?
                         CompletableFuture.supplyAsync(() -> call(task), workerExecutorService) :
                         presentTask.handleAsync((r, e) -> call(task), workerExecutorService));
+        CompletableFuture<?> copy = latestTask.thenApply(r -> r);
         latestTask.whenCompleteAsync((r, e) -> activeSequentialTasks.computeIfPresent(sequenceKey,
                 (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminService);
-        return (CompletableFuture<T>) latestTask.thenApply(r -> r);
+        return (CompletableFuture<T>) copy;
     }
 
     @Override
