@@ -46,24 +46,25 @@ class ConseqExecutorTest {
 
     @Test
     void exceptionallyCompletedSubmitShouldNotStopOtherTaskExecution() {
-        ConseqExecutor conseqExecutor = ConseqExecutor.instance();
-        List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
-        UUID sameSequenceKey = UUID.randomUUID();
+        List<Future<SpyingTask>> resultFutures;
+        try (ConseqExecutor conseqExecutor = ConseqExecutor.instance()) {
+            List<SpyingTask> tasks = TestUtils.createSpyingTasks(TASK_COUNT);
+            UUID sameSequenceKey = UUID.randomUUID();
 
-        List<Future<SpyingTask>> resultFutures = new ArrayList<>();
-        int cancelTaskIdx = 1;
-        for (int i = 0; i < TASK_COUNT; i++) {
-            Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i).toCallable(), sameSequenceKey);
-            if (i == cancelTaskIdx) {
-                taskFuture.cancel(true);
+            resultFutures = new ArrayList<>();
+            int cancelTaskIdx = 1;
+            for (int i = 0; i < TASK_COUNT; i++) {
+                Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i).toCallable(), sameSequenceKey);
+                if (i == cancelTaskIdx) {
+                    taskFuture.cancel(true);
+                }
+                resultFutures.add(taskFuture);
             }
-            resultFutures.add(taskFuture);
+            int cancelledCount = TestUtils.cancellationCount(resultFutures);
+            int normalCompleteCount = TestUtils.normalCompletionCount(resultFutures);
+            assertEquals(1, cancelledCount);
+            assertEquals(resultFutures.size(), cancelledCount + normalCompleteCount);
         }
-
-        int cancelledCount = TestUtils.cancellationCount(resultFutures);
-        int normalCompleteCount = TestUtils.normalCompletionCount(resultFutures);
-        assertEquals(1, cancelledCount);
-        assertEquals(resultFutures.size(), cancelledCount + normalCompleteCount);
     }
 
     @Test
@@ -82,39 +83,45 @@ class ConseqExecutorTest {
 
     @Test
     void noExecutorLingersOnRandomSequenceKeys() {
-        ConseqExecutor sut = ConseqExecutor.instance();
-        List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
+        try (ConseqExecutor sut = ConseqExecutor.instance()) {
+            List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
-        tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
-        TestUtils.awaitAllComplete(tasks);
+            tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
+            TestUtils.awaitAllComplete(tasks);
 
-        await().until(() -> sut.estimateActiveExecutorCount() == 0);
+            await().until(() -> sut.estimateActiveExecutorCount() == 0);
+        }
     }
 
     @Test
     void noExecutorLingersOnSameSequenceKey() {
-        ConseqExecutor sut = ConseqExecutor.instance();
-        UUID sameSequenceKey = UUID.randomUUID();
-        List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
+        try (ConseqExecutor sut = ConseqExecutor.instance()) {
+            UUID sameSequenceKey = UUID.randomUUID();
+            List<SpyingTask> tasks = TestUtils.createSpyingTasks(100);
 
-        tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
-        TestUtils.awaitAllComplete(tasks);
+            tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
+            TestUtils.awaitAllComplete(tasks);
 
-        await().until(() -> sut.estimateActiveExecutorCount() == 0);
+            await().until(() -> sut.estimateActiveExecutorCount() == 0);
+        }
     }
 
     @Test
     void provideConcurrencyAmongDifferentSequenceKeys() {
         List<SpyingTask> sameTasks = createSpyingTasks(TASK_COUNT / 2);
         UUID sameSequenceKey = UUID.randomUUID();
-        ConseqExecutor sut = ConseqExecutor.instance();
+        long sameKeyStartTimeMillis;
+        long sameKeyEndTimeMillis;
+        long differentKeysStartTimeMillis;
+        try (ConseqExecutor sut = ConseqExecutor.instance()) {
 
-        long sameKeyStartTimeMillis = System.currentTimeMillis();
-        sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
-        awaitAllComplete(sameTasks);
-        long sameKeyEndTimeMillis = System.currentTimeMillis();
-        long differentKeysStartTimeMillis = System.currentTimeMillis();
-        sameTasks.forEach(t -> sut.execute(t, UUID.randomUUID()));
+            sameKeyStartTimeMillis = System.currentTimeMillis();
+            sameTasks.forEach(t -> sut.execute(t, sameSequenceKey));
+            awaitAllComplete(sameTasks);
+            sameKeyEndTimeMillis = System.currentTimeMillis();
+            differentKeysStartTimeMillis = System.currentTimeMillis();
+            sameTasks.forEach(t -> sut.execute(t, UUID.randomUUID()));
+        }
         awaitAllComplete(sameTasks);
         long differentKeysEndTimeMillis = System.currentTimeMillis();
 
@@ -126,12 +133,14 @@ class ConseqExecutorTest {
     @Test
     void submitConcurrencyBoundedByThreadPoolSize() {
         int threadPoolSize = TASK_COUNT / 10;
-        ConseqExecutor conseqExecutor = ConseqExecutor.instance(threadPoolSize);
+        List<Future<SpyingTask>> futures;
+        try (ConseqExecutor conseqExecutor = ConseqExecutor.instance(threadPoolSize)) {
 
-        List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
-                .stream()
-                .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
-                .collect(toList());
+            futures = TestUtils.createSpyingTasks(TASK_COUNT)
+                    .stream()
+                    .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
+                    .collect(toList());
+        }
 
         final long actualThreadCount = TestUtils.actualExecutionThreadCountIfAllCompleteNormal(futures);
         assertEquals(threadPoolSize, actualThreadCount);
@@ -139,12 +148,14 @@ class ConseqExecutorTest {
 
     @Test
     void submitConcurrencyBoundedByTotalTaskCount() {
-        ConseqExecutor conseqExecutor = ConseqExecutor.instance(TASK_COUNT * 10);
+        List<Future<SpyingTask>> futures;
+        try (ConseqExecutor conseqExecutor = ConseqExecutor.instance(TASK_COUNT * 10)) {
 
-        List<Future<SpyingTask>> futures = TestUtils.createSpyingTasks(TASK_COUNT)
-                .stream()
-                .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
-                .collect(toList());
+            futures = TestUtils.createSpyingTasks(TASK_COUNT)
+                    .stream()
+                    .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
+                    .collect(toList());
+        }
 
         final long actualThreadCount = TestUtils.actualExecutionThreadCountIfAllCompleteNormal(futures);
         assertTrue(actualThreadCount <= TASK_COUNT);

@@ -23,8 +23,6 @@
  */
 package conseq4j.summon;
 
-import conseq4j.Terminable;
-
 import java.util.concurrent.ExecutorService;
 
 /**
@@ -36,7 +34,7 @@ import java.util.concurrent.ExecutorService;
  *
  * @author Qingtian Wang
  */
-public interface SequentialExecutorServiceFactory extends Terminable {
+public interface SequentialExecutorServiceFactory {
     /**
      * @param sequenceKey
      *         an {@link Object} instance whose hash code is used to summon the corresponding executor.

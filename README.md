@@ -67,7 +67,7 @@ etc...
 #### API
 
 ```java
-public interface SequentialExecutorServiceFactory extends Terminable {
+public interface SequentialExecutorServiceFactory extends AutoCloseable {
     /**
      * @param sequenceKey
      *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
@@ -75,40 +75,6 @@ public interface SequentialExecutorServiceFactory extends Terminable {
      *         this sequence key in the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
-}
-```
-
-where ```Terminable``` is defined as
-
-```java
-public interface Terminable {
-    /**
-     * Initiates an orderly shutdown of all managed thread resources. Previously submitted tasks are executed, but no
-     * new tasks will be accepted. Invocation has no additional effect if already shut down.
-     * <p>
-     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
-     * mechanism to do that, with the help of {@link #isTerminated()}.
-     */
-    void shutdown();
-
-    /**
-     * Non-blocking
-     *
-     * @return true if all tasks of all managed executors have completed following shut down. Note that isTerminated is
-     *         never true unless shutdown was called first.
-     */
-    boolean isTerminated();
-
-    /**
-     * Attempts to stop all actively executing tasks, halts the processing of waiting tasks, and returns a list of the
-     * tasks that were awaiting execution.
-     * <p>
-     * This method does not wait for the previously submitted tasks to complete execution. Use an external awaiting
-     * mechanism to do that, with the help of {@link #isTerminated()}.
-     *
-     * @return Tasks submitted but never started executing
-     */
-    List<Runnable> shutdownNow();
 }
 ```
 
@@ -189,7 +155,7 @@ public class MessageConsumer {
 #### API
 
 ```java
-public interface SequentialExecutor extends Terminable {
+public interface SequentialExecutor extends AutoCloseable {
     /**
      * @param command
      *         the Runnable task to run sequentially with others under the same sequence key

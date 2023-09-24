@@ -29,14 +29,12 @@ import lombok.experimental.Delegate;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentMap;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.stream.Collectors;
 
 import static java.lang.Math.floorMod;
 
@@ -49,7 +47,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
+public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, AutoCloseable {
     private final int concurrency;
     private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
@@ -92,22 +90,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     }
 
     @Override
-    public void shutdown() {
-        this.sequentialExecutors.values().parallelStream().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return this.sequentialExecutors.values().stream().allMatch(ExecutorService::isTerminated);
-    }
-
-    @Override
-    public List<Runnable> shutdownNow() {
-        return sequentialExecutors.values()
-                .parallelStream()
-                .map(ShutdownDisabledExecutorService::shutdownDelegateNow)
-                .flatMap(Collection::stream)
-                .collect(Collectors.toList());
+    public void close() {
+        sequentialExecutors.values().forEach(ExecutorService::close);
     }
 
     private int bucketOf(Object sequenceKey) {

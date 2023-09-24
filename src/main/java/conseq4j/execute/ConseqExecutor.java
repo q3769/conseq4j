@@ -29,7 +29,6 @@ import lombok.ToString;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
-import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -40,7 +39,7 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements SequentialExecutor {
+public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
 
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();
@@ -150,23 +149,9 @@ public final class ConseqExecutor implements SequentialExecutor {
     }
 
     @Override
-    public void shutdown() {
-        new Thread(() -> {
-            workerExecutorService.close();
-            adminService.shutdown();
-        }).start();
-    }
-
-    @Override
-    public boolean isTerminated() {
-        return this.workerExecutorService.isTerminated() && this.adminService.isTerminated();
-    }
-
-    @Override
-    public @Nonnull List<Runnable> shutdownNow() {
-        List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
-        adminService.shutdownNow();
-        return neverStartedTasks;
+    public void close() {
+        workerExecutorService.close();
+        adminService.close();
     }
 
     int estimateActiveExecutorCount() {
