@@ -42,7 +42,7 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements SequentialExecutor {
+public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
 
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();
@@ -52,7 +52,6 @@ public final class ConseqExecutor implements SequentialExecutor {
      * max parallelism of task execution.
      */
     private final ExecutorService workerExecutorService;
-    private final ConditionFactory await = Awaitility.await().forever();
 
     private ConseqExecutor(ExecutorService workerExecutorService) {
         this.workerExecutorService = workerExecutorService;
@@ -81,6 +80,10 @@ public final class ConseqExecutor implements SequentialExecutor {
      */
     public static @Nonnull ConseqExecutor instance(ExecutorService workerExecutorService) {
         return new ConseqExecutor(workerExecutorService);
+    }
+
+    private static ConditionFactory await() {
+        return Awaitility.await().forever();
     }
 
     private static <T> T call(Callable<T> task) {
@@ -156,7 +159,7 @@ public final class ConseqExecutor implements SequentialExecutor {
     public void shutdown() {
         new Thread(() -> {
             workerExecutorService.shutdown();
-            await.until(activeSequentialTasks::isEmpty);
+            await().until(activeSequentialTasks::isEmpty);
             adminService.shutdown();
         }).start();
     }
@@ -171,6 +174,14 @@ public final class ConseqExecutor implements SequentialExecutor {
         List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
         adminService.shutdownNow();
         return neverStartedTasks;
+    }
+
+    @Override
+    public void close() {
+        workerExecutorService.shutdown();
+        await().until(activeSequentialTasks::isEmpty);
+        adminService.shutdown();
+        await().until(this::isTerminated);
     }
 
     int estimateActiveExecutorCount() {

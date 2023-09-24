@@ -26,6 +26,7 @@ package conseq4j.summon;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
+import org.awaitility.Awaitility;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -49,7 +50,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class ConseqServiceFactory implements SequentialExecutorServiceFactory {
+public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, AutoCloseable {
     private final int concurrency;
     private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
@@ -108,6 +109,12 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
                 .map(ShutdownDisabledExecutorService::shutdownDelegateNow)
                 .flatMap(Collection::stream)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public void close() {
+        this.shutdown();
+        Awaitility.await().forever().until(this::isTerminated);
     }
 
     private int bucketOf(Object sequenceKey) {
