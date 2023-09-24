@@ -24,6 +24,7 @@
 
 package conseq4j.execute;
 
+import conseq4j.Terminable;
 import lombok.NonNull;
 import lombok.ToString;
 import org.awaitility.Awaitility;
@@ -42,7 +43,7 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
+public final class ConseqExecutor implements SequentialExecutor, Terminable, AutoCloseable {
 
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();

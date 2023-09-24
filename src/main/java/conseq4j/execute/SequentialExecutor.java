@@ -24,8 +24,6 @@
 
 package conseq4j.execute;
 
-import conseq4j.Terminable;
-
 import java.util.concurrent.Callable;
 import java.util.concurrent.Future;
 
@@ -44,7 +42,7 @@ import java.util.concurrent.Future;
  *
  * @author Qingtian Wang
  */
-public interface SequentialExecutor extends Terminable {
+public interface SequentialExecutor {
     /**
      * @param command
      *         the Runnable task to run sequentially with others under the same sequence key

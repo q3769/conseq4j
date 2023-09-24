@@ -23,6 +23,7 @@
  */
 package conseq4j.summon;
 
+import conseq4j.Terminable;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
@@ -50,7 +51,7 @@ import static java.lang.Math.floorMod;
 
 @ThreadSafe
 @ToString
-public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, AutoCloseable {
+public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, Terminable, AutoCloseable {
     private final int concurrency;
     private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
