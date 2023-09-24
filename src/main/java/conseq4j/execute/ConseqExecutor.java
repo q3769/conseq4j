@@ -154,13 +154,11 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     @Override
     public void shutdown() {
-        ExecutorService asyncThread = Executors.newSingleThreadExecutor();
-        asyncThread.execute(() -> {
+        new Thread(() -> {
             workerExecutorService.shutdown();
             await.until(activeSequentialTasks::isEmpty);
             adminService.shutdown();
-        });
-        asyncThread.shutdown();
+        }).start();
     }
 
     @Override
