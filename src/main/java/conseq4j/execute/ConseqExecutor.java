@@ -26,8 +26,6 @@ package conseq4j.execute;
 
 import lombok.NonNull;
 import lombok.ToString;
-import org.awaitility.Awaitility;
-import org.awaitility.core.ConditionFactory;
 
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -52,7 +50,6 @@ public final class ConseqExecutor implements SequentialExecutor {
      * max parallelism of task execution.
      */
     private final ExecutorService workerExecutorService;
-    private final ConditionFactory await = Awaitility.await().forever();
 
     private ConseqExecutor(ExecutorService workerExecutorService) {
         this.workerExecutorService = workerExecutorService;
@@ -154,13 +151,10 @@ public final class ConseqExecutor implements SequentialExecutor {
 
     @Override
     public void shutdown() {
-        ExecutorService asyncThread = Executors.newSingleThreadExecutor();
-        asyncThread.execute(() -> {
-            workerExecutorService.shutdown();
-            await.until(activeSequentialTasks::isEmpty);
+        new Thread(() -> {
+            workerExecutorService.close();
             adminService.shutdown();
-        });
-        asyncThread.shutdown();
+        }).start();
     }
 
     @Override
