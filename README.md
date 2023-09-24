@@ -67,7 +67,7 @@ etc...
 #### API
 
 ```java
-public interface SequentialExecutorServiceFactory extends AutoCloseable {
+public interface SequentialExecutorServiceFactory {
     /**
      * @param sequenceKey
      *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
@@ -155,7 +155,7 @@ public class MessageConsumer {
 #### API
 
 ```java
-public interface SequentialExecutor extends AutoCloseable {
+public interface SequentialExecutor {
     /**
      * @param command
      *         the Runnable task to run sequentially with others under the same sequence key
