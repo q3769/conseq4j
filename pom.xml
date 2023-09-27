@@ -27,7 +27,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>io.github.q3769</groupId>
     <artifactId>conseq4j</artifactId>
-    <version>20230924.0.0</version>
+    <version>20230924.0.20230927</version>
     <packaging>jar</packaging>
     <name>conseq4j</name>
     <description>A Java concurrent API to sequence related tasks while concurring unrelated ones</description>

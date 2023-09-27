@@ -26,20 +26,21 @@ package conseq4j.summon;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
 
 import static conseq4j.TestUtils.createSpyingTasks;
 import static conseq4j.TestUtils.getIfAllCompleteNormal;
 import static java.util.stream.Collectors.toList;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Qingtian Wang
@@ -131,5 +132,33 @@ class ConseqServiceFactoryTest {
 
         TestUtils.awaitAllComplete(tasks);
         assertSingleThread(tasks);
+    }
+
+    @Nested
+    class individualShutdownUnsupported {
+        @Test
+        void whenShutdownsCalled() {
+            ExecutorService sequentialExecutor = ConseqServiceFactory.instance().getExecutorService(UUID.randomUUID());
+
+            assertThrows(UnsupportedOperationException.class, sequentialExecutor::shutdown);
+            assertThrows(UnsupportedOperationException.class, sequentialExecutor::shutdownNow);
+            assertThrows(UnsupportedOperationException.class, sequentialExecutor::close);
+            assertFalse(sequentialExecutor.isShutdown());
+            assertFalse(sequentialExecutor.isTerminated());
+        }
+    }
+
+    @Nested
+    class factoryClose {
+        @Test
+        void whenCloseCalled() {
+            ConseqServiceFactory conseqServiceFactory = ConseqServiceFactory.instance();
+            ExecutorService sequentialExecutor = conseqServiceFactory.getExecutorService(UUID.randomUUID());
+
+            conseqServiceFactory.close();
+
+            assertTrue(sequentialExecutor.isShutdown());
+            assertTrue(sequentialExecutor.isTerminated());
+        }
     }
 }

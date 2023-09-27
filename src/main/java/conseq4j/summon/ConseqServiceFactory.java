@@ -31,10 +31,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 import static java.lang.Math.floorMod;
 
@@ -67,8 +64,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     /**
      * @return ExecutorService factory with default concurrency
      */
-    public static ConseqServiceFactory instance() {
-        return new ConseqServiceFactory(Runtime.getRuntime().availableProcessors());
+    public static @Nonnull ConseqServiceFactory instance() {
+        return instance(Runtime.getRuntime().availableProcessors());
     }
 
     /**
@@ -76,7 +73,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      *         max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency
      */
-    public static ConseqServiceFactory instance(int concurrency) {
+    public static @Nonnull ConseqServiceFactory instance(int concurrency) {
         return new ConseqServiceFactory(concurrency);
     }
 
@@ -86,12 +83,12 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     @Override
     public ExecutorService getExecutorService(@NonNull Object sequenceKey) {
         return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
-                bucket -> new ShutdownDisabledExecutorService(Executors.newFixedThreadPool(1)));
+                bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
     @Override
     public void close() {
-        sequentialExecutors.values().forEach(ExecutorService::close);
+        sequentialExecutors.values().forEach(ShutdownDisabledExecutorService::closeDelegate);
     }
 
     private int bucketOf(Object sequenceKey) {
@@ -137,6 +134,32 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
         }
 
+        @Override
+        public void close() {
+            throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
+        }
+
+        void closeDelegate() {
+            boolean terminated = isTerminated();
+            if (!terminated) {
+                shutdownDelegate();
+                boolean interrupted = false;
+                while (!terminated) {
+                    try {
+                        terminated = awaitTermination(1L, TimeUnit.DAYS);
+                    } catch (InterruptedException e) {
+                        if (!interrupted) {
+                            shutdownDelegateNow();
+                            interrupted = true;
+                        }
+                    }
+                }
+                if (interrupted) {
+                    Thread.currentThread().interrupt();
+                }
+            }
+        }
+
         void shutdownDelegate() {
             this.delegate.shutdown();
         }
@@ -153,6 +176,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
             void shutdown();
 
             List<Runnable> shutdownNow();
+
+            void close();
         }
     }
 }
