@@ -64,7 +64,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * Returned executor uses {@link ForkJoinPool} of specified concurrency facilitate async operations.
+     * Returned executor uses {@link ForkJoinPool} of specified concurrency to facilitate async operations.
      *
      * @param concurrency
      *         max number of tasks that can be run in parallel by the returned executor instance.
