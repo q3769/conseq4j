@@ -44,6 +44,8 @@ import java.util.concurrent.Future;
  */
 public interface SequentialExecutor {
     /**
+     * Asynchronously executes specified command in sequence regulated by specified key
+     *
      * @param command
      *         the Runnable task to run sequentially with others under the same sequence key
      * @param sequenceKey
@@ -53,12 +55,14 @@ public interface SequentialExecutor {
     Future<Void> execute(Runnable command, Object sequenceKey);
 
     /**
+     * Asynchronously executes specified task in sequence regulated by specified key
+     *
+     * @param <T>
+     *         the type of the task's result
      * @param task
      *         the Callable task to run sequentially with others under the same sequence key
      * @param sequenceKey
      *         the key under which all tasks are executed sequentially
-     * @param <T>
-     *         the type of the task's result
      * @return a Future representing pending completion of the submitted task
      */
     <T> Future<T> submit(Callable<T> task, Object sequenceKey);

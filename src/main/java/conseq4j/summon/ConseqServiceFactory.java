@@ -62,6 +62,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     }
 
     /**
+     * Default static factory method uses available processor count as max task concurrency.
+     *
      * @return ExecutorService factory with default concurrency
      */
     public static @Nonnull ConseqServiceFactory instance() {
@@ -69,6 +71,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     }
 
     /**
+     * Static factory method taking specified task concurrency
+     *
      * @param concurrency
      *         max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency

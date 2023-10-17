@@ -39,12 +39,12 @@ public class TestUtils {
     private TestUtils() {
     }
 
-    public static long actualExecutionThreadCountIfAllCompleteNormal(List<Future<SpyingTask>> futures) {
-        return getIfAllCompleteNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
-    }
-
     public static int actualExecutionThreadCount(List<SpyingTask> tasks) {
         return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();
+    }
+
+    public static long actualExecutionThreadCountIfAllCompleteNormal(List<Future<SpyingTask>> futures) {
+        return getIfAllCompleteNormal(futures).stream().map(SpyingTask::getRunThreadName).distinct().count();
     }
 
     public static void assertConsecutiveRuntimes(List<SpyingTask> tasks) {
@@ -55,12 +55,12 @@ public class TestUtils {
         }
     }
 
-    public static <T> void awaitFutures(List<Future<T>> futures) {
-        Awaitility.await().until(() -> futures.parallelStream().allMatch(Future::isDone));
-    }
-
     public static void awaitAllComplete(List<SpyingTask> tasks) {
         Awaitility.await().until(() -> tasks.parallelStream().allMatch(SpyingTask::isDone));
+    }
+
+    public static <T> void awaitFutures(List<Future<T>> futures) {
+        Awaitility.await().until(() -> futures.parallelStream().allMatch(Future::isDone));
     }
 
     public static <T> int cancellationCount(List<Future<T>> futures) {
