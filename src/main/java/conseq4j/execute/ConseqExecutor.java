@@ -55,7 +55,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * Default executor uses Java 21 virtual threads to facilitate async operations
+     * Default executor uses Java 21 virtual threads to facilitate async operations.
      *
      * @return conseq executor with default concurrency
      */
@@ -64,7 +64,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * Uses {@link ForkJoinPool} of specified concurrency as async facilitation of the returned instance
+     * Returned executor uses {@link ForkJoinPool} of specified concurrency facilitate async operations.
      *
      * @param concurrency
      *         max number of tasks that can be run in parallel by the returned executor instance.
@@ -76,7 +76,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
 
     /**
      * User can directly supply the (fully customized) worker thread pool to facilitate async operations of the returned
-     * executor instance.
+     * executor.
      *
      * @param workerExecutorService
      *         ExecutorService that backs the async operations of worker threads
