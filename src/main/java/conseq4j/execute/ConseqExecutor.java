@@ -55,7 +55,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * Default static factory method
+     * Default executor uses Java 21 virtual threads to facilitate async operations
      *
      * @return conseq executor with default concurrency
      */
