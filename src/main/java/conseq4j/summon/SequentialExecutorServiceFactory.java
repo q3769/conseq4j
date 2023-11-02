@@ -39,10 +39,9 @@ public interface SequentialExecutorServiceFactory {
      * Produces sequential executor for the specified sequence key. All calls passing in the same sequence key return
      * the same executor.
      *
-     * @param sequenceKey
-     *         an {@link Object} instance whose hash code is used to summon the corresponding executor.
+     * @param sequenceKey an {@link Object} instance whose hash code is used to summon the corresponding executor.
      * @return the sequential executor of type {@link java.util.concurrent.ExecutorService} that executes all tasks of
-     *         this sequence key in the same order as they are submitted.
+     * this sequence key in the same order as they are submitted.
      */
     ExecutorService getExecutorService(Object sequenceKey);
 }
