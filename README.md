@@ -21,8 +21,7 @@ execution order at the same time.
 
 ## Prerequisite
 
-- Java 21 or better (version 20230923.0.0 or newer)
-- Java 8 or better (versions older than 20230923.0.0)
+- Java 8 or better
 
 ## Get it...
 
@@ -104,7 +103,8 @@ public class MessageConsumer {
      */
     private final SequentialExecutorServiceFactory conseqServiceFactory = ConseqServiceFactory.instance();
 
-    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
+    @Autowired
+    private ShoppingEventProcessor shoppingEventProcessor;
 
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
@@ -201,7 +201,8 @@ public class MessageConsumer {
      */
     private final SequentialExecutor conseqExecutor = ConseqExectuor.instance();
 
-    @Autowired private ShoppingEventProcessor shoppingEventProcessor;
+    @Autowired
+    private ShoppingEventProcessor shoppingEventProcessor;
 
     /**
      * Suppose run-time invocation of this method is managed by the messaging provider. This is usually via a single 
@@ -231,21 +232,20 @@ public class MessageConsumer {
   by unrelated tasks of different sequence keys in the same "bucket" - as is unnecessary. This can be a desired
   advantage over the thread-affinity API style, at the trade-off of lesser syntax and semantic richness than the
   JDK [ExecutorService](https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ExecutorService.html).
-- The default ConseqExecutor instance uses `Executors.newVirtualThreadPerTaskExecutor()` to facilitate the async
-  operations since Java 21. With earlier JDK and conseq4j versions, the default instance uses a `ForkJoinPool` with
-  parallelism equal to JVM
+- The default ConseqExecutor instance uses a `ForkJoinPool` with parallelism equal to JVM
   run-time's [availableProcessors](https://docs.oracle.com/javase/8/docs/api/java/lang/Runtime.html#availableProcessors--):
   ```jshelllanguage
   ConseqExecutor.instance()
   ```
-  If the concurrency is customized, the ConseqExecutor instance uses a `ForkJoinPool` of the specified
-  concurrency/parallelism:
+  Or, the concurrency/parallelism can be customized:
   ```jshelllanguage
   ConseqExecutor.instance(10)
   ```
-- The `ConseqExecutor` instance can also use a fully-customized `ExecutorService` to power its async operations:
-
-  `ConseqExecutor.instance(ExecutorService workerExecutorService)`
+- The `ConseqExecutor` instance can also use a fully-customized `ExecutorService` to power its async operations, e.g.
+  with Virtual Threads:
+  ```jshelllanguage
+  ConseqExecutor.instance(Executors.newVirtualThreadPerTaskExecutor())
+  ```
 
 ## Full disclosure - Asynchronous Conundrum
 

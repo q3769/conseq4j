@@ -24,11 +24,13 @@
 
 package conseq4j.execute;
 
+import conseq4j.Terminable;
 import lombok.NonNull;
 import lombok.ToString;
-
+import static org.awaitility.Awaitility.await;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
@@ -39,7 +41,7 @@ import java.util.concurrent.*;
  */
 @ThreadSafe
 @ToString
-public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
+public final class ConseqExecutor implements SequentialExecutor, Terminable, AutoCloseable {
 
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();
@@ -55,19 +57,20 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * Default executor uses Java 21 virtual threads to facilitate async operations.
+     * Returned executor uses {@link ForkJoinPool} of {@link Runtime#availableProcessors()} concurrency, with FIFO async
+     * mode.
      *
      * @return conseq executor with default concurrency
      */
     public static @Nonnull ConseqExecutor instance() {
-        return instance(Executors.newVirtualThreadPerTaskExecutor());
+        return instance(Runtime.getRuntime().availableProcessors());
     }
 
     /**
-     * Returned executor uses {@link ForkJoinPool} of specified concurrency to facilitate async operations.
+     * Returned executor uses {@link ForkJoinPool} of specified concurrency to facilitate async operations, with FIFO
+     * async mode.
      *
-     * @param concurrency
-     *         max number of tasks that can be run in parallel by the returned executor instance.
+     * @param concurrency max number of tasks that can be run in parallel by the returned executor instance.
      * @return conseq executor with given concurrency
      */
     public static @Nonnull ConseqExecutor instance(int concurrency) {
@@ -78,8 +81,7 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
      * User can directly supply the (fully customized) worker thread pool to facilitate async operations of the returned
      * executor.
      *
-     * @param workerExecutorService
-     *         ExecutorService that backs the async operations of worker threads
+     * @param workerExecutorService ExecutorService that backs the async operations of worker threads
      * @return instance of {@link ConseqExecutor}
      */
     public static @Nonnull ConseqExecutor instance(ExecutorService workerExecutorService) {
@@ -95,10 +97,8 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
     }
 
     /**
-     * @param command
-     *         the command to run asynchronously in proper sequence
-     * @param sequenceKey
-     *         the key under which this task should be sequenced
+     * @param command the command to run asynchronously in proper sequence
+     * @param sequenceKey the key under which this task should be sequenced
      * @return future result of the command, not downcast-able from the basic {@link Future} interface.
      * @see ConseqExecutor#submit(Callable, Object)
      */
@@ -136,32 +136,57 @@ public final class ConseqExecutor implements SequentialExecutor, AutoCloseable {
      * task/stage is never added to the task work queue on the executor map and has no effect on the overall
      * sequential-ness of the work stage executions.
      *
-     * @param task
-     *         the task to be called asynchronously with proper sequence
-     * @param sequenceKey
-     *         the key under which this task should be sequenced
+     * @param task the task to be called asynchronously with proper sequence
+     * @param sequenceKey the key under which this task should be sequenced
      * @return future result of the task, not downcast-able from the basic {@link Future} interface.
      */
     @Override
     @SuppressWarnings("unchecked")
     public <T> CompletableFuture<T> submit(@NonNull Callable<T> task, @NonNull Object sequenceKey) {
-        var latestTask = activeSequentialTasks.compute(sequenceKey,
-                (k, presentTask) -> (presentTask == null) ?
-                        CompletableFuture.supplyAsync(() -> call(task), workerExecutorService) :
-                        presentTask.handleAsync((r, e) -> call(task), workerExecutorService));
-        var copy = latestTask.copy();
-        latestTask.whenCompleteAsync((r, e) -> activeSequentialTasks.computeIfPresent(sequenceKey,
-                (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask), adminService);
+        CompletableFuture<?> latestTask = activeSequentialTasks.compute(
+                sequenceKey,
+                (k, presentTask) -> (presentTask == null)
+                        ? CompletableFuture.supplyAsync(() -> call(task), workerExecutorService)
+                        : presentTask.handleAsync((r, e) -> call(task), workerExecutorService));
+        CompletableFuture<?> copy = latestTask.thenApply(result -> result);
+        latestTask.whenCompleteAsync(
+                (r, e) -> activeSequentialTasks.computeIfPresent(
+                        sequenceKey, (k, checkedTask) -> checkedTask.isDone() ? null : checkedTask),
+                adminService);
         return (CompletableFuture<T>) copy;
     }
 
     @Override
     public void close() {
-        workerExecutorService.close();
-        adminService.close();
+        workerExecutorService.shutdown();
+        await().forever().until(activeSequentialTasks::isEmpty);
+        adminService.shutdown();
+        await().forever().until(() -> workerExecutorService.isTerminated() && adminService.isTerminated());
     }
 
     int estimateActiveExecutorCount() {
         return activeSequentialTasks.size();
+    }
+
+    @Override
+    public void terminate() {
+        new Thread(() -> {
+            workerExecutorService.shutdown();
+            await().forever().until(activeSequentialTasks::isEmpty);
+            adminService.shutdown();
+        })
+                .start();
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return workerExecutorService.isTerminated() && adminService.isTerminated();
+    }
+
+    @Override
+    public List<Runnable> terminateNow() {
+        List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
+        adminService.shutdownNow();
+        return neverStartedTasks;
     }
 }

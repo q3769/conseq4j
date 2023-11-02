@@ -27,19 +27,17 @@ package conseq4j.execute;
 import com.google.common.collect.Range;
 import conseq4j.SpyingTask;
 import conseq4j.TestUtils;
-import org.junit.jupiter.api.Test;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-import java.util.concurrent.Future;
-
 import static conseq4j.TestUtils.awaitAllComplete;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static java.util.stream.Collectors.toList;
 import static org.awaitility.Awaitility.await;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import org.junit.jupiter.api.Test;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
+import java.util.concurrent.Future;
 
 class ConseqExecutorTest {
     private static final int TASK_COUNT = 100;
@@ -54,7 +52,8 @@ class ConseqExecutorTest {
             resultFutures = new ArrayList<>();
             int cancelTaskIdx = 1;
             for (int i = 0; i < TASK_COUNT; i++) {
-                Future<SpyingTask> taskFuture = conseqExecutor.submit(tasks.get(i).toCallable(), sameSequenceKey);
+                Future<SpyingTask> taskFuture =
+                        conseqExecutor.submit(tasks.get(i).toCallable(), sameSequenceKey);
                 if (i == cancelTaskIdx) {
                     taskFuture.cancel(true);
                 }
@@ -136,8 +135,7 @@ class ConseqExecutorTest {
         List<Future<SpyingTask>> futures;
         try (ConseqExecutor conseqExecutor = ConseqExecutor.instance(threadPoolSize)) {
 
-            futures = TestUtils.createSpyingTasks(TASK_COUNT)
-                    .stream()
+            futures = TestUtils.createSpyingTasks(TASK_COUNT).stream()
                     .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                     .collect(toList());
         }
@@ -151,8 +149,7 @@ class ConseqExecutorTest {
         List<Future<SpyingTask>> futures;
         try (ConseqExecutor conseqExecutor = ConseqExecutor.instance(TASK_COUNT * 10)) {
 
-            futures = TestUtils.createSpyingTasks(TASK_COUNT)
-                    .stream()
+            futures = TestUtils.createSpyingTasks(TASK_COUNT).stream()
                     .map(task -> conseqExecutor.submit(task.toCallable(), UUID.randomUUID()))
                     .collect(toList());
         }

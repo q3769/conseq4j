@@ -23,17 +23,19 @@
  */
 package conseq4j.summon;
 
+import conseq4j.Terminable;
+import static java.lang.Math.floorMod;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
-
+import static org.awaitility.Awaitility.await;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
+import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-
-import static java.lang.Math.floorMod;
+import java.util.stream.Collectors;
 
 /**
  * A factory to produce sequential executors of type {@link ExecutorService} with an upper-bound global execution
@@ -41,17 +43,15 @@ import static java.lang.Math.floorMod;
  *
  * @author Qingtian Wang
  */
-
 @ThreadSafe
 @ToString
-public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, AutoCloseable {
+public final class ConseqServiceFactory implements SequentialExecutorServiceFactory, Terminable, AutoCloseable {
     private final int concurrency;
     private final ConcurrentMap<Object, ShutdownDisabledExecutorService> sequentialExecutors;
 
     /**
-     * @param concurrency
-     *         max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be concurrently
-     *         executed at any given time by this conseq instance.
+     * @param concurrency max count of "buckets"/executors, i.e. the max number of unrelated tasks that can be
+     * concurrently executed at any given time by this conseq instance.
      */
     private ConseqServiceFactory(int concurrency) {
         if (concurrency <= 0) {
@@ -73,8 +73,7 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
     /**
      * Static factory method taking specified task concurrency
      *
-     * @param concurrency
-     *         max number of tasks possible to be executed in parallel
+     * @param concurrency max number of tasks possible to be executed in parallel
      * @return ExecutorService factory with given concurrency
      */
     public static @Nonnull ConseqServiceFactory instance(int concurrency) {
@@ -86,17 +85,39 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      */
     @Override
     public ExecutorService getExecutorService(@NonNull Object sequenceKey) {
-        return this.sequentialExecutors.computeIfAbsent(bucketOf(sequenceKey),
+        return this.sequentialExecutors.computeIfAbsent(
+                bucketOf(sequenceKey),
                 bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
     @Override
     public void close() {
-        sequentialExecutors.values().forEach(ShutdownDisabledExecutorService::closeDelegate);
+        Collection<ShutdownDisabledExecutorService> shutdownDisabledExecutorServices = sequentialExecutors.values();
+        shutdownDisabledExecutorServices.forEach(ShutdownDisabledExecutorService::closeDelegate);
+        await().forever().until(() -> shutdownDisabledExecutorServices.stream()
+                .allMatch(ShutdownDisabledExecutorService::isTerminated));
     }
 
     private int bucketOf(Object sequenceKey) {
         return floorMod(Objects.hash(sequenceKey), this.concurrency);
+    }
+
+    @Override
+    public void terminate() {
+        sequentialExecutors.values().parallelStream().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
+    }
+
+    @Override
+    public boolean isTerminated() {
+        return sequentialExecutors.values().stream().allMatch(ExecutorService::isTerminated);
+    }
+
+    @Override
+    public List<Runnable> terminateNow() {
+        return sequentialExecutors.values().parallelStream()
+                .map(ShutdownDisabledExecutorService::shutdownDelegateNow)
+                .flatMap(Collection::stream)
+                .collect(Collectors.toList());
     }
 
     /**
@@ -110,11 +131,11 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
         private static final String SHUTDOWN_UNSUPPORTED_MESSAGE =
                 "Shutdown not supported: Tasks being executed by this service may be from unrelated owners; shutdown features are disabled to prevent undesired task cancellation on other owners";
 
-        @Delegate(excludes = ShutdownOperations.class) private final ExecutorService delegate;
+        @Delegate(excludes = ShutdownOperations.class)
+        private final ExecutorService delegate;
 
         /**
-         * @param delegate
-         *         the delegate {@link ExecutorService} to run the submitted task(s).
+         * @param delegate the delegate {@link ExecutorService} to run the submitted task(s).
          */
         public ShutdownDisabledExecutorService(ExecutorService delegate) {
             this.delegate = delegate;
@@ -135,11 +156,6 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
          */
         @Override
         public @Nonnull List<Runnable> shutdownNow() {
-            throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
-        }
-
-        @Override
-        public void close() {
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
         }
 
