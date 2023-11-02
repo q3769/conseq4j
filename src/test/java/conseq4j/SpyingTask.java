@@ -23,13 +23,14 @@
  */
 package conseq4j;
 
-import lombok.Getter;
-import lombok.ToString;
 import static org.awaitility.Awaitility.await;
+
 import java.time.Duration;
 import java.util.Random;
 import java.util.concurrent.Callable;
 import java.util.concurrent.Executors;
+import lombok.Getter;
+import lombok.ToString;
 
 /**
  * @author Qingtian Wang

@@ -24,15 +24,16 @@
 
 package conseq4j.execute;
 
-import conseq4j.Terminable;
-import lombok.NonNull;
-import lombok.ToString;
 import static org.awaitility.Awaitility.await;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
+
+import conseq4j.Terminable;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
+import lombok.NonNull;
+import lombok.ToString;
 
 /**
  * Relies on the JDK {@link CompletableFuture} as the sequential executor of the tasks under the same sequence key.
@@ -171,10 +172,10 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
     @Override
     public void terminate() {
         new Thread(() -> {
-            workerExecutorService.shutdown();
-            await().forever().until(activeSequentialTasks::isEmpty);
-            adminService.shutdown();
-        })
+                    workerExecutorService.shutdown();
+                    await().forever().until(activeSequentialTasks::isEmpty);
+                    adminService.shutdown();
+                })
                 .start();
     }
 

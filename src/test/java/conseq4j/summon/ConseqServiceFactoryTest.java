@@ -23,15 +23,14 @@
  */
 package conseq4j.summon;
 
-import com.google.common.collect.Range;
-import conseq4j.SpyingTask;
-import conseq4j.TestUtils;
 import static conseq4j.TestUtils.createSpyingTasks;
 import static conseq4j.TestUtils.getIfAllCompleteNormal;
 import static java.util.stream.Collectors.toList;
 import static org.junit.jupiter.api.Assertions.*;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
+
+import com.google.common.collect.Range;
+import conseq4j.SpyingTask;
+import conseq4j.TestUtils;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.Callable;
@@ -39,6 +38,8 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.stream.Collectors;
+import org.junit.jupiter.api.Nested;
+import org.junit.jupiter.api.Test;
 
 /**
  * @author Qingtian Wang

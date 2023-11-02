@@ -25,17 +25,17 @@
 package conseq4j;
 
 import static java.util.stream.Collectors.toList;
-import org.awaitility.Awaitility;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
 import java.util.stream.IntStream;
+import org.awaitility.Awaitility;
 
 public class TestUtils {
 
-    private TestUtils() {
-    }
+    private TestUtils() {}
 
     public static int actualExecutionThreadCount(List<SpyingTask> tasks) {
         return (int) tasks.stream().map(SpyingTask::getRunThreadName).distinct().count();

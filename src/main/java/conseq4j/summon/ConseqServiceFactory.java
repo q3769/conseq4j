@@ -23,19 +23,20 @@
  */
 package conseq4j.summon;
 
-import conseq4j.Terminable;
 import static java.lang.Math.floorMod;
-import lombok.NonNull;
-import lombok.ToString;
-import lombok.experimental.Delegate;
 import static org.awaitility.Awaitility.await;
-import javax.annotation.Nonnull;
-import javax.annotation.concurrent.ThreadSafe;
+
+import conseq4j.Terminable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
 import java.util.stream.Collectors;
+import javax.annotation.Nonnull;
+import javax.annotation.concurrent.ThreadSafe;
+import lombok.NonNull;
+import lombok.ToString;
+import lombok.experimental.Delegate;
 
 /**
  * A factory to produce sequential executors of type {@link ExecutorService} with an upper-bound global execution
