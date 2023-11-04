@@ -31,7 +31,10 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.stream.Collectors;
 import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
@@ -102,10 +105,8 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
      */
     @Override
     public void close() {
-        Collection<ShutdownDisabledExecutorService> shutdownDisabledExecutorServices = sequentialExecutors.values();
-        shutdownDisabledExecutorServices.forEach(ShutdownDisabledExecutorService::closeDelegate);
-        awaitForever().until(() -> shutdownDisabledExecutorServices.stream()
-                .allMatch(ShutdownDisabledExecutorService::isTerminated));
+        sequentialExecutors.values().forEach(ShutdownDisabledExecutorService::shutdownDelegate);
+        awaitForever().until(this::isTerminated);
     }
 
     private int bucketOf(Object sequenceKey) {
@@ -167,27 +168,6 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
         @Override
         public @Nonnull List<Runnable> shutdownNow() {
             throw new UnsupportedOperationException(SHUTDOWN_UNSUPPORTED_MESSAGE);
-        }
-
-        void closeDelegate() {
-            boolean terminated = isTerminated();
-            if (!terminated) {
-                shutdownDelegate();
-                boolean interrupted = false;
-                while (!terminated) {
-                    try {
-                        terminated = awaitTermination(1L, TimeUnit.DAYS);
-                    } catch (InterruptedException e) {
-                        if (!interrupted) {
-                            shutdownDelegateNow();
-                            interrupted = true;
-                        }
-                    }
-                }
-                if (interrupted) {
-                    Thread.currentThread().interrupt();
-                }
-            }
         }
 
         void shutdownDelegate() {
