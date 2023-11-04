@@ -27,6 +27,7 @@ package conseq4j.execute;
 import static org.awaitility.Awaitility.await;
 
 import conseq4j.Terminable;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
@@ -34,6 +35,7 @@ import javax.annotation.Nonnull;
 import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
 import lombok.ToString;
+import org.awaitility.core.ConditionFactory;
 
 /**
  * Relies on the JDK {@link CompletableFuture} as the sequential executor of the tasks under the same sequence key.
@@ -98,6 +100,10 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
         }
     }
 
+    private static ConditionFactory awaitForever() {
+        return await().forever().pollDelay(Duration.ofMillis(10));
+    }
+
     /**
      * @param command the command to run asynchronously in proper sequence
      * @param sequenceKey the key under which this task should be sequenced
@@ -160,21 +166,20 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
 
     @Override
     public void close() {
-        workerExecutorService.shutdown();
-        await().forever().until(activeSequentialTasks::isEmpty);
-        adminService.shutdown();
-        await().forever().until(() -> workerExecutorService.isTerminated() && adminService.isTerminated());
+        awaitForever().until(this::noTaskPending);
+        terminate();
+        awaitForever().until(this::isTerminated);
     }
 
-    int estimateActiveExecutorCount() {
-        return activeSequentialTasks.size();
+    boolean noTaskPending() {
+        return activeSequentialTasks.isEmpty();
     }
 
     @Override
     public void terminate() {
         new Thread(() -> {
                     workerExecutorService.shutdown();
-                    await().forever().until(activeSequentialTasks::isEmpty);
+                    awaitForever().until(this::noTaskPending);
                     adminService.shutdown();
                 })
                 .start();
@@ -186,7 +191,7 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
     }
 
     @Override
-    public List<Runnable> terminateNow() {
+    public @Nonnull List<Runnable> terminateNow() {
         List<Runnable> neverStartedTasks = workerExecutorService.shutdownNow();
         adminService.shutdownNow();
         return neverStartedTasks;

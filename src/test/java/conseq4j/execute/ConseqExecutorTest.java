@@ -89,7 +89,7 @@ class ConseqExecutorTest {
             tasks.parallelStream().forEach(t -> sut.execute(t, UUID.randomUUID()));
             TestUtils.awaitAllComplete(tasks);
 
-            await().until(() -> sut.estimateActiveExecutorCount() == 0);
+            await().until(sut::noTaskPending);
         }
     }
 
@@ -102,7 +102,7 @@ class ConseqExecutorTest {
             tasks.parallelStream().forEach(t -> sut.execute(t, sameSequenceKey));
             TestUtils.awaitAllComplete(tasks);
 
-            await().until(() -> sut.estimateActiveExecutorCount() == 0);
+            await().until(sut::noTaskPending);
         }
     }
 
