@@ -26,6 +26,9 @@ package conseq4j;
 
 import java.util.List;
 
+/**
+ * Direct shutdown operations
+ */
 public interface Terminable {
     /**
      * Initiates an orderly terminate of all managed thread resources. Previously submitted tasks are executed, but no

@@ -27,6 +27,7 @@ import static java.lang.Math.floorMod;
 import static org.awaitility.Awaitility.await;
 
 import conseq4j.Terminable;
+import java.time.Duration;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
@@ -37,6 +38,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import lombok.NonNull;
 import lombok.ToString;
 import lombok.experimental.Delegate;
+import org.awaitility.core.ConditionFactory;
 
 /**
  * A factory to produce sequential executors of type {@link ExecutorService} with an upper-bound global execution
@@ -81,6 +83,10 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
         return new ConseqServiceFactory(concurrency);
     }
 
+    private static ConditionFactory awaitForever() {
+        return await().forever().pollDelay(Duration.ofMillis(10));
+    }
+
     /**
      * @return a single-thread executor that does not support any shutdown action.
      */
@@ -91,11 +97,14 @@ public final class ConseqServiceFactory implements SequentialExecutorServiceFact
                 bucket -> new ShutdownDisabledExecutorService(Executors.newSingleThreadExecutor()));
     }
 
+    /**
+     * Shuts down all executors and awaits termination to complete
+     */
     @Override
     public void close() {
         Collection<ShutdownDisabledExecutorService> shutdownDisabledExecutorServices = sequentialExecutors.values();
         shutdownDisabledExecutorServices.forEach(ShutdownDisabledExecutorService::closeDelegate);
-        await().forever().until(() -> shutdownDisabledExecutorServices.stream()
+        awaitForever().until(() -> shutdownDisabledExecutorServices.stream()
                 .allMatch(ShutdownDisabledExecutorService::isTerminated));
     }
 

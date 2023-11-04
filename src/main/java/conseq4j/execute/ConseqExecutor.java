@@ -164,6 +164,9 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
         return (CompletableFuture<T>) copy;
     }
 
+    /**
+     * First wait until no more task pending. For direct shutdown operations, use {@link Terminable} methods.
+     */
     @Override
     public void close() {
         awaitForever().until(this::noTaskPending);
