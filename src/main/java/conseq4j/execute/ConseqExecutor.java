@@ -44,6 +44,7 @@ import lombok.ToString;
 @ToString
 public final class ConseqExecutor implements SequentialExecutor, Terminable, AutoCloseable {
 
+    private static final int DEFAULT_CONCURRENCY = Runtime.getRuntime().availableProcessors();
     private final Map<Object, CompletableFuture<?>> activeSequentialTasks = new ConcurrentHashMap<>();
     private final ExecutorService adminService = Executors.newSingleThreadExecutor();
     /**
@@ -64,7 +65,7 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
      * @return conseq executor with default concurrency
      */
     public static @Nonnull ConseqExecutor instance() {
-        return instance(Runtime.getRuntime().availableProcessors());
+        return instance(DEFAULT_CONCURRENCY);
     }
 
     /**
