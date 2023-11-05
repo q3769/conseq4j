@@ -165,7 +165,8 @@ public final class ConseqExecutor implements SequentialExecutor, Terminable, Aut
     }
 
     /**
-     * First wait until no more task pending. For direct shutdown operations, use {@link Terminable} methods.
+     * First wait until no more task pending, then orderly shutdown. For direct shutdown operations regardless of
+     * pending tasks, use the {@link Terminable} methods instead.
      */
     @Override
     public void close() {
